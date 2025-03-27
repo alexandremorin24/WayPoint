@@ -1,0 +1,64 @@
+# 🚫 System files
+.DS_Store
+Thumbs.db
+
+# 🔐 Environment variables
+.env
+.env.local
+.env.*.local
+
+# 📁 Node dependencies
+node_modules/
+
+# 📦 Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 🛠️ Build directories
+/build
+/dist
+
+# 🚀 Vercel
+.vercel
+
+# 🚂 Railway
+railway.env
+
+# 🧪 Test coverage
+coverage/
+
+# 📈 Profiling and debugging
+*.heapprofile
+*.cpuprofile
+*.snap
+
+# 🗑 Temporary files
+*.tmp
+*.temp
+*.bak
+
+# 🗃 Cache
+.cache/
+
+# 📝 Generated files
+.next/
+out/
+
+# 🔧 IDE & Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 📦 Docker
+*.dockerignore
+Dockerfile
+
+# Local playground for temporary code and UI tests
+.playground/
