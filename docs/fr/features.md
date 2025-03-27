@@ -49,6 +49,18 @@ WayPoint Map Builder est conçu avec une distinction claire entre les fonctionna
   - Utilisateur, horodatage, type d'action et données associées
 - Statistiques agrégées de l'activité utilisateur (création/mise à jour POI)
 
+### 8. Sélection du jeu (via API externe)
+
+- Lors de la création d'une map, l’utilisateur doit sélectionner le jeu associé.
+- Les données proviennent de l’**API IGDB** (via Twitch).
+- La liste des jeux est **recherchable en autocomplete** et contient :
+  - Le nom officiel du jeu
+  - L’image de couverture
+  - Le slug (utilisé pour les URLs publiques)
+- Les maps pourront ensuite être **groupées ou filtrées par jeu**.
+
+> Remarque : cela permettra de créer plus tard des pages publiques de type `/game/:slug`.
+
 ---
 
 ## 🚀 Roadmap (Post-MVP)

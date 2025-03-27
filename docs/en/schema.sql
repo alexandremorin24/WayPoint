@@ -93,6 +93,19 @@ CREATE TABLE map_votes (
   UNIQUE (user_id, map_id)
 );
 
+CREATE TABLE games (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(255),
+  cover_url TEXT,
+  release_date DATE,
+  genres TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE maps ADD COLUMN game_id VARCHAR(255);
+ALTER TABLE maps ADD FOREIGN KEY (game_id) REFERENCES games(id);
+
 -- 📈 Optimizations for Scalability and Performance
 
 -- Indexes for critical and frequently queried columns

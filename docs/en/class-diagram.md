@@ -91,6 +91,15 @@ class MapVote {
   +Date createdAt
 }
 
+class Game {
+  +string id
+  +string name
+  +string slug
+  +string coverUrl
+  +Date releaseDate
+  +string genre
+}
+
 %% ==== RELATIONSHIPS (MVP) ====
 
 User "1" --> "many" Map : owns
@@ -109,6 +118,8 @@ POI "1" --> "many" POILog
 
 User "1" --> "many" MapVote
 Map "1" --> "many" MapVote
+
+Map "1" --> "1" Game
 
 Category "0..1" --> "many" Category : subcategories
 ```

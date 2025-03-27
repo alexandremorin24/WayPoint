@@ -49,6 +49,18 @@ WayPoint Map Builder is designed with a clear distinction between the **Minimum 
   - User, timestamp, action type, and payload
 - Aggregated stats on user activity (POI creation/updates)
 
+### 8. Game selection (via external API)
+
+- When creating a map, users must select the game it belongs to.
+- Game data is fetched from the external **IGDB API** (via Twitch).
+- The list is searchable (autocomplete) and includes metadata like:
+  - Official name
+  - Cover image
+  - Slug (used for public map URLs)
+- Maps can then be grouped, filtered or displayed by game.
+
+> Note: This integration allows building `/game/:slug` pages in the future.
+
 ---
 
 ## 🚀 Roadmap (Post-MVP)

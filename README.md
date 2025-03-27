@@ -1,10 +1,10 @@
-# WayPoint - Map Builder
+# WayPoint - Collaborative Map Builder
 
 <p align="center">
   <img src="assets/logo.png" alt="WayPoint Logo" style="max-width: 100%;" />
 </p>
-<details open>
-<summary>🇬🇧 English version</summary>
+<details>
+<summary><strong>🌍 English version</strong></summary>
 
 WayPoint - Map Builder is a progressive web application (PWA) designed to let users collaboratively create, annotate, and share custom interactive maps in real time.
 
@@ -37,6 +37,7 @@ WayPoint enables gamers, content creators, and groups to collaboratively build, 
 - 🔍 Dynamic POI filtering
 - 🌐 Public read-only map sharing
 - 📱 Mobile compatibility (PWA)
+- 🎮 Game selection from external database (IGDB): each map is linked to an official game, allowing filtering and grouping by title.
 
 **Detailed features → [`docs/en/features.md`](docs/en/features.md)**
 
@@ -102,9 +103,12 @@ WayPoint - Map Builder will be published under an open-source license after the 
 
 </details>
 
+</br>
 
-<details open>
-<summary>🇫🇷 Version française</summary>
+<details>
+
+
+<summary><strong>🇫🇷 Version Française</strong></summary>
 
 WayPoint - Map Builder est une application web progressive (PWA) conçue pour permettre aux utilisateurs de créer, annoter et partager de manière collaborative des cartes interactives personnalisées en temps réel.
 
@@ -137,6 +141,7 @@ WayPoint permet aux joueurs, créateurs de contenu et groupes de construire, per
 - 🔍 Filtrage dynamique des POI
 - 🌐 Partage public des cartes en lecture seule
 - 📱 Compatibilité mobile (PWA)
+- 🎮 Sélection du jeu via une base externe (IGDB) : chaque carte est associée à un jeu officiel, permettant de filtrer ou regrouper les maps par titre.
 
 **Fonctionnalités détaillées → [`docs/fr/features.md`](docs/fr/features.md)**
 

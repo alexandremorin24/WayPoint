@@ -52,6 +52,14 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 
 ---
 
+## 📡 Services externes / APIs
+
+| Service                | Rôle                                      | Pourquoi l’utiliser ?                                                                                   |
+|------------------------|-------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **IGDB API (via Twitch)** | Fournisseur de métadonnées de jeux vidéo | Permet aux utilisateurs de sélectionner un jeu officiel lors de la création d'une map. Inclut les visuels (covers), dates de sortie et slugs. |
+
+---
+
 ## ⚡ Gestion d'état
 - **Zustand**
   - Solution légère et performante de gestion d'état global pour React.

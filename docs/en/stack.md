@@ -52,6 +52,14 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 
 ---
 
+## 📡 External Services / APIs
+
+| Service | Role                          | Why use it?                                                |
+|---------|-------------------------------|------------------------------------------------------------|
+| IGDB API (via Twitch) | Game metadata provider       | Enables users to select official games when creating maps. Includes covers, release dates, and game slugs. |
+
+---
+
 ## 🗃️ Database Management
 
 - **Prisma ORM**
