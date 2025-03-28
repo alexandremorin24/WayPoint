@@ -8,9 +8,12 @@ CREATE TABLE users (
   display_name VARCHAR(255) NOT NULL,
   photo_url TEXT,
   auth_provider VARCHAR(50) NOT NULL CHECK (auth_provider IN ('google', 'local')),
-  password_hash TEXT, -- NULL pour auth Google
+  password_hash VARCHAR(255), -- NULL pour auth Google
   email_verified BOOLEAN DEFAULT FALSE,
-  last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  preferred_language VARCHAR(5) DEFAULT 'en',
+  email_optin BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 🗺️ Cartes

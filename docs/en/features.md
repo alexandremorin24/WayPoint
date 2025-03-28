@@ -61,12 +61,16 @@ WayPoint Map Builder is designed with a clear distinction between the **Minimum 
 > Note: This integration allows building `/game/:slug` pages in the future.
 
 ### 9. Secure Authentication System
-- Users can log in using:
-  - Google OAuth2 (recommended)
-  - Email + password (with email confirmation)
-- Emails are verified via secure token links sent through the Resend API
-- User data uses UUIDs (universally unique identifiers) for safer, scalable ID management
-
+- Users can register and log in using:
+  - **Google OAuth2** (via official provider)
+  - **Email + password** (classic registration)
+- When registering with email, users must confirm their address through a secure token link (email sent via [Resend](https://resend.com)).
+- The system ensures:
+  - Strong password storage (hashed + salted)
+  - Email duplication prevention
+  - Simple password recovery workflow (coming post-MVP)
+- Authentication logic is fully **custom-built** (no Firebase).
+- All user records use **UUIDs** for secure and scalable identification.
 
 ---
 
@@ -101,6 +105,13 @@ WayPoint Map Builder is designed with a clear distinction between the **Minimum 
 ### 📜 Detailed Activity & Change Management
 - Visual action history and interactive timeline
 - Version rollback for maps and POIs
+
+### ✅ POI Completion Tracking (Checklists)
+- Users can mark a POI as completed (e.g., found, done, collected).
+- Optional checklist system per map or per POI type (e.g., “Found”, “Defeated”, “Opened”).
+- Visible status directly on the map via icons or color overlay.
+- Completion status can be filtered or visualized by user or category.
+
 
 ---
 

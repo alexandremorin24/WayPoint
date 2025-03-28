@@ -59,40 +59,59 @@ WayPoint Map Builder est conçu avec une distinction claire entre les fonctionna
 - Les maps pourront ensuite être **groupées ou filtrées par jeu**.
 
 > Remarque : cela permettra de créer plus tard des pages publiques de type `/game/:slug`.
-### 9. Système d’authentification sécurisé
-- Les utilisateurs peuvent se connecter via :
-  - Google OAuth2 (recommandé)
-  - Email + mot de passe (avec vérification par email)
-- Les adresses email sont validées par un lien sécurisé envoyé via l’API Resend
-- Tous les identifiants sont gérés en UUID (identifiants uniques universels) pour plus de sécurité et de scalabilité
+### 9. Système d'authentification sécurisé
 
+- Les utilisateurs peuvent s’inscrire et se connecter via :
+  - **Google OAuth2** (via le fournisseur officiel)
+  - **Email + mot de passe** (création de compte classique)
+- Lors de l’inscription par email, un lien de confirmation sécurisé est envoyé (via [Resend](https://resend.com)) pour valider l’adresse.
+- Le système garantit :
+  - Un stockage sécurisé des mots de passe (hachés + salés)
+  - Unicité des adresses email
+  - Une procédure simple de récupération de mot de passe (à venir post-MVP)
+- L’authentification est **entièrement gérée sans Firebase**.
+- Tous les utilisateurs sont identifiés via des **UUIDs** pour plus de sécurité et de flexibilité.
 
 ---
 
 ## 🚀 Roadmap (Post-MVP)
 
-### 1. Gestion avancée des accès et des rôles
+### 🛡️ Gestion avancée des accès et des rôles
 - Rôles personnalisés (Admin, Éditeur, Lecteur)
-- Transfert de propriété
-- Gestion avancée des permissions
+- Transfert de propriété entre utilisateurs
+- Gestion granulaire des permissions
 
-### 2. Collaboration en Mode Proposition
-- Modifications proposées et non directement appliquées
-- Validation ou rejet par l'administrateur
-- Historique intégré des propositions
+### 💬 Améliorations de la collaboration
+- **Mode de collaboration par proposition**
+  - Modifications proposées par les éditeurs, validées ou refusées par les admins
+  - Historique des propositions intégré
+  - Acceptation partielle des modifications proposées
+- **Chat en temps réel**
+  - Système de chat intégré par carte
+  - Accessible uniquement aux utilisateurs ayant des droits d’édition
+  - Messagerie instantanée pour faciliter la collaboration et la prise de décision
 
-### 3. Exploration publique avancée
-- Filtrage par type de jeux ou tags
-- Cartes mises en avant manuellement par les administrateurs
+### 📈 Expérience publique et utilisateur améliorée
+- Exploration publique avancée des cartes (filtres par jeu, tags, mise en avant manuelle par les admins)
+- **Commentaires utilisateurs**
+  - Permet aux visiteurs de commenter ou de suggérer des améliorations sur une carte ou un POI
+- **Cartes favorites**
+  - Les utilisateurs peuvent enregistrer et gérer facilement leurs cartes préférées
 
-### 4. Historique détaillé des activités
-- Historique visuel des actions
-- Chronologie interactive avec filtres
-- Restauration à une version antérieure
+### 🔔 Notifications & engagement
+- **Notifications push PWA**
+  - Alertes en temps réel sur les modifications importantes ou les événements de collaboration
 
-### 5. Interface de collaboration améliorée
-- Interface conviviale de suivi des modifications et propositions
-- Acceptation partielle des modifications proposées
+### 📜 Historique détaillé des activités & gestion des modifications
+- Historique visuel des actions et timeline interactive
+- Restauration des versions précédentes de cartes ou de POI
+
+### ✅ Suivi d’accomplissement des POI (Checklists)
+- Les utilisateurs peuvent marquer un POI comme complété (ex : trouvé, terminé, collecté)
+- Système de checklist optionnel par carte ou par type de POI (ex : “Trouvé”, “Vaincu”, “Ouvert”)
+- Statut visible directement sur la carte (icône ou surcouche colorée)
+- Possibilité de filtrer ou visualiser les POI complétés par utilisateur ou par catégorie
+
 
 ---
 
@@ -109,7 +128,3 @@ WayPoint Map Builder est conçu avec une distinction claire entre les fonctionna
 | Acceptation partielle des modifs| ❌              | ✅ Disponible               |
 
 ---
-
-> **Prochaines étapes :**
-> - Valider ces fonctionnalités MVP avec des retours utilisateurs
-> - Prioriser les fonctionnalités de la roadmap selon les besoins réels des utilisateurs et l'évolution du projet

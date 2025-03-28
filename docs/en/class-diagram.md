@@ -19,7 +19,10 @@ class User {
   +string authProvider       // 'google' or 'local'
   +string passwordHash       // bcrypt
   +bool emailVerified
+  +Date createdAt
   +Date lastLoginAt
+  +string preferredLanguage
+  +boolean emailOptIn
   +createMap()
   +getMyMaps()
   +getFavoriteMaps(page, limit)

@@ -24,7 +24,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 | **Leaflet.js**     | Interactive Maps   | Lightweight, open-source, suitable for custom image maps.  |
 | **Express.js**     | Backend            | Minimalist, flexible Node.js framework, easy API building. |
 | **Socket.io**      | Real-time          | For real-time collaboration (planned post-MVP).            |
-| ***Google OAuth2 + Email Auth** | Authentication | Dual login system with Google OAuth2 and traditional email + password authentication (with email confirmation). |
+| **Google OAuth2 + Email Auth** | Authentication | Dual login system: Google OAuth2 or Email/Password. Email confirmation sent via Resend. |
 | **Firebase Storage**| File Storage      | Easy image storage for uploaded maps and POIs.             |
 | **Axios**          | API Requests       | Simplifies frontend-backend HTTP communication.            |
 
@@ -56,7 +56,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 | Service | Role                          | Why use it?                                                |
 |---------|-------------------------------|------------------------------------------------------------|
 | IGDB API (via Twitch) | Game metadata provider       | Enables users to select official games when creating maps. Includes covers, release dates, and game slugs. |
-| Resend | Email Delivery | Sends account confirmation emails and other transactional emails securely and reliably. |
+| Resend | Email Delivery | Handles email verification links and transactional emails (e.g. sign-up confirmation). |
 
 ---
 

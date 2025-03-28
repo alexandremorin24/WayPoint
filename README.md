@@ -51,7 +51,7 @@ WayPoint enables gamers, content creators, and groups to collaboratively build, 
 | 🛠 Backend            | Node.js + Express.js         |
 | 🗄 Database           | MySQL (hosted on Railway)    |
 | 🗺 Interactive Maps   | Leaflet.js                   |
-| 🔐 Authentication     | Google OAuth2 + Resend       |
+| 🔐 Authentication     | Google OAuth2 + Email/password (Resend) |
 | 🗂 File Storage       | Firebase Storage             |
 | 🔄 Real-time (future) | WebSockets (Socket.io)       |
 | 🎨 UI/UX              | TailwindCSS                  |
@@ -158,7 +158,7 @@ WayPoint permet aux joueurs, créateurs de contenu et groupes de construire, per
 | 🛠 Backend            | Node.js + Express.js         |
 | 🗄 Base de données    | MySQL (hébergée sur Railway) |
 | 🗺 Cartes interactives| Leaflet.js                   |
-| 🔐 Authentification   | Google OAuth2 + Resend       |
+| 🔐 Authentification   | Google OAuth2 + Email/mot de passe (Resend)       |
 | 🗂 Stockage fichiers  | Firebase Storage             |
 | 🔄 Temps réel (futur) | WebSockets (Socket.io)       |
 | 🎨 UI/UX              | TailwindCSS                  |
