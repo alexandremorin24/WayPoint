@@ -16,6 +16,10 @@ class User {
   +string email
   +string displayName
   +string photoUrl
+  +string authProvider       // 'google' or 'local'
+  +string passwordHash       // bcrypt
+  +bool emailVerified
+  +Date lastLoginAt
   +createMap()
   +getMyMaps()
   +getFavoriteMaps(page, limit)

@@ -50,7 +50,6 @@ WayPoint Map Builder is designed with a clear distinction between the **Minimum 
 - Aggregated stats on user activity (POI creation/updates)
 
 ### 8. Game selection (via external API)
-
 - When creating a map, users must select the game it belongs to.
 - Game data is fetched from the external **IGDB API** (via Twitch).
 - The list is searchable (autocomplete) and includes metadata like:
@@ -60,6 +59,14 @@ WayPoint Map Builder is designed with a clear distinction between the **Minimum 
 - Maps can then be grouped, filtered or displayed by game.
 
 > Note: This integration allows building `/game/:slug` pages in the future.
+
+### 9. Secure Authentication System
+- Users can log in using:
+  - Google OAuth2 (recommended)
+  - Email + password (with email confirmation)
+- Emails are verified via secure token links sent through the Resend API
+- User data uses UUIDs (universally unique identifiers) for safer, scalable ID management
+
 
 ---
 

@@ -51,12 +51,15 @@ WayPoint enables gamers, content creators, and groups to collaboratively build, 
 | 🛠 Backend            | Node.js + Express.js         |
 | 🗄 Database           | MySQL (hosted on Railway)    |
 | 🗺 Interactive Maps   | Leaflet.js                   |
-| 🔐 Authentication     | Firebase Auth (Google)       |
+| 🔐 Authentication     | Google OAuth2 + Resend       |
 | 🗂 File Storage       | Firebase Storage             |
 | 🔄 Real-time (future) | WebSockets (Socket.io)       |
 | 🎨 UI/UX              | TailwindCSS                  |
 | 🚀 Frontend Hosting   | Vercel                       |
 | 🛠 Backend Hosting     | Railway                      |
+
+> Authentication is handled via Google OAuth2 or email/password.  
+> Email confirmation is sent via [Resend](https://resend.com/).
 
 ### 📈 Performance and Scalability Optimizations
 -  SQL indexing, server-side pagination, and dynamic frontend loading strategies integrated directly from the MVP.
@@ -155,12 +158,15 @@ WayPoint permet aux joueurs, créateurs de contenu et groupes de construire, per
 | 🛠 Backend            | Node.js + Express.js         |
 | 🗄 Base de données    | MySQL (hébergée sur Railway) |
 | 🗺 Cartes interactives| Leaflet.js                   |
-| 🔐 Authentification   | Firebase Auth (Google)       |
+| 🔐 Authentification   | Google OAuth2 + Resend       |
 | 🗂 Stockage fichiers  | Firebase Storage             |
 | 🔄 Temps réel (futur) | WebSockets (Socket.io)       |
 | 🎨 UI/UX              | TailwindCSS                  |
 | 🚀 Déploiement front  | Vercel                       |
 | 🛠 Déploiement back   | Railway                      |
+
+> L’authentification est gérée via Google OAuth2 ou par email/mot de passe.  
+> Un email de validation est envoyé grâce à [Resend](https://resend.com/).
 
 **Détails de la stack → [`docs/fr/stack.md`](docs/fr/stack.md)**
 

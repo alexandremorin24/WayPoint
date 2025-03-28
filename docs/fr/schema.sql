@@ -3,15 +3,19 @@
 
 -- 🧑‍💼 Utilisateurs
 CREATE TABLE users (
-  id CHAR(36) PRIMARY KEY,
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   email VARCHAR(255) NOT NULL UNIQUE,
   display_name VARCHAR(255) NOT NULL,
-  photo_url TEXT
+  photo_url TEXT,
+  auth_provider VARCHAR(50) NOT NULL CHECK (auth_provider IN ('google', 'local')),
+  password_hash TEXT, -- NULL pour auth Google
+  email_verified BOOLEAN DEFAULT FALSE,
+  last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 🗺️ Cartes
 CREATE TABLE maps (
-  id CHAR(36) PRIMARY KEY,
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255),
   description TEXT,
   image_url TEXT,
@@ -23,8 +27,8 @@ CREATE TABLE maps (
 
 -- 📌 Points d'intérêt (POI)
 CREATE TABLE pois (
-  id CHAR(36) PRIMARY KEY,
-  map_id CHAR(36),
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  map_id CHAR(36) NOT NULL,
   name VARCHAR(255),
   description TEXT,
   x FLOAT,
@@ -38,8 +42,8 @@ CREATE TABLE pois (
 
 -- 🗂️ Catégories
 CREATE TABLE categories (
-  id CHAR(36) PRIMARY KEY,
-  map_id CHAR(36),
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  map_id CHAR(36) NOT NULL,
   name VARCHAR(255),
   icon VARCHAR(255),
   parent_category_id CHAR(36),
@@ -49,9 +53,9 @@ CREATE TABLE categories (
 
 -- 👥 Collaborations
 CREATE TABLE collaborations (
-  id CHAR(36) PRIMARY KEY,
-  user_id CHAR(36),
-  map_id CHAR(36),
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id CHAR(36) NOT NULL,
+  map_id CHAR(36) NOT NULL,
   role VARCHAR(50) CHECK (role IN ('editor', 'viewer')),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (map_id) REFERENCES maps(id)
@@ -59,9 +63,9 @@ CREATE TABLE collaborations (
 
 -- 🧮 Statistiques utilisateur POI
 CREATE TABLE poi_user_stats (
-  id CHAR(36) PRIMARY KEY,
-  user_id CHAR(36),
-  map_id CHAR(36),
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id CHAR(36) NOT NULL,
+  map_id CHAR(36) NOT NULL,
   poi_created_count INT DEFAULT 0,
   poi_updated_count INT DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES users(id),
@@ -70,10 +74,10 @@ CREATE TABLE poi_user_stats (
 
 -- 🕒 Logs des POI
 CREATE TABLE poi_logs (
-  id CHAR(36) PRIMARY KEY,
-  poi_id CHAR(36),
-  map_id CHAR(36),
-  user_id CHAR(36),
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  poi_id CHAR(36) NOT NULL,
+  map_id CHAR(36) NOT NULL,
+  user_id CHAR(36) NOT NULL,
   action VARCHAR(50) CHECK (action IN ('create', 'update')),
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   payload JSON,
@@ -84,9 +88,9 @@ CREATE TABLE poi_logs (
 
 -- 👍 Votes des cartes
 CREATE TABLE map_votes (
-  id CHAR(36) PRIMARY KEY,
-  user_id CHAR(36),
-  map_id CHAR(36),
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id CHAR(36) NOT NULL,
+  map_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (map_id) REFERENCES maps(id),

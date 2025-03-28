@@ -24,7 +24,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 | **Leaflet.js**     | Interactive Maps   | Lightweight, open-source, suitable for custom image maps.  |
 | **Express.js**     | Backend            | Minimalist, flexible Node.js framework, easy API building. |
 | **Socket.io**      | Real-time          | For real-time collaboration (planned post-MVP).            |
-| **Firebase Auth**  | Authentication     | Simple Google auth integration, secure, fast setup.        |
+| ***Google OAuth2 + Email Auth** | Authentication | Dual login system with Google OAuth2 and traditional email + password authentication (with email confirmation). |
 | **Firebase Storage**| File Storage      | Easy image storage for uploaded maps and POIs.             |
 | **Axios**          | API Requests       | Simplifies frontend-backend HTTP communication.            |
 
@@ -36,8 +36,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 |-------------|---------------------|-----------------------------------------------------------------------|
 | **Railway** | Backend & Database  | Simple, efficient hosting for Express API and MySQL, easy setup.      |
 | **Vercel**  | Frontend            | Rapid deployment, optimal for React/Vite apps, built-in PWA support.  |
-| **Firebase**| Auth & Storage      | Secure authentication and file storage with minimal setup required.   |
-
++ **Firebase Storage** | File Storage | Stores map background images, POI images, and custom icons. |
 ---
 
 ## 🧪 Development & Productivity Tools
@@ -57,6 +56,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 | Service | Role                          | Why use it?                                                |
 |---------|-------------------------------|------------------------------------------------------------|
 | IGDB API (via Twitch) | Game metadata provider       | Enables users to select official games when creating maps. Includes covers, release dates, and game slugs. |
+| Resend | Email Delivery | Sends account confirmation emails and other transactional emails securely and reliably. |
 
 ---
 
