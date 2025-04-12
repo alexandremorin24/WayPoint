@@ -8,9 +8,9 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 
 | Technology       | Role                  | Why?                                                              |
 |------------------|-----------------------|-------------------------------------------------------------------|
-| **JavaScript**   | Frontend & Backend    | Unified language for frontend (React) and backend (Node.js).      |
+| **JavaScript**   | Frontend & Backend    | Unified language for frontend (**Vue.js**) and backend (Node.js). |
+| **HTML/CSS**     | Structure & Styling   | Managed via Vue components with Vuetify for consistent UI.         |
 | **SQL (MySQL)**  | Database              | Structured relational database ideal for maps, users, POIs.       |
-| **HTML/CSS**     | Structure & Styling   | Managed via React components with TailwindCSS for rapid styling.  |
 
 ---
 
@@ -18,9 +18,9 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 
 | Tool               | Category           | Reason for choice                                           |
 |--------------------|--------------------|------------------------------------------------------------|
-| **React.js**       | Frontend           | Dynamic, modular, extensive ecosystem, ideal for PWAs.     |
-| **Vite**           | Dev Server         | Fast and efficient alternative to CRA for React projects.  |
-| **TailwindCSS**    | UI/UX              | Rapid, utility-first styling framework for maintainability.|
+| **Vue.js**         | Frontend           | Reactive, component-based, smooth learning curve.          |
+| **Vite**           | Dev Server         | Fast and efficient, built-in support for Vue 3.            |
+| **Vuetify**        | UI/UX              | Rich UI components, Material Design, ideal for Vue PWAs.   |
 | **Leaflet.js**     | Interactive Maps   | Lightweight, open-source, suitable for custom image maps.  |
 | **Express.js**     | Backend            | Minimalist, flexible Node.js framework, easy API building. |
 | **Socket.io**      | Real-time          | For real-time collaboration (planned post-MVP).            |
@@ -35,7 +35,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 | Platform    | Role                | Why chosen?                                                           |
 |-------------|---------------------|-----------------------------------------------------------------------|
 | **Railway** | Backend & Database  | Simple, efficient hosting for Express API and MySQL, easy setup.      |
-| **Vercel**  | Frontend            | Rapid deployment, optimal for React/Vite apps, built-in PWA support.  |
+| **Vercel**  | Frontend            | Rapid deployment, optimal for Vue/Vite apps, built-in PWA support.    |
 + **Firebase Storage** | File Storage | Stores map background images, POI images, and custom icons. |
 ---
 
@@ -69,10 +69,10 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 ---
 
 ## ⚡ State Management
-- **Zustand**
-  - Lightweight global state management solution for React.
-  - Easy to learn and integrate, minimal setup required.
-  - [Official Zustand Documentation](https://github.com/pmndrs/zustand)
+- **Pinia**
+  - Official Vue 3 state management solution.
+  - Integrates seamlessly with Composition API.
+  - [Official Pinia Documentation](https://pinia.vuejs.org/)
 
 ---
 
@@ -89,7 +89,7 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 
 | Component    | Alternative Options        | Reason Not Chosen                             |
 |--------------|----------------------------|-----------------------------------------------|
-| Frontend     | Vue.js, Svelte, Next.js    | Less ecosystem support for real-time/maps.    |
+| Frontend     | React, Svelte, Next.js     | React replaced by Vue.js for simplicity and Vuetify integration. |
 | Maps         | Mapbox, Google Maps        | Licensing complexity or pricing barriers.     |
 | Backend      | Fastify, NestJS, Django    | Overkill for project scale or non-JS stack.   |
 | Database     | PostgreSQL, MongoDB        | Complexity vs. current needs, relational fit. |

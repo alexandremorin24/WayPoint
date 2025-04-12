@@ -8,9 +8,9 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 
 | Technologie       | Rôle                  | Pourquoi ?                                                            |
 |-------------------|-----------------------|-----------------------------------------------------------------------|
-| **JavaScript**    | Frontend & Backend    | Langage unifié pour frontend (React) et backend (Node.js).            |
+| **JavaScript**    | Frontend & Backend    | Langage unifié pour frontend (**Vue.js**) et backend (Node.js).      |
 | **SQL (MySQL)**   | Base de données       | Base relationnelle structurée idéale pour maps, utilisateurs, POIs.   |
-| **HTML/CSS**      | Structure & Style     | Géré via composants React avec TailwindCSS pour un style rapide.      |
+| **HTML/CSS**      | Structure & Style     | Géré via composants Vue avec Vuetify pour une UI riche et cohérente.  |
 
 ---
 
@@ -18,15 +18,16 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 
 | Outil               | Catégorie           | Raisons du choix                                           |
 |---------------------|---------------------|------------------------------------------------------------|
-| **React.js**        | Frontend            | Dynamique, modulaire, écosystème étendu, idéal pour PWA.   |
-| **Vite**            | Serveur de dev      | Rapide et efficace, remplace avantageusement CRA.          |
-| **TailwindCSS**     | UI/UX               | Framework de style rapide et simple à maintenir.           |
+| **Vue.js**          | Frontend            | Réactif, composantiel, courbe d'apprentissage douce.       |
+| **Vite**            | Serveur de dev      | Rapide et efficace, compatible Vue 3.                      |
+| **Vuetify**         | UI/UX               | Composants riches, cohérents, adaptés mobile/PWA.          |
 | **Leaflet.js**      | Cartes interactives | Léger, open-source, adapté aux cartes avec images perso.   |
 | **Express.js**      | Backend             | Minimaliste, flexible, construction simple d’API REST.     |
 | **Socket.io**       | Temps réel          | Collaboration temps réel (prévu post-MVP).                 |
 | 🔐 Authentification   | Google OAuth2 + Email/mot de passe (via Resend) |
 | **Firebase Storage**| Stockage fichiers   | Stockage simplifié des images maps et POI.                 |
 | **Axios**           | Requêtes API        | Communication HTTP frontend-backend simplifiée.            |
+
 
 ---
 
@@ -60,10 +61,10 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 ---
 
 ## ⚡ Gestion d'état
-- **Zustand**
-  - Solution légère et performante de gestion d'état global pour React.
-  - Très rapide à apprendre et intégrer.
-  - [Documentation officielle Zustand](https://github.com/pmndrs/zustand)
+- **Pinia**
+  - Gestionnaire d'état officiel de Vue 3.
+  - Intégration naturelle avec Composition API.
+  - [Documentation officielle Pinia](https://pinia.vuejs.org/)
 
 ---
 
@@ -104,7 +105,7 @@ Afin d’anticiper une adoption rapide et de garantir des performances optimales
 
 | Composant   | Alternatives             | Raisons du rejet                                   |
 |-------------|--------------------------|----------------------------------------------------|
-| Frontend    | Vue.js, Svelte, Next.js  | Moins adapté pour l’écosystème temps réel/cartes.  |
+| Frontend    | React, Svelte, Next.js   | React remplacé par Vue.js pour sa simplicité et Vuetify. |
 | Cartes      | Mapbox, Google Maps      | Complexité licence ou coût élevé.                  |
 | Backend     | Fastify, NestJS, Django  | Trop lourd pour l’échelle projet ou stack non-JS.  |
 | Database    | PostgreSQL, MongoDB      | Complexité inutile ou mauvais fit relationnel.     |

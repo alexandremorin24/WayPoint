@@ -9,7 +9,7 @@ This document illustrates the core data entities and their relationships in the 
 ```mermaid
 classDiagram
 
-%% ==== MAIN CLASSES (MVP) ====
+%% === CORE CLASSES ===
 
 class User {
   +string id
@@ -34,6 +34,7 @@ class Map {
   +string description
   +string imageUrl
   +boolean isPublic
+  +string gameId
   +Date createdAt
   +string ownerId
   +addPOI()
@@ -49,6 +50,9 @@ class POI {
   +string id
   +string name
   +string description
+  +string mapId
+  +string categoryId
+  +string status   // active | hidden | archived
   +float x
   +float y
   +string icon
@@ -67,11 +71,34 @@ class Category {
   +removeSubCategory()
 }
 
+class Game {
+  +string id
+  +string name
+  +string slug
+  +string coverUrl
+  +Date releaseDate
+  +string genre
+}
+
+%% === PERMISSIONS / COLLAB ===
+
 class Collaboration {
   +string id
+  +string mapId
+  +string userId
   +string role
   +notifyChange(actionType, payload)
 }
+
+class Invitation {
+  +string id
+  +string mapId
+  +string invitedEmail
+  +string status
+  +Date createdAt
+}
+
+%% === METRICS / LOGGING ===
 
 class POILog {
   +string id
@@ -96,15 +123,6 @@ class MapVote {
   +string userId
   +string mapId
   +Date createdAt
-}
-
-class Game {
-  +string id
-  +string name
-  +string slug
-  +string coverUrl
-  +Date releaseDate
-  +string genre
 }
 
 %% ==== RELATIONSHIPS (MVP) ====

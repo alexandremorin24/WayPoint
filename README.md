@@ -47,14 +47,15 @@ WayPoint enables gamers, content creators, and groups to collaboratively build, 
 
 | Component             | Technology                   |
 |-----------------------|------------------------------|
-| 🌐 Frontend           | React.js (Vite)              |
+| 🌐 Frontend           | Vue.js (Vite)                |
+| 🎨 UI/UX              | Vuetify                      |
 | 🛠 Backend            | Node.js + Express.js         |
 | 🗄 Database           | MySQL (hosted on Railway)    |
 | 🗺 Interactive Maps   | Leaflet.js                   |
 | 🔐 Authentication     | Google OAuth2 + Email/password (Resend) |
 | 🗂 File Storage       | Firebase Storage             |
 | 🔄 Real-time (future) | WebSockets (Socket.io)       |
-| 🎨 UI/UX              | TailwindCSS                  |
+| 🎨 UI/UX              | Vuetify                      |
 | 🚀 Frontend Hosting   | Vercel                       |
 | 🛠 Backend Hosting     | Railway                      |
 
@@ -154,14 +155,14 @@ WayPoint permet aux joueurs, créateurs de contenu et groupes de construire, per
 
 | Composant             | Technologie                  |
 |-----------------------|------------------------------|
-| 🌐 Frontend           | React.js (Vite)              |
+| 🌐 Frontend           | Vue.js (Vite)                |
 | 🛠 Backend            | Node.js + Express.js         |
 | 🗄 Base de données    | MySQL (hébergée sur Railway) |
 | 🗺 Cartes interactives| Leaflet.js                   |
 | 🔐 Authentification   | Google OAuth2 + Email/mot de passe (Resend)       |
 | 🗂 Stockage fichiers  | Firebase Storage             |
 | 🔄 Temps réel (futur) | WebSockets (Socket.io)       |
-| 🎨 UI/UX              | TailwindCSS                  |
+| 🎨 UI/UX              | Vuetify                      |
 | 🚀 Déploiement front  | Vercel                       |
 | 🛠 Déploiement back   | Railway                      |
 
