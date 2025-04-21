@@ -1,0 +1,40 @@
+{
+  "name": "waypoint",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Collaborative PWA to create and share interactive maps (Vue 3 + Vuetify).",
+  "author": "Alexandre Morin",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "maps",
+    "collaborative",
+    "pwa",
+    "waypoint",
+    "game"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexandremorin24/waypoint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexandremorin24/waypoint/issues"
+  },
+  "homepage": "https://github.com/alexandremorin24/waypoint#readme",
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0",
+    "vuetify": "^3.3.0",
+    "pinia": "^2.1.0",
+    "vue-i18n": "^9.3.0"
+  },
+  "devDependencies": {
+    "vite": "^4.5.0",
+    "@vitejs/plugin-vue": "^4.4.0"
+  }
+}
