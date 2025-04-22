@@ -4,10 +4,14 @@ const requireAuth = require('../middlewares/authMiddleware');
 const { findUserById } = require('../models/UserModel');
 
 router.get('/me', requireAuth, async (req, res) => {
+
   try {
     const user = await findUserById(req.user.id);
 
-    if (!user) {
+    console.log('[ROUTE /me] decoded user:', req.user);
+
+    if (!user || !user.id) {
+      console.warn('[WARN] User unexpectedly missing in DB');
       return res.status(404).json({ error: 'User not found' });
     }
 

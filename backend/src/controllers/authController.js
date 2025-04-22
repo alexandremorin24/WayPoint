@@ -102,7 +102,8 @@ async function loginUser(req, res) {
   }
 
   try {
-    const user = await findUserByEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await findUserByEmail(normalizedEmail);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
