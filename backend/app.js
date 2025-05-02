@@ -14,12 +14,12 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api', authRoutes);
-app.use('/api', userRoutes);
+app.use('/api/backend', authRoutes);
+app.use('/api/backend', userRoutes);
 
 // Fallback pour tester
 app.get('/', (req, res) => {
-  res.status(200).send('WayPoint API is running 🚀');
+  res.status(200).send('WayPoint API is running');
 });
 
 module.exports = app;

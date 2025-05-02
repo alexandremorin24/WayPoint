@@ -4,7 +4,7 @@ const db = require('../../src/utils/db');
 const { createUser } = require('../../src/models/UserModel');
 const jwt = require('jsonwebtoken');
 
-describe('📨 GET /api/verify-email', () => {
+describe('📨 GET /api/backend/verify-email', () => {
   const testEmail = 'verifyuser@example.com';
   let token;
   let userId;
@@ -26,12 +26,12 @@ describe('📨 GET /api/verify-email', () => {
   });
 
   it('should verify email with valid token', async () => {
-    const res = await request(app).get(`/api/verify-email?token=${token}`);
+    const res = await request(app).get(`/api/backend/verify-email?token=${token}`);
     expect(res.statusCode).toBe(302); // redirection vers front
   });
 
   it('should return 400 with invalid token', async () => {
-    const res = await request(app).get('/api/verify-email?token=invalid.token.here');
+    const res = await request(app).get('/api/backend/verify-email?token=invalid.token.here');
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/invalid/i);
   });
@@ -41,7 +41,7 @@ describe('📨 GET /api/verify-email', () => {
       expiresIn: '1h'
     });
 
-    const res = await request(app).get(`/api/verify-email?token=${fakeToken}`);
+    const res = await request(app).get(`/api/backend/verify-email?token=${fakeToken}`);
     expect(res.statusCode).toBe(404);
   });
 
@@ -52,7 +52,7 @@ describe('📨 GET /api/verify-email', () => {
       [userId]
     );
 
-    const res = await request(app).get(`/api/verify-email?token=${token}`);
+    const res = await request(app).get(`/api/backend/verify-email?token=${token}`);
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toMatch(/already verified/i);
   });

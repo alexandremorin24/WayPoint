@@ -5,7 +5,7 @@ const { createUser } = require('../../src/models/UserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-describe('🔐 GET /api/me', () => {
+describe('🔐 GET /api/backend/me', () => {
   const testUser = {
     id: null,
     email: 'meuser@example.com',
@@ -51,14 +51,14 @@ describe('🔐 GET /api/me', () => {
   });
 
   it('should reject without authorization header', async () => {
-    const res = await request(app).get('/api/me');
+    const res = await request(app).get('/api/backend/me');
     expect(res.statusCode).toBe(401);
     expect(res.body.error).toMatch(/authorization/i);
   });
 
   it('should reject with invalid token', async () => {
     const res = await request(app)
-      .get('/api/me')
+      .get('/api/backend/me')
       .set('Authorization', 'Bearer invalid.token.here');
 
     expect(res.statusCode).toBe(403);
@@ -67,7 +67,7 @@ describe('🔐 GET /api/me', () => {
 
   it('should return user info with valid token', async () => {
     const res = await request(app)
-      .get('/api/me')
+      .get('/api/backend/me')
       .set('Authorization', `Bearer ${validToken}`);
 
     expect(res.statusCode).toBe(200);

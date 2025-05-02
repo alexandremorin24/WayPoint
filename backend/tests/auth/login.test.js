@@ -4,7 +4,7 @@ const db = require('../../src/utils/db');
 const { createUser } = require('../../src/models/UserModel');
 const bcrypt = require('bcrypt');
 
-describe('🔐 POST /api/login', () => {
+describe('🔐 POST /api/backend/login', () => {
   const testUser = {
     email: 'loginuser@example.com',
     password: 'Test1234!',
@@ -25,7 +25,7 @@ describe('🔐 POST /api/login', () => {
 
   it('should reject missing email', async () => {
     const res = await request(app)
-      .post('/api/login')
+      .post('/api/backend/login')
       .send({ password: testUser.password });
 
     expect(res.statusCode).toBe(400);
@@ -34,7 +34,7 @@ describe('🔐 POST /api/login', () => {
 
   it('should reject missing password', async () => {
     const res = await request(app)
-      .post('/api/login')
+      .post('/api/backend/login')
       .send({ email: testUser.email });
 
     expect(res.statusCode).toBe(400);
@@ -43,7 +43,7 @@ describe('🔐 POST /api/login', () => {
 
   it('should reject invalid credentials (unknown email)', async () => {
     const res = await request(app)
-      .post('/api/login')
+      .post('/api/backend/login')
       .send({ email: 'unknown@example.com', password: 'WrongPass123!' });
 
     expect(res.statusCode).toBe(401);
@@ -52,7 +52,7 @@ describe('🔐 POST /api/login', () => {
 
   it('should reject login if email is not verified', async () => {
     const res = await request(app)
-      .post('/api/login')
+      .post('/api/backend/login')
       .send({ email: testUser.email, password: testUser.password });
 
     expect(res.statusCode).toBe(403);
@@ -68,7 +68,7 @@ describe('🔐 POST /api/login', () => {
     );
 
     const res = await request(app)
-      .post('/api/login')
+      .post('/api/backend/login')
       .send({ email: testUser.email, password: testUser.password });
 
     expect(res.statusCode).toBe(200);
@@ -78,7 +78,7 @@ describe('🔐 POST /api/login', () => {
 
   it('should reject wrong password', async () => {
     const res = await request(app)
-      .post('/api/login')
+      .post('/api/backend/login')
       .send({ email: testUser.email, password: 'WrongPassword123!' });
 
     expect(res.statusCode).toBe(401);
