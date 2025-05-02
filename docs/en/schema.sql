@@ -1,14 +1,23 @@
-```sql
 -- 📄 Database Schema – WayPoint Map Builder (MVP)
+--
+-- ⚡️ Initialization (EN)
+--
+-- To initialize the main database:
+--   ./backend/scripts/init-db.sh
+--
+-- To initialize the test database:
+--   WAYPOINT_DB_NAME=waypoint_test_db ./backend/scripts/init-db.sh
+--
+-- The SQL below is applied to the selected database. No CREATE DATABASE or USE statement is needed.
 
--- 🧑‍💼 Users
+-- 🧑‍�� Users
 CREATE TABLE users (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   email VARCHAR(255) NOT NULL UNIQUE,
   display_name VARCHAR(255) NOT NULL,
   photo_url TEXT,
   auth_provider VARCHAR(50) NOT NULL CHECK (auth_provider IN ('google', 'local')),
-  password_hash VARCHAR(255), -- NULL pour auth Google
+  password_hash VARCHAR(255), -- NULL for Google auth
   email_verified BOOLEAN DEFAULT FALSE,
   last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   preferred_language VARCHAR(5) DEFAULT 'en',

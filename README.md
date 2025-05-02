@@ -85,6 +85,21 @@ SQL schema describing the MVP database structure:
 
 ---
 
+## 🗄 Database Initialization
+
+To set up the MySQL database (create all tables and indexes), run the following script from the project root:
+
+```bash
+chmod +x backend/scripts/init-db.sh
+./backend/scripts/init-db.sh
+```
+
+- This script is idempotent: you can run it multiple times without error.
+- It will create all tables and indexes, and works for both fresh setups and forks.
+- You can configure the database name and user at the top of the script if needed.
+
+---
+
 ## 📌 Roadmap (Post-MVP)
 
 Future roadmap includes advanced collaboration modes, role management, modification history, and enhanced filtering.
@@ -166,7 +181,7 @@ WayPoint permet aux joueurs, créateurs de contenu et groupes de construire, per
 | 🚀 Déploiement front  | Vercel                       |
 | 🛠 Déploiement back   | Railway                      |
 
-> L’authentification est gérée via Google OAuth2 ou par email/mot de passe.  
+> L'authentification est gérée via Google OAuth2 ou par email/mot de passe.  
 > Un email de validation est envoyé grâce à [Resend](https://resend.com/).
 
 **Détails de la stack → [`docs/fr/stack.md`](docs/fr/stack.md)**
@@ -186,6 +201,21 @@ Consultez la structure des classes pour la version MVP :
 Schéma SQL décrivant la structure de la base MVP :
 
 - [`docs/fr/schema.sql`](docs/fr/schema.sql)
+
+---
+
+## 🗄 Database Initialization
+
+To set up the MySQL database (create all tables and indexes), run the following script from the project root:
+
+```bash
+chmod +x backend/scripts/init-db.sh
+./backend/scripts/init-db.sh
+```
+
+- This script is idempotent: you can run it multiple times without error.
+- It will create all tables and indexes, and works for both fresh setups and forks.
+- You can configure the database name and user at the top of the script if needed.
 
 ---
 

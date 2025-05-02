@@ -40,6 +40,13 @@ async function getMapById(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
+    // If map is not public, only owner can access
+    if (!map.is_public) {
+      const userId = req.user && req.user.id;
+      if (!userId || userId !== map.owner_id) {
+        return res.status(403).json({ error: 'Forbidden: private map.' });
+      }
+    }
     res.json(map);
   } catch (err) {
     console.error('getMapById error:', err);
@@ -63,6 +70,13 @@ async function getMapsByOwner(req, res) {
 async function updateMap(req, res) {
   try {
     const { id } = req.params;
+    const map = await MapModel.findMapById(id);
+    if (!map) return res.status(404).json({ error: 'Map not found.' });
+    // Only owner can update
+    const userId = req.user && req.user.id;
+    if (!userId || userId !== map.owner_id) {
+      return res.status(403).json({ error: 'Forbidden: not the owner.' });
+    }
     await MapModel.updateMap(id, req.body);
     res.json({ message: 'Map updated.' });
   } catch (err) {
@@ -75,6 +89,13 @@ async function updateMap(req, res) {
 async function deleteMap(req, res) {
   try {
     const { id } = req.params;
+    const map = await MapModel.findMapById(id);
+    if (!map) return res.status(404).json({ error: 'Map not found.' });
+    // Only owner can delete
+    const userId = req.user && req.user.id;
+    if (!userId || userId !== map.owner_id) {
+      return res.status(403).json({ error: 'Forbidden: not the owner.' });
+    }
     await MapModel.deleteMap(id);
     res.json({ message: 'Map deleted.' });
   } catch (err) {
@@ -83,10 +104,24 @@ async function deleteMap(req, res) {
   }
 }
 
+// Get public maps with pagination
+async function getPublicMaps(req, res) {
+  try {
+    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit) || 20));
+    const offset = Math.max(0, parseInt(req.query.offset) || 0);
+    const maps = await MapModel.findPublicMapsPaginated(limit, offset);
+    res.json(maps);
+  } catch (err) {
+    console.error('getPublicMaps error:', err);
+    res.status(500).json({ error: 'Error while fetching public maps.' });
+  }
+}
+
 module.exports = {
   createMap,
   getMapById,
   getMapsByOwner,
   updateMap,
-  deleteMap
+  deleteMap,
+  getPublicMaps
 }; 

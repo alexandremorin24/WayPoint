@@ -1,5 +1,14 @@
-```sql
 -- 📄 Schéma de la base de données – WayPoint Map Builder (MVP)
+--
+-- ⚡️ Initialisation (FR)
+--
+-- Pour initialiser la base principale :
+--   ./backend/scripts/init-db.sh
+--
+-- Pour initialiser la base de test :
+--   WAYPOINT_DB_NAME=waypoint_test_db ./backend/scripts/init-db.sh
+--
+-- Le SQL ci-dessous s'applique à la base sélectionnée. Pas besoin de CREATE DATABASE ou USE.
 
 -- 🧑‍💼 Utilisateurs
 CREATE TABLE users (

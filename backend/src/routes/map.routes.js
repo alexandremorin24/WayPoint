@@ -13,5 +13,7 @@ router.get('/owner/:ownerId', mapController.getMapsByOwner);
 router.put('/:id', requireAuth, mapController.updateMap);
 // Delete a map (authenticated)
 router.delete('/:id', requireAuth, mapController.deleteMap);
+// Get public maps with pagination
+router.get('/', mapController.getPublicMaps);
 
 module.exports = router; 

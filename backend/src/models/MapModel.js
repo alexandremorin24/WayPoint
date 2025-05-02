@@ -55,6 +55,17 @@ async function deleteMap(id) {
   await db.execute(`DELETE FROM maps WHERE id = ?`, [id]);
 }
 
+// Find public maps with pagination
+async function findPublicMapsPaginated(limit, offset) {
+  // Ensure limit/offset are integers to prevent SQL injection
+  limit = Math.max(1, Math.min(100, parseInt(limit) || 20));
+  offset = Math.max(0, parseInt(offset) || 0);
+  const [rows] = await db.execute(
+    `SELECT * FROM maps WHERE is_public = true ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`
+  );
+  return rows;
+}
+
 // --- Advanced methods to implement ---
 // async function addPOI(mapId, poiData) { /* ... */ }
 // async function removePOI(mapId, poiId) { /* ... */ }
@@ -68,6 +79,7 @@ module.exports = {
   findMapsByOwner,
   updateMap,
   deleteMap,
+  findPublicMapsPaginated
   // addPOI,
   // removePOI,
   // inviteUser,
