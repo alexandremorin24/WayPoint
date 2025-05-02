@@ -46,7 +46,7 @@ describe('📨 GET /api/backend/verify-email', () => {
   });
 
   it('should return 200 if email is already verified', async () => {
-    // Vérifie l'email manuellement (direct en DB)
+    // Manually verify the email (directly in DB)
     await db.execute(
       `UPDATE users SET email_verified = true WHERE id = ?`,
       [userId]

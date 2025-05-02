@@ -6,6 +6,7 @@ dotenv.config();
 
 const authRoutes = require('./src/routes/auth.routes');
 const userRoutes = require('./src/routes/user.routes');
+const mapRoutes = require('./src/routes/map.routes');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/backend', authRoutes);
 app.use('/api/backend', userRoutes);
+app.use('/api/backend/maps', mapRoutes);
 
 // Fallback pour tester
 app.get('/', (req, res) => {

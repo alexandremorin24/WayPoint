@@ -1,0 +1,77 @@
+const db = require('../utils/db');
+const { v4: uuidv4 } = require('uuid');
+
+/**
+ * Map model
+ * @typedef {Object} Map
+ * @property {string} id
+ * @property {string} name
+ * @property {string} description
+ * @property {string} imageUrl
+ * @property {boolean} isPublic
+ * @property {string} gameId
+ * @property {Date} createdAt
+ * @property {string} ownerId
+ */
+
+// Create a new map
+async function createMap({ name, description, imageUrl, isPublic, gameId, ownerId }) {
+  const id = uuidv4();
+  const createdAt = new Date();
+  await db.execute(
+    `INSERT INTO maps (id, name, description, image_url, is_public, game_id, created_at, owner_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, name, description, imageUrl, isPublic, gameId, createdAt, ownerId]
+  );
+  return { id, name, description, imageUrl, isPublic, gameId, createdAt, ownerId };
+}
+
+// Find a map by its id
+async function findMapById(id) {
+  const [rows] = await db.execute(`SELECT * FROM maps WHERE id = ?`, [id]);
+  return rows[0] || null;
+}
+
+// Find all maps by owner
+async function findMapsByOwner(ownerId) {
+  const [rows] = await db.execute(`SELECT * FROM maps WHERE owner_id = ?`, [ownerId]);
+  return rows;
+}
+
+// Update a map
+async function updateMap(id, data) {
+  const fields = [];
+  const values = [];
+  for (const key in data) {
+    fields.push(`${key} = ?`);
+    values.push(data[key]);
+  }
+  values.push(id);
+  await db.execute(`UPDATE maps SET ${fields.join(', ')} WHERE id = ?`, values);
+}
+
+// Delete a map
+async function deleteMap(id) {
+  await db.execute(`DELETE FROM maps WHERE id = ?`, [id]);
+}
+
+// --- Advanced methods to implement ---
+// async function addPOI(mapId, poiData) { /* ... */ }
+// async function removePOI(mapId, poiId) { /* ... */ }
+// async function inviteUser(mapId, userId) { /* ... */ }
+// async function paginatePOIs(mapId, page, limit) { /* ... */ }
+// async function generateThumbnails(mapId) { /* ... */ }
+
+module.exports = {
+  createMap,
+  findMapById,
+  findMapsByOwner,
+  updateMap,
+  deleteMap,
+  // addPOI,
+  // removePOI,
+  // inviteUser,
+  // paginatePOIs,
+  // generateThumbnails
+};
+// Note: Categories should be managed on the POI side, not on the Map side. 
