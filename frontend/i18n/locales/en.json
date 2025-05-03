@@ -92,5 +92,20 @@
         "noImageMsg": "This map does not have a background image.",
         "imageNotFoundTitle": "Image Not Found",
         "imageNotFoundMsg": "The background image for this map could not be loaded."
+    },
+    "profile": {
+        "createdAt": "Account created on",
+        "email": "Email",
+        "photo": "Profile picture",
+        "language": "Preferred language",
+        "emailOptin": "Newsletter subscription",
+        "optinYes": "Subscribed",
+        "optinNo": "Not subscribed",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "newPassword": "New password",
+        "confirmPassword": "Confirm new password",
+        "currentPassword": "Current password"
     }
 }

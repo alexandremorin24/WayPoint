@@ -1,0 +1,12 @@
+{
+    "required": "Ce champ est requis",
+    "invalidEmail": "Email invalide",
+    "invalidPassword": "Mot de passe invalide",
+    "serverError": "Erreur serveur",
+    "notFound": "Page non trouvée",
+    "loginFailed": "Échec de la connexion",
+    "registrationFailed": "Échec de l'inscription",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+    "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 20 caractères, uniquement des lettres et des chiffres",
+    "weakPassword": "Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et symboles"
+}

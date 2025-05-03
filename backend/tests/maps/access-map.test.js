@@ -4,9 +4,26 @@ const db = require('../../src/utils/db');
 const { createUser } = require('../../src/models/UserModel');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const sharp = require('sharp');
+const fs = require('fs');
 
 function generateToken(user) {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+}
+
+async function createTestImage(name) {
+  const imagePath = path.join(__dirname, `${name}.png`);
+  await sharp({
+    create: {
+      width: 300,
+      height: 300,
+      channels: 4,
+      background: { r: 255, g: 255, b: 255, alpha: 1 }
+    }
+  })
+    .png()
+    .toFile(imagePath);
+  return imagePath;
 }
 
 describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
@@ -33,6 +50,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     tokenStranger = generateToken(stranger);
 
     // Create a public map
+    const publicImagePath = await createTestImage('public-test-image');
     let res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
@@ -40,10 +58,11 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       .field('description', 'A public map')
       .field('gameName', testGame)
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', publicImagePath);
     publicMapId = res.body.id;
 
     // Create a private map
+    const privateImagePath = await createTestImage('private-test-image');
     res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
@@ -51,7 +70,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       .field('description', 'A private map')
       .field('gameName', testGame)
       .field('isPublic', 'false')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', privateImagePath);
     privateMapId = res.body.id;
 
     // Add the editor as a collaborator (role editor)
@@ -59,6 +78,18 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       'INSERT INTO collaborations (id, user_id, map_id, role) VALUES (UUID(), ?, ?, ?)',
       [editor.id, privateMapId, 'editor']
     );
+  });
+
+  afterAll(async () => {
+    // Clean up test images
+    const testImages = ['public-test-image.png', 'private-test-image.png'];
+    for (const image of testImages) {
+      try {
+        await fs.promises.unlink(path.join(__dirname, image));
+      } catch (err) {
+        // Ignore errors if files don't exist
+      }
+    }
   });
 
   it('should allow access to a public map without authentication', async () => {
@@ -114,8 +145,6 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       .set('Authorization', 'Bearer malformed.token');
     expect([401, 403]).toContain(res.statusCode);
   });
-
-
 });
 
 describe('🗺️ GET /api/backend/maps (pagination)', () => {

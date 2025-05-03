@@ -1,0 +1,12 @@
+{
+    "required": "This field is required",
+    "invalidEmail": "Invalid email",
+    "invalidPassword": "Invalid password",
+    "serverError": "Server error",
+    "notFound": "Page not found",
+    "loginFailed": "Login failed",
+    "registrationFailed": "Registration failed",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "invalidUsername": "Username must be 3-20 characters, letters and numbers only",
+    "weakPassword": "Password must be 8+ chars with uppercase, lowercase, number and symbol"
+}

@@ -2,8 +2,33 @@ const request = require('supertest');
 const app = require('../../app');
 const db = require('../../src/utils/db');
 const { createUser } = require('../../src/models/UserModel');
+const sharp = require('sharp');
 const path = require('path');
+const fs = require('fs');
 const jwt = require('jsonwebtoken');
+
+// Generate a valid test image before all tests
+const testImagePath = path.join(__dirname, 'test-image.png');
+let user;
+let token;
+
+beforeAll(async () => {
+  // Delete in correct order to respect foreign key constraints
+  await db.execute('DELETE FROM collaborations WHERE user_id IN (SELECT id FROM users WHERE email = ?)', ['mapcreator@example.com']);
+  await db.execute('DELETE FROM maps WHERE owner_id IN (SELECT id FROM users WHERE email = ?)', ['mapcreator@example.com']);
+  await db.execute('DELETE FROM users WHERE email = ?', ['mapcreator@example.com']);
+  const result = await createUser({
+    email: 'mapcreator@example.com',
+    passwordHash: 'mockhash123',
+    displayName: 'MapCreator'
+  });
+  user = result;
+  token = generateToken(user);
+});
+
+afterAll(async () => {
+  if (fs.existsSync(testImagePath)) fs.unlinkSync(testImagePath);
+});
 
 // Utility to generate a JWT token
 function generateToken(user) {
@@ -11,25 +36,16 @@ function generateToken(user) {
 }
 
 describe('🗺️ POST /api/backend/maps (create map)', () => {
-  let user;
-  let token;
-  const testEmail = 'mapcreator@example.com';
-
-  beforeAll(async () => {
-    // Delete in correct order to respect foreign key constraints
-    await db.execute('DELETE FROM collaborations WHERE user_id IN (SELECT id FROM users WHERE email = ?)', [testEmail]);
-    await db.execute('DELETE FROM maps WHERE owner_id IN (SELECT id FROM users WHERE email = ?)', [testEmail]);
-    await db.execute('DELETE FROM users WHERE email = ?', [testEmail]);
-    const result = await createUser({
-      email: testEmail,
-      passwordHash: 'mockhash123',
-      displayName: 'MapCreator'
-    });
-    user = result;
-    token = generateToken(user);
+  beforeEach(async () => {
+    // Generate a valid 300x300 PNG image before each test
+    await sharp({ create: { width: 300, height: 300, channels: 3, background: 'white' } })
+      .png()
+      .toFile(testImagePath);
+    await fs.promises.access(testImagePath);
   });
 
   it('should reject unauthenticated requests', async () => {
+    expect(fs.existsSync(testImagePath)).toBe(true);
     const res = await request(app)
       .post('/api/backend/maps')
       .field('name', 'Test Map')
@@ -60,7 +76,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('description', 'A test map')
       .field('gameName', 'Test Game')
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', testImagePath);
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('id');
     expect(res.body).toHaveProperty('gameId');
@@ -75,7 +91,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('description', 'desc')
       .field('gameName', 'Test Game')
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', testImagePath);
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/Map name is required/i);
   });
@@ -89,7 +105,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('description', 'desc')
       .field('gameName', 'Test Game')
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', testImagePath);
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/Map name is required/i);
   });
@@ -103,7 +119,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('description', longDesc)
       .field('gameName', 'Test Game')
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', testImagePath);
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/Description is required/i);
   });
@@ -115,7 +131,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('name', 'Valid Name')
       .field('description', 'desc')
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', testImagePath);
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/Game name is required/i);
   });
@@ -128,9 +144,8 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('description', 'desc')
       .field('gameName', 'Test Game')
       .field('isPublic', 'true')
-      .attach('image', path.join(__dirname, 'test-image.png'));
+      .attach('image', testImagePath);
     expect([401, 403]).toContain(res.statusCode);
   });
-
 
 }); 

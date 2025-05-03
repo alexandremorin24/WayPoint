@@ -1,0 +1,15 @@
+{
+    "title": "Carte :",
+    "description": "Description :",
+    "loading": "Chargement...",
+    "notFoundTitle": "Carte introuvable",
+    "notFoundMsg": "La carte demandée n'existe pas.",
+    "accessDeniedTitle": "Accès refusé",
+    "accessDeniedMsg": "Vous n'avez pas la permission de voir cette carte.",
+    "errorTitle": "Erreur",
+    "errorMsg": "Une erreur inattendue est survenue lors du chargement de la carte.",
+    "noImageTitle": "Aucune image disponible",
+    "noImageMsg": "Cette carte n'a pas d'image de fond.",
+    "imageNotFoundTitle": "Image introuvable",
+    "imageNotFoundMsg": "L'image de fond de cette carte n'a pas pu être chargée."
+}

@@ -1,0 +1,15 @@
+{
+    "createdAt": "Compte créé le",
+    "email": "Email",
+    "photo": "Photo de profil",
+    "language": "Langue préférée",
+    "emailOptin": "Abonnement à la newsletter",
+    "optinYes": "Abonné",
+    "optinNo": "Non abonné",
+    "edit": "Modifier",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "currentPassword": "Mot de passe actuel"
+}

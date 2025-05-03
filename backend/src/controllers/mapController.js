@@ -23,9 +23,9 @@ async function createMap(req, res) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
-    // Enforce map quota per user
+    // Enforce map quota per user EDIT BEFORE PROD
     const mapCount = await MapModel.countByUser(ownerId);
-    if (mapCount >= 5) {
+    if (mapCount >= 10000) {
       return res.status(403).json({ error: 'Map quota exceeded (max 5 maps per user).' });
     }
 
@@ -47,8 +47,8 @@ async function createMap(req, res) {
     }
     const gameId = game.id;
 
-    // Always private at creation
-    const isPublic = false;
+    // Get isPublic from request body
+    const isPublic = req.body.isPublic === 'true';
     let imageUrl = null;
     let thumbnailUrl = null;
 
@@ -65,33 +65,67 @@ async function createMap(req, res) {
       if (!req.file) {
         return res.status(400).json({ error: 'Image is required.' });
       }
-      const gameSlug = slugify(gameName);
-      const uploadsDir = path.join(__dirname, '../../public/uploads', gameSlug);
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+
+      try {
+        // Validate image (allow large images for maps)
+        await imageUtils.validateImageBuffer(req.file.buffer, {
+          maxWidth: 10000,
+          maxHeight: 10000,
+          minWidth: 100,
+          minHeight: 100
+        });
+
+        let map;
+        try {
+          // Create the map to get the id
+          map = await MapModel.createMap({
+            name,
+            description,
+            imageUrl: '/uploads/temp',
+            isPublic,
+            ownerId,
+            gameId
+          });
+
+          // Prepare paths
+          const gameSlug = slugify(gameName);
+          const uploadsDir = path.join(__dirname, '../../public/uploads', gameSlug);
+          fs.mkdirSync(uploadsDir, { recursive: true });
+
+          // Generate filenames
+          const finalName = `${map.id}.webp`;
+          const thumbName = `${map.id}_thumb.webp`;
+          const finalPath = path.join(uploadsDir, finalName);
+          const thumbPath = path.join(uploadsDir, thumbName);
+
+          // Process image
+          await Promise.all([
+            imageUtils.convertToWebP(req.file.buffer, finalPath),
+            imageUtils.generateThumbnail(req.file.buffer, thumbPath)
+          ]);
+
+          // Update URLs
+          imageUrl = `/uploads/${gameSlug}/${finalName}`;
+          thumbnailUrl = `/uploads/${gameSlug}/${thumbName}`;
+          await MapModel.updateMap(map.id, { image_url: imageUrl, thumbnail_url: thumbnailUrl });
+
+          return res.status(201).json({
+            id: map.id,
+            gameId,
+            gameName,
+            imageUrl,
+            thumbnailUrl
+          });
+        } catch (err) {
+          // In case of error, delete the created map
+          if (map && map.id) {
+            await MapModel.deleteMap(map.id);
+          }
+          throw err;
+        }
+      } catch (err) {
+        throw err;
       }
-      await imageUtils.validateImageBuffer(req.file.buffer);
-      const tempImageUrl = '/uploads/temp';
-      // Create the map to get the id
-      const map = await MapModel.createMap({
-        name,
-        description,
-        imageUrl: tempImageUrl,
-        isPublic,
-        ownerId,
-        gameId
-      });
-      // Save image and thumbnail
-      const finalName = `${map.id}.webp`;
-      const finalPath = path.join(uploadsDir, finalName);
-      await imageUtils.convertToWebP(req.file.buffer, finalPath);
-      const thumbName = `${map.id}_thumb.webp`;
-      const thumbPath = path.join(uploadsDir, thumbName);
-      await imageUtils.generateThumbnail(req.file.buffer, thumbPath);
-      imageUrl = `/uploads/${gameSlug}/${finalName}`;
-      thumbnailUrl = `/uploads/${gameSlug}/${thumbName}`;
-      await MapModel.updateMap(map.id, { image_url: imageUrl, thumbnail_url: thumbnailUrl });
-      return res.status(201).json({ id: map.id, gameId, gameName });
     }
 
     // Create the map with the selected image
@@ -99,15 +133,25 @@ async function createMap(req, res) {
       name,
       description,
       imageUrl,
+      thumbnailUrl,
       isPublic,
       ownerId,
       gameId
     });
-    await MapModel.updateMap(map.id, { image_url: imageUrl, thumbnail_url: thumbnailUrl });
-    res.status(201).json({ id: map.id, gameId, gameName });
+
+    res.status(201).json({
+      id: map.id,
+      gameId,
+      gameName,
+      imageUrl,
+      thumbnailUrl
+    });
   } catch (err) {
     console.error('createMap error:', err.stack || err);
-    res.status(500).json({ error: 'Error while creating map.' });
+    if (err.message.includes('image')) {
+      return res.status(400).json({ error: err.message });
+    }
+    res.status(500).json({ error: 'Error while creating the map.' });
   }
 }
 

@@ -96,10 +96,56 @@ async function updateUserEmailVerified(userId) {
   return result;
 }
 
+/**
+ * Update user profile fields
+ * @param {string} userId
+ * @param {Object} updates
+ * @param {string} [updates.email]
+ * @param {string} [updates.passwordHash]
+ * @param {string} [updates.preferredLanguage]
+ * @param {boolean} [updates.emailOptIn]
+ * @param {string} [updates.photoUrl]
+ */
+async function updateUserProfile(userId, updates) {
+  const fields = [];
+  const values = [];
+
+  if (updates.email) {
+    fields.push('email = ?');
+    values.push(updates.email);
+  }
+  if (updates.passwordHash) {
+    fields.push('password_hash = ?');
+    values.push(updates.passwordHash);
+  }
+  if (updates.preferredLanguage) {
+    fields.push('preferred_language = ?');
+    values.push(updates.preferredLanguage);
+  }
+  if (typeof updates.emailOptIn === 'boolean') {
+    fields.push('email_optin = ?');
+    values.push(updates.emailOptIn);
+  }
+  if (updates.photoUrl) {
+    fields.push('photo_url = ?');
+    values.push(updates.photoUrl);
+  }
+
+  if (fields.length === 0) {
+    throw new Error('No valid fields to update');
+  }
+
+  values.push(userId);
+  const sql = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
+  const [result] = await db.execute(sql, values);
+  return result;
+}
+
 module.exports = {
   createUser,
   findUserByEmail,
   findUserById,
   updateUserEmailVerified,
   findUserByDisplayName,
+  updateUserProfile,
 };

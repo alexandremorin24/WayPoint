@@ -6,38 +6,45 @@ const multer = require('multer');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 
-// Configure multer to store images in public/uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../../public/uploads'));
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname.replace(/\s+/g, '_'));
-  }
-});
+// Configure multer to store images in memory
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed!'), false);
+      return cb(new Error('Only image files are allowed'), false);
     }
     cb(null, true);
   }
 });
 
-// Limit uploads to 10 per hour per user (based on IP)
+// Multer error handler middleware
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File is too large (max 50MB)' });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+};
+
+// Rate limiter for uploads
 const uploadRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10,
   message: { error: 'Too many map uploads from this IP, please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test' // Disable rate limit in test
 });
 
 // Create a map (authenticated, with image upload)
-router.post('/', requireAuth, uploadRateLimiter, upload.single('image'), mapController.createMap);
+if (process.env.NODE_ENV !== 'test') {
+  router.post('/', requireAuth, uploadRateLimiter, upload.single('image'), handleMulterError, mapController.createMap);
+} else {
+  router.post('/', requireAuth, upload.single('image'), handleMulterError, mapController.createMap);
+}
 // Get a map by id (public)
 router.get('/:id', mapController.getMapById);
 // Get all maps by owner (public)

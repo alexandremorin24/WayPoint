@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { createUser, findUserByEmail, updateUserEmailVerified, findUserByDisplayName } = require('../models/UserModel');
 const { sendVerificationEmail } = require('../utils/mailer');
 const validator = require('validator');
+const { validateEmail, validatePassword } = require('../utils/validation');
 
 
 // 🔐 [POST] /api/register
@@ -13,10 +14,9 @@ async function registerUser(req, res) {
     return res.status(400).json({ error: 'Email, password and displayName are required' });
   }
 
-  // Validate email
+  // Validate email using utility
   const normalizedEmail = email.trim().toLowerCase();
-
-  if (!validator.isEmail(normalizedEmail)) {
+  if (!validateEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Invalid email format.' });
   }
 
@@ -30,32 +30,22 @@ async function registerUser(req, res) {
     if (displayName.length < 3 || displayName.length > 20) {
       return res.status(400).json({ error: 'Display name must be between 3 and 20 characters.' });
     }
-
     if (!/^[a-zA-Z0-9]+$/.test(displayName)) {
       return res.status(400).json({ error: 'Display name must only contain letters and numbers.' });
     }
-
     const forbiddenNames = ['admin', 'root', 'moderator', 'support'];
     if (forbiddenNames.includes(displayName.toLowerCase())) {
       return res.status(400).json({ error: 'This display name is reserved.' });
     }
-
     const existingDisplayName = await findUserByDisplayName(displayName);
     if (existingDisplayName) {
       return res.status(409).json({ error: 'This display name is already taken.' });
     }
 
-    // Validate password
-    if (!validator.isStrongPassword(password, {
-      minLength: 8,
-      minLowercase: 1,
-      minUppercase: 1,
-      minNumbers: 1,
-      minSymbols: 1
-    })) {
-      return res.status(400).json({
-        error: 'Password must be at least 8 characters long and include uppercase, lowercase, number and symbol.'
-      });
+    // Validate password using utility
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ error: passwordValidation.error });
     }
 
     if (password !== confirmPassword) {

@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/image',
     'vuetify-nuxt-module',
-    '@nuxtjs/i18n'
+    '@nuxtjs/i18n',
   ],
 
   i18n: {
@@ -30,6 +30,17 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       API_BASE: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api'
+    }
+  },
+
+  vite: {
+    server: {
+      proxy: {
+        '/api/backend': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        }
+      }
     }
   }
 })

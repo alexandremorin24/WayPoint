@@ -5,17 +5,30 @@ const db = require('../../src/utils/db')
 describe('🔐 POST /api/register', () => {
 
   beforeAll(async () => {
-    await db.execute(`DELETE FROM users WHERE email IN (?, ?, ?, ?)`, [
+    // Clean up only test data related to this suite to avoid interfering with other tests
+    await db.execute('DELETE FROM collaborations WHERE user_id IN (SELECT id FROM users WHERE email IN (?, ?, ?, ?))', [
       'testuser@example.com',
       'testuser1@example.com',
       'testuser2@example.com',
       'duplicate@example.com',
     ]);
-
-    await db.execute(`DELETE FROM users WHERE display_name IN (?, ?)`, [
+    await db.execute('DELETE FROM maps WHERE owner_id IN (SELECT id FROM users WHERE email IN (?, ?, ?, ?))', [
+      'testuser@example.com',
+      'testuser1@example.com',
+      'testuser2@example.com',
+      'duplicate@example.com',
+    ]);
+    await db.execute('DELETE FROM users WHERE email IN (?, ?, ?, ?)', [
+      'testuser@example.com',
+      'testuser1@example.com',
+      'testuser2@example.com',
+      'duplicate@example.com',
+    ]);
+    await db.execute('DELETE FROM users WHERE display_name IN (?, ?)', [
       'TestUser123',
       'UniqueUser'
     ]);
+    await new Promise(r => setTimeout(r, 100));
   });
 
   it('should reject missing email', async () => {

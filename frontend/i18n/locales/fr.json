@@ -92,5 +92,20 @@
         "noImageMsg": "Cette carte n'a pas d'image de fond.",
         "imageNotFoundTitle": "Image introuvable",
         "imageNotFoundMsg": "L'image de fond de cette carte n'a pas pu être chargée."
+    },
+    "profile": {
+        "createdAt": "Compte créé le",
+        "email": "Email",
+        "photo": "Photo de profil",
+        "language": "Langue préférée",
+        "emailOptin": "Abonnement à la newsletter",
+        "optinYes": "Abonné",
+        "optinNo": "Non abonné",
+        "edit": "Modifier",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "newPassword": "Nouveau mot de passe",
+        "confirmPassword": "Confirmer le nouveau mot de passe",
+        "currentPassword": "Mot de passe actuel"
     }
 }
