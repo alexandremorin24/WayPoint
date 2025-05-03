@@ -3,11 +3,57 @@
         <v-card class="pa-6" elevation="4">
             <h2 class="text-h5 mb-4">Create a New Map</h2>
             <v-form v-model="formValid" @submit.prevent="handleCreate">
-                <v-text-field v-model="gameName" label="Game Name" :rules="[rules.required, rules.min, rules.max]" required />
+                <v-text-field 
+                    v-model="gameName" 
+                    label="Game Name" 
+                    :rules="[rules.required, rules.min, rules.max]" 
+                    @input="debounceFetchPublicMaps"
+                    required 
+                />
                 <v-text-field v-model="name" label="Map Name" :rules="[rules.required, rules.min, rules.max]" required />
                 <v-textarea v-model="description" label="Description" :rules="[rules.required, rules.descMax]" required />
-                <v-file-input v-model="imageFile" label="Map Image" accept="image/*" :rules="[rules.required]" required />
-                <v-checkbox v-model="isPublic" label="Public map?" :true-value="true" :false-value="false" />
+
+                <div v-if="publicMaps.length > 0">
+                    <div class="mb-2">Select an existing public map image or upload a new one:</div>
+                    <v-row>
+                        <v-col
+                            v-for="map in publicMaps"
+                            :key="map.id"
+                            cols="6"
+                            class="d-flex flex-column align-center"
+                        >
+                            <v-img
+                                :src="backendBase + map.thumbnail_url"
+                                :alt="map.name"
+                                width="120"
+                                height="80"
+                                class="mb-1"
+                                @click="selectExistingMap(map.id)"
+                                :class="{'border-primary': selectedMapId === map.id, 'border': true, 'cursor-pointer': true}"
+                            />
+                            <v-radio
+                                :label="map.name"
+                                :value="map.id"
+                                v-model="selectedMapId"
+                                color="primary"
+                            />
+                        </v-col>
+                    </v-row>
+                    <v-divider class="my-2" />
+                    <v-radio-group v-model="selectedMapId">
+                        <v-radio label="Upload a new image" value="upload" />
+                    </v-radio-group>
+                </div>
+
+                <v-file-input
+                    v-if="selectedMapId === 'upload' || publicMaps.length === 0"
+                    v-model="imageFile"
+                    label="Map Image"
+                    accept="image/*"
+                    :rules="[rules.required]"
+                    required
+                />
+
                 <v-btn class="mt-4" color="primary" type="submit" :disabled="!formValid || isSubmitting" block>
                     Create Map
                 </v-btn>
@@ -33,18 +79,49 @@ const gameName = ref('');
 const name = ref('');
 const description = ref('');
 const imageFile = ref<File | null>(null);
-const isPublic = ref(false);
 const formValid = ref(false);
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 const uploadProgress = ref(0);
+const publicMaps = ref<any[]>([]);
+const selectedMapId = ref<string>('upload');
+const backendBase = config.public.API_BASE.replace(/\/api\/backend$/, '');
 
 const rules = {
     required: (v: unknown) => !!v || 'This field is required',
     min: (v: string) => v.length >= 3 || 'Minimum 3 characters',
     max: (v: string) => v.length <= 100 || 'Maximum 100 characters',
     descMax: (v: string) => v.length <= 500 || 'Maximum 500 characters',
+};
+
+// Debounce function to avoid too many API calls
+const debounce = (fn: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+};
+
+const fetchPublicMaps = async () => {
+    publicMaps.value = [];
+    selectedMapId.value = 'upload';
+    if (!gameName.value) return;
+    try {
+        const res = await fetch(`${config.public.API_BASE}/maps/public-by-game-name/${encodeURIComponent(gameName.value.trim())}`);
+        if (res.ok) {
+            publicMaps.value = await res.json();
+        }
+    } catch (e) {
+        // Silent fail
+    }
+};
+
+const debounceFetchPublicMaps = debounce(fetchPublicMaps, 500);
+
+const selectExistingMap = (id: string) => {
+    selectedMapId.value = id;
 };
 
 const handleCreate = async () => {
@@ -58,7 +135,7 @@ const handleCreate = async () => {
             error.value = 'You must be logged in to create a map.';
             return;
         }
-        if (!imageFile.value) {
+        if ((selectedMapId.value === 'upload' || publicMaps.value.length === 0) && !imageFile.value) {
             error.value = 'Please select an image.';
             return;
         }
@@ -66,8 +143,11 @@ const handleCreate = async () => {
         formData.append('gameName', gameName.value.trim());
         formData.append('name', name.value.trim());
         formData.append('description', description.value.trim());
-        formData.append('isPublic', String(isPublic.value));
-        formData.append('image', imageFile.value);
+        if (selectedMapId.value !== 'upload' && publicMaps.value.length > 0) {
+            formData.append('imageFromMapId', selectedMapId.value);
+        } else {
+            formData.append('image', imageFile.value!);
+        }
 
         // Use XMLHttpRequest to track upload progress
         await new Promise<void>((resolve, reject) => {
@@ -109,3 +189,15 @@ const handleCreate = async () => {
     }
 };
 </script>
+
+<style scoped>
+.border-primary {
+    border: 2px solid #1976d2 !important;
+}
+.border {
+    border: 1px solid #ccc;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+</style>

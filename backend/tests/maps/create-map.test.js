@@ -132,7 +132,5 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
     expect([401, 403]).toContain(res.statusCode);
   });
 
-  afterAll(async () => {
-    await db.end();
-  });
+
 }); 

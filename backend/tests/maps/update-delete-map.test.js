@@ -123,7 +123,5 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  afterAll(async () => {
-    await db.end();
-  });
+
 }); 

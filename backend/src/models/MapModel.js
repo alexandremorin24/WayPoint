@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
  * @property {string} name
  * @property {string} description
  * @property {string} imageUrl
+ * @property {string} thumbnailUrl
  * @property {boolean} isPublic
  * @property {string} gameId
  * @property {Date} createdAt
@@ -79,13 +80,40 @@ async function createGame(name) {
   return { id, name };
 }
 
-// Vérifie si un utilisateur a le rôle editor sur une map
+// Check if a user has the editor role on a map
 async function hasEditorAccess(mapId, userId) {
   const [rows] = await db.execute(
     'SELECT * FROM collaborations WHERE map_id = ? AND user_id = ? AND role = ? LIMIT 1',
     [mapId, userId, 'editor']
   );
   return !!rows[0];
+}
+
+// Count the number of maps for a user
+async function countByUser(ownerId) {
+  const [rows] = await db.execute('SELECT COUNT(*) as count FROM maps WHERE owner_id = ?', [ownerId]);
+  return rows[0]?.count || 0;
+}
+
+// Find all public maps for a given game id
+async function findPublicMapsByGameId(gameId) {
+  const [rows] = await db.execute(
+    `SELECT id, name, image_url, thumbnail_url FROM maps WHERE is_public = true AND game_id = ?`,
+    [gameId]
+  );
+  return rows;
+}
+
+// Find all public maps for a given game name
+async function findPublicMapsByGameName(gameName) {
+  const [rows] = await db.execute(
+    `SELECT m.id, m.name, m.image_url, m.thumbnail_url 
+     FROM maps m 
+     JOIN games g ON m.game_id = g.id 
+     WHERE m.is_public = true AND g.name = ?`,
+    [gameName]
+  );
+  return rows;
 }
 
 // --- Advanced methods to implement ---
@@ -104,11 +132,13 @@ module.exports = {
   findPublicMapsPaginated,
   findGameByName,
   createGame,
-  hasEditorAccess
+  hasEditorAccess,
+  countByUser,
+  findPublicMapsByGameId,
+  findPublicMapsByGameName
   // addPOI,
   // removePOI,
   // inviteUser,
   // paginatePOIs,
   // generateThumbnails
 };
-// Note: Categories should be managed on the POI side, not on the Map side. 

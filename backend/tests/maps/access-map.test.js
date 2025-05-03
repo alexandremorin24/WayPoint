@@ -115,9 +115,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     expect([401, 403]).toContain(res.statusCode);
   });
 
-  afterAll(async () => {
-    await db.end();
-  });
+
 });
 
 describe('🗺️ GET /api/backend/maps (pagination)', () => {
