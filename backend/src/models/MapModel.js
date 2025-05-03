@@ -16,15 +16,15 @@ const { v4: uuidv4 } = require('uuid');
  */
 
 // Create a new map
-async function createMap({ name, description, imageUrl, isPublic, gameId, ownerId }) {
+async function createMap({ name, description, imageUrl, thumbnailUrl = null, isPublic, gameId, ownerId }) {
   const id = uuidv4();
   const createdAt = new Date();
   await db.execute(
-    `INSERT INTO maps (id, name, description, image_url, is_public, game_id, created_at, owner_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, name, description, imageUrl, isPublic, gameId, createdAt, ownerId]
+    `INSERT INTO maps (id, name, description, image_url, thumbnail_url, is_public, game_id, created_at, owner_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId]
   );
-  return { id, name, description, imageUrl, isPublic, gameId, createdAt, ownerId };
+  return { id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId };
 }
 
 // Find a map by its id
@@ -35,7 +35,13 @@ async function findMapById(id) {
 
 // Find all maps by owner
 async function findMapsByOwner(ownerId) {
-  const [rows] = await db.execute(`SELECT * FROM maps WHERE owner_id = ?`, [ownerId]);
+  const [rows] = await db.execute(
+    `SELECT m.*, g.name as game_name 
+     FROM maps m 
+     JOIN games g ON m.game_id = g.id 
+     WHERE m.owner_id = ?`,
+    [ownerId]
+  );
   return rows;
 }
 

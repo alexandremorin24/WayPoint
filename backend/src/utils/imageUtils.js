@@ -51,18 +51,19 @@ async function validateImageBuffer(buffer, options = {}) {
 
 /**
  * Convert an image buffer to WebP and save to disk.
- * Resizes to 300x300.
+ * Only resizes if resizeOptions is provided (used for avatars/thumbnails).
+ * For maps: do NOT resize (keep original size).
  * @param {Buffer} buffer
  * @param {string} outputPath
+ * @param {Object} [resizeOptions] - Optional { width, height, fit, position }
  */
-async function convertToWebP(buffer, outputPath) {
+async function convertToWebP(buffer, outputPath, resizeOptions) {
   try {
-    const size = 300;
-    await sharp(buffer)
-      .resize(size, size, {
-        fit: 'cover',
-        position: 'center'
-      })
+    let sharpInstance = sharp(buffer);
+    if (resizeOptions) {
+      sharpInstance = sharpInstance.resize(resizeOptions);
+    }
+    await sharpInstance
       .webp({ quality: 80 })
       .toFile(outputPath);
   } catch (err) {

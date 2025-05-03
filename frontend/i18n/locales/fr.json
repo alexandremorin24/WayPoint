@@ -10,7 +10,7 @@
         "cancel": "Annuler",
         "save": "Enregistrer",
         "delete": "Supprimer",
-        "edit": "Modifier",
+        "edit": "Éditer",
         "search": "Rechercher",
         "loading": "Chargement..."
     },
@@ -107,5 +107,13 @@
         "newPassword": "Nouveau mot de passe",
         "confirmPassword": "Confirmer le nouveau mot de passe",
         "currentPassword": "Mot de passe actuel"
+    },
+    "myMaps": {
+        "title": "Mes cartes",
+        "noMaps": "Aucune carte créée.",
+        "deleteTitle": "Supprimer la carte",
+        "deleteWarning": "La suppression est définitive. Cette action est irréversible.",
+        "deleteExplain": "Pour confirmer, tapez delete dans le champ ci-dessous.",
+        "deleteLabel": "Tapez delete pour confirmer"
     }
 }

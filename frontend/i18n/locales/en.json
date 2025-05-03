@@ -107,5 +107,13 @@
         "newPassword": "New password",
         "confirmPassword": "Confirm new password",
         "currentPassword": "Current password"
+    },
+    "myMaps": {
+        "title": "My maps",
+        "noMaps": "No maps created.",
+        "deleteTitle": "Delete map",
+        "deleteWarning": "Deletion is permanent. This action cannot be undone.",
+        "deleteExplain": "To confirm, type delete in the field below.",
+        "deleteLabel": "Type delete to confirm"
     }
 }

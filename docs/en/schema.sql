@@ -31,6 +31,7 @@ CREATE TABLE maps (
   name VARCHAR(255),
   description TEXT,
   image_url TEXT,
+  thumbnail_url TEXT;
   is_public BOOLEAN DEFAULT FALSE,
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

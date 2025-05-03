@@ -202,4 +202,16 @@ const handleCreate = async () => {
 .cursor-pointer {
     cursor: pointer;
 }
+:deep(.v-field__input) {
+    color: inherit;
+}
+:deep(.v-field--error .v-field__input) {
+    color: #ff5252;
+}
+:deep(.v-field--error .v-field__outline) {
+    color: #ff5252;
+}
+:deep(.v-field--error .v-label) {
+    color: #ff5252;
+}
 </style>
