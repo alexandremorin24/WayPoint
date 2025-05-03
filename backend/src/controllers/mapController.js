@@ -1,9 +1,20 @@
 const MapModel = require('../models/MapModel');
+const path = require('path');
+const fs = require('fs');
+
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 // Create a new map
 async function createMap(req, res) {
   try {
-    const { name, description, imageUrl, isPublic } = req.body;
+    const { name, description, isPublic, gameName } = req.body;
     // ownerId comes from the authenticated user
     const ownerId = req.user && req.user.id;
     if (!ownerId) {
@@ -17,17 +28,51 @@ async function createMap(req, res) {
     if (!description || typeof description !== 'string' || description.length > 500) {
       return res.status(400).json({ error: 'Description is required (max 500 characters).' });
     }
-    // Validate imageUrl (required)
-    if (!imageUrl || typeof imageUrl !== 'string' || !/^https?:\/\/.+\..+/.test(imageUrl)) {
-      return res.status(400).json({ error: 'Image URL is required and must be a valid URL.' });
+    // Validate gameName
+    if (!gameName || typeof gameName !== 'string' || gameName.length < 3 || gameName.length > 100) {
+      return res.status(400).json({ error: 'Game name is required (3-100 characters).' });
+    }
+    // Validate image (upload)
+    if (!req.file) {
+      return res.status(400).json({ error: 'Image is required.' });
     }
     // Validate isPublic
-    if (typeof isPublic !== 'boolean') {
-      return res.status(400).json({ error: 'isPublic is required and must be a boolean.' });
+    const isPublicBool = isPublic === 'true' || isPublic === true;
+
+    // Find or create the game
+    let game = await MapModel.findGameByName(gameName);
+    if (!game) {
+      game = await MapModel.createGame(gameName);
     }
-    // gameId is null by default
-    const map = await MapModel.createMap({ name, description, imageUrl, isPublic, ownerId, gameId: null });
-    res.status(201).json(map);
+    const gameId = game.id;
+    const gameSlug = slugify(gameName);
+
+    // Create the map first to get the id
+    const tempImageUrl = `/uploads/${req.file.filename}`;
+    const map = await MapModel.createMap({
+      name,
+      description,
+      imageUrl: tempImageUrl,
+      isPublic: isPublicBool,
+      ownerId,
+      gameId
+    });
+
+    // Rename and move the image file
+    const ext = path.extname(req.file.originalname);
+    const uploadsDir = path.join(__dirname, '../../public/uploads', gameSlug);
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    const finalName = `${map.id}${ext}`;
+    const finalPath = path.join(uploadsDir, finalName);
+    const oldPath = path.join(__dirname, '../../public/uploads', req.file.filename);
+    fs.renameSync(oldPath, finalPath);
+    // Update the image path in the database
+    const imageUrl = `/uploads/${gameSlug}/${finalName}`;
+    await MapModel.updateMap(map.id, { image_url: imageUrl });
+
+    res.status(201).json({ id: map.id, gameId, gameName });
   } catch (err) {
     console.error('createMap error:', err);
     res.status(500).json({ error: 'Error while creating map.' });
@@ -40,14 +85,35 @@ async function getMapById(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
-    // If map is not public, only owner can access
-    if (!map.is_public) {
-      const userId = req.user && req.user.id;
-      if (!userId || userId !== map.owner_id) {
-        return res.status(403).json({ error: 'Forbidden: private map.' });
+    // If the map is public, access is OK
+    if (map.is_public) {
+      return res.json(map);
+    }
+    // Otherwise, must be owner or editor
+    let userId = null;
+    // Get user id from token if present
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (e) {
+        // Invalid token, access denied
+        return res.status(403).json({ error: 'Forbidden: invalid token.' });
       }
     }
-    res.json(map);
+    if (!userId) {
+      return res.status(403).json({ error: 'Forbidden: private map.' });
+    }
+    if (userId === map.owner_id) {
+      return res.json(map);
+    }
+    // Vérifier si editor
+    const isEditor = await MapModel.hasEditorAccess(map.id, userId);
+    if (isEditor) {
+      return res.json(map);
+    }
+    return res.status(403).json({ error: 'Forbidden: private map.' });
   } catch (err) {
     console.error('getMapById error:', err);
     res.status(500).json({ error: 'Error while fetching map.' });

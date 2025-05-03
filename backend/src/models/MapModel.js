@@ -66,6 +66,28 @@ async function findPublicMapsPaginated(limit, offset) {
   return rows;
 }
 
+// Find a game by name
+async function findGameByName(name) {
+  const [rows] = await db.execute('SELECT * FROM games WHERE name = ? LIMIT 1', [name]);
+  return rows[0] || null;
+}
+
+// Create a new game
+async function createGame(name) {
+  const id = uuidv4();
+  await db.execute('INSERT INTO games (id, name) VALUES (?, ?)', [id, name]);
+  return { id, name };
+}
+
+// Vérifie si un utilisateur a le rôle editor sur une map
+async function hasEditorAccess(mapId, userId) {
+  const [rows] = await db.execute(
+    'SELECT * FROM collaborations WHERE map_id = ? AND user_id = ? AND role = ? LIMIT 1',
+    [mapId, userId, 'editor']
+  );
+  return !!rows[0];
+}
+
 // --- Advanced methods to implement ---
 // async function addPOI(mapId, poiData) { /* ... */ }
 // async function removePOI(mapId, poiId) { /* ... */ }
@@ -79,7 +101,10 @@ module.exports = {
   findMapsByOwner,
   updateMap,
   deleteMap,
-  findPublicMapsPaginated
+  findPublicMapsPaginated,
+  findGameByName,
+  createGame,
+  hasEditorAccess
   // addPOI,
   // removePOI,
   // inviteUser,
