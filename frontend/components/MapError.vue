@@ -1,14 +1,14 @@
 <template>
   <div class="error-container">
     <v-alert type="error" class="ma-8" border="start" prominent>
-      <h2 class="text-h6 mb-2">{{ title }}</h2>
-      <div>{{ message }}</div>
+      <h2 class="text-h6 mb-2">{{ title || $t('map.error.title') }}</h2>
+      <div>{{ message || $t('map.error.message') }}</div>
     </v-alert>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ title: string, message: string }>()
+defineProps<{ title?: string, message?: string }>()
 </script>
 
 <style scoped>

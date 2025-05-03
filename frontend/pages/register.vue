@@ -1,23 +1,42 @@
 <template>
     <v-container class="py-10" max-width="500">
         <v-card class="pa-6" elevation="4">
-            <h2 class="text-h5 mb-4">Register</h2>
+            <h2 class="text-h5 mb-4">{{ $t('auth.registerTitle') }}</h2>
             <v-form v-model="formValid" @submit.prevent="handleSubmit">
-                <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]"
-                    prepend-inner-icon="mdi-email" type="email" />
-                <v-text-field v-model="displayName" label="Username" :rules="[rules.required, rules.displayName]"
-                    prepend-inner-icon="mdi-account" />
-                <v-text-field v-model="password" label="Password" :type="showPassword ? 'text' : 'password'"
-                    :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append="showPassword = !showPassword"
-                    :rules="[rules.required, rules.strongPassword]" prepend-inner-icon="mdi-lock" />
-                <v-text-field v-model="confirmPassword" label="Confirm Password"
-                    :type="showPassword ? 'text' : 'password'" :rules="[rules.required, confirmMatch]"
-                    prepend-inner-icon="mdi-lock-check" />
+                <v-text-field 
+                    v-model="email" 
+                    :label="$t('common.email')" 
+                    :rules="[rules.required, rules.email]"
+                    prepend-inner-icon="mdi-email" 
+                    type="email" 
+                />
+                <v-text-field 
+                    v-model="displayName" 
+                    :label="$t('auth.username')" 
+                    :rules="[rules.required, rules.displayName]"
+                    prepend-inner-icon="mdi-account" 
+                />
+                <v-text-field 
+                    v-model="password" 
+                    :label="$t('common.password')" 
+                    :type="showPassword ? 'text' : 'password'"
+                    :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                    @click:append="showPassword = !showPassword"
+                    :rules="[rules.required, rules.strongPassword]" 
+                    prepend-inner-icon="mdi-lock" 
+                />
+                <v-text-field 
+                    v-model="confirmPassword" 
+                    :label="$t('auth.confirmPassword')"
+                    :type="showPassword ? 'text' : 'password'" 
+                    :rules="[rules.required, confirmMatch]"
+                    prepend-inner-icon="mdi-lock-check" 
+                />
                 <v-btn class="mt-4" color="primary" type="submit" :disabled="!formValid || isSubmitting" block>
-                    Register
+                    {{ $t('common.register') }}
                 </v-btn>
                 <v-alert v-if="success" type="success" class="mt-4">
-                    Verification email sent to {{ email }}
+                    {{ $t('auth.verificationEmailSent', { email }) }}
                 </v-alert>
                 <v-alert v-if="error" type="error" class="mt-4">
                     {{ error }}
@@ -30,9 +49,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 const config = useRuntimeConfig()
 
 const router = useRouter()
+const { t } = useI18n()
+const localePath = useLocalePath()
+
 const email = ref('')
 const displayName = ref('')
 const password = ref('')
@@ -44,18 +67,18 @@ const success = ref(false)
 const error = ref<string | null>(null)
 
 const rules = {
-    required: (v: string) => !!v || 'This field is required',
-    email: (v: string) => /.+@.+\..+/.test(v) || 'Enter a valid email',
+    required: (v: string) => !!v || t('errors.required'),
+    email: (v: string) => /.+@.+\..+/.test(v) || t('errors.invalidEmail'),
     displayName: (v: string) =>
         (!!v && v.length >= 3 && v.length <= 20 && /^[a-zA-Z0-9]+$/.test(v)) ||
-        'Username must be 3-20 characters, letters and numbers only',
+        t('errors.invalidUsername'),
     strongPassword: (v: string) =>
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(v) && v.length >= 8 ||
-        'Password must be 8+ chars with uppercase, lowercase, number and symbol'
+        t('errors.weakPassword')
 }
 
 const confirmMatch = () => {
-    return password.value === confirmPassword.value || 'Passwords do not match'
+    return password.value === confirmPassword.value || t('errors.passwordsDoNotMatch')
 }
 
 const handleSubmit = async () => {
@@ -75,9 +98,11 @@ const handleSubmit = async () => {
         })
         const data = await res.json()
         if (!res.ok) {
-            throw new Error(data.error || 'Registration failed')
+            throw new Error(data.error || t('errors.registrationFailed'))
         }
         success.value = true
+        // Redirection après inscription si besoin
+        // router.push(localePath('/'))
     } catch (err: any) {
         error.value = err.message
     } finally {

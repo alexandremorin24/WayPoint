@@ -1,17 +1,18 @@
 <template>
     <div class="text-center py-12">
-        <h1 class="text-h3 mb-4">Welcome to WayPoint</h1>
+        <h1 class="text-h3 mb-4">{{ $t('home.welcome') }}</h1>
         <p class="text-body-1 mb-6">
-            Your personal journey tracking companion. Start exploring and sharing your adventures today!
+            {{ $t('home.description') }}
         </p>
-        <NuxtLink to="/login">
-            <v-btn color="primary" class="mx-2">Login</v-btn>
+        <NuxtLink :to="localePath('login')">
+            <v-btn color="primary" class="mx-2">{{ $t('common.login') }}</v-btn>
         </NuxtLink>
-        <NuxtLink to="/register">
-            <v-btn color="secondary" class="mx-2">Register</v-btn>
+        <NuxtLink :to="localePath('register')">
+            <v-btn color="secondary" class="mx-2">{{ $t('common.register') }}</v-btn>
         </NuxtLink>
     </div>
 </template>
 
 <script setup lang="ts">
+const localePath = useLocalePath()
 </script>

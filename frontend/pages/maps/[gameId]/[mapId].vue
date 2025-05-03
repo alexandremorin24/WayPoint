@@ -4,15 +4,15 @@
       <MapError :title="error.title" :message="error.message" />
     </div>
     <div v-else-if="map && map.image_url && imageBounds">
-      <h1 class="text-h5 mb-2">Map: {{ map.name }}</h1>
-      <p>Description: {{ map.description }}</p>
+      <h1 class="text-h5 mb-2">{{ $t('mapDetails.title') }} {{ map.name }}</h1>
+      <p>{{ $t('mapDetails.description') }} {{ map.description }}</p>
       <MapViewer
         :image-url="backendBase + map.image_url"
         :image-bounds="imageBounds"
         :markers="[]"
       />
     </div>
-    <div v-else>Loading...</div>
+    <div v-else>{{ $t('mapDetails.loading') }}</div>
   </client-only>
 </template>
 
@@ -21,6 +21,7 @@ import { useRoute } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import MapError from '~/components/MapError.vue'
 const config = useRuntimeConfig()
+const { t } = useI18n()
 
 definePageMeta({ layout: 'map' })
 
@@ -51,18 +52,18 @@ onMounted(async () => {
   if (!res.ok) {
     if (res.status === 404) {
       error.value = {
-        title: 'Map Not Found',
-        message: 'The requested map does not exist.'
+        title: t('mapDetails.notFoundTitle'),
+        message: t('mapDetails.notFoundMsg')
       }
     } else if (res.status === 403) {
       error.value = {
-        title: 'Access Denied',
-        message: 'You do not have permission to view this map.'
+        title: t('mapDetails.accessDeniedTitle'),
+        message: t('mapDetails.accessDeniedMsg')
       }
     } else {
       error.value = {
-        title: 'Error',
-        message: 'An unexpected error occurred while loading the map.'
+        title: t('mapDetails.errorTitle'),
+        message: t('mapDetails.errorMsg')
       }
     }
     return
@@ -71,8 +72,8 @@ onMounted(async () => {
   map.value = mapData
   if (!mapData || !mapData.image_url) {
     error.value = {
-      title: 'No Image Available',
-      message: 'This map does not have a background image.'
+      title: t('mapDetails.noImageTitle'),
+      message: t('mapDetails.noImageMsg')
     }
     return
   }
@@ -85,8 +86,8 @@ onMounted(async () => {
   }
   img.onerror = () => {
     error.value = {
-      title: 'Image Not Found',
-      message: 'The background image for this map could not be loaded.'
+      title: t('mapDetails.imageNotFoundTitle'),
+      message: t('mapDetails.imageNotFoundMsg')
     }
   }
   img.src = `${backendBase}${mapData.image_url}`

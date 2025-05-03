@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <h1 class="text-h4 mb-4">Interactive Map</h1>
+    <h1 class="text-h4 mb-4">{{ $t('map.title') }}</h1>
     
     <!-- Example with custom image -->
     <v-card class="pa-4 mb-4">
-      <h2 class="text-h6 mb-2">Map with custom image</h2>
+      <h2 class="text-h6 mb-2">{{ $t('map.customImageTitle') }}</h2>
       <MapViewer
         :image-url="imageUrl"
         :image-bounds="imageBounds"
@@ -15,6 +15,8 @@
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n()
+
 // Example with custom image
 const imageUrl = '/images/map-background.jpg' // Replace with your image URL
 const imageBounds: [[number, number], [number, number]] = [
@@ -25,7 +27,7 @@ const imageBounds: [[number, number], [number, number]] = [
 const markers = [
   {
     position: [500, 500] as [number, number],
-    popup: 'Center point'
+    popup: t('map.centerPoint')
   }
 ]
 </script> 

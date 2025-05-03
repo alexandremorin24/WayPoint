@@ -1,0 +1,96 @@
+{
+    "common": {
+        "welcome": "Welcome",
+        "login": "Login",
+        "logout": "Logout",
+        "register": "Register",
+        "email": "Email",
+        "password": "Password",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "search": "Search",
+        "loading": "Loading..."
+    },
+    "navigation": {
+        "home": "Home",
+        "profile": "Profile",
+        "settings": "Se,ttings",
+        "map": "Map",
+        "create": "Create Map"
+    },
+    "errors": {
+        "required": "This field is required",
+        "invalidEmail": "Invalid email",
+        "invalidPassword": "Invalid password",
+        "serverError": "Server error",
+        "notFound": "Page not found",
+        "loginFailed": "Login failed",
+        "registrationFailed": "Registration failed",
+        "passwordsDoNotMatch": "Passwords do not match",
+        "invalidUsername": "Username must be 3-20 characters, letters and numbers only",
+        "weakPassword": "Password must be 8+ chars with uppercase, lowercase, number and symbol"
+    },
+    "auth": {
+        "loginTitle": "Login",
+        "registerTitle": "Register",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "username": "Username",
+        "confirmPassword": "Confirm Password",
+        "verificationEmailSent": "Verification email sent to {email}"
+    },
+    "home": {
+        "welcome": "Welcome to WayPoint",
+        "description": "Your personal journey tracking companion. Start exploring and sharing your adventures today!"
+    },
+    "map": {
+        "title": "Interactive Map",
+        "customImageTitle": "Map with custom image",
+        "centerPoint": "Center point",
+        "error": {
+            "title": "Map Loading Error",
+            "message": "Unable to load the map. Please try again later."
+        }
+    },
+    "$vuetify": {
+        "input": {
+            "appendAction": ""
+        }
+    },
+    "vuetify": {
+        "input": {
+            "appendAction": ""
+        }
+    },
+    "createMap": {
+        "title": "Create a New Map",
+        "gameName": "Game Name",
+        "mapName": "Map Name",
+        "description": "Description",
+        "selectOrUpload": "Select an existing public map image or upload a new one:",
+        "uploadNew": "Upload a new image",
+        "mapImage": "Map Image",
+        "create": "Create Map",
+        "success": "Map created successfully!",
+        "mustBeLogged": "You must be logged in to create a map.",
+        "pleaseSelectImage": "Please select an image."
+    },
+    "mapDetails": {
+        "title": "Map:",
+        "description": "Description:",
+        "loading": "Loading...",
+        "notFoundTitle": "Map Not Found",
+        "notFoundMsg": "The requested map does not exist.",
+        "accessDeniedTitle": "Access Denied",
+        "accessDeniedMsg": "You do not have permission to view this map.",
+        "errorTitle": "Error",
+        "errorMsg": "An unexpected error occurred while loading the map.",
+        "noImageTitle": "No Image Available",
+        "noImageMsg": "This map does not have a background image.",
+        "imageNotFoundTitle": "Image Not Found",
+        "imageNotFoundMsg": "The background image for this map could not be loaded."
+    }
+}

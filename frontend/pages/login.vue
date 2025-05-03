@@ -1,16 +1,27 @@
 <template>
     <v-container class="py-10" max-width="500">
         <v-card class="pa-6" elevation="4">
-            <h2 class="text-h5 mb-4">Login</h2>
+            <h2 class="text-h5 mb-4">{{ $t('auth.loginTitle') }}</h2>
 
             <v-form v-model="formValid" @submit.prevent="handleLogin">
-                <v-text-field v-model="email" label="Email" type="email" :rules="[rules.required, rules.email]"
-                    prepend-inner-icon="mdi-email" />
-                <v-text-field v-model="password" label="Password" :type="showPassword ? 'text' : 'password'"
-                    :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append="showPassword = !showPassword"
-                    :rules="[rules.required]" prepend-inner-icon="mdi-lock" />
+                <v-text-field 
+                    v-model="email" 
+                    :label="$t('common.email')" 
+                    type="email" 
+                    :rules="[rules.required, rules.email]"
+                    prepend-inner-icon="mdi-email" 
+                />
+                <v-text-field 
+                    v-model="password" 
+                    :label="$t('common.password')" 
+                    :type="showPassword ? 'text' : 'password'"
+                    :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                    @click:append="showPassword = !showPassword"
+                    :rules="[rules.required]" 
+                    prepend-inner-icon="mdi-lock" 
+                />
                 <v-btn class="mt-4" color="primary" type="submit" :disabled="!formValid || isSubmitting" block>
-                    Login
+                    {{ $t('common.login') }}
                 </v-btn>
                 <v-alert v-if="error" type="error" class="mt-4">
                     {{ error }}
@@ -23,9 +34,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 const config = useRuntimeConfig()
-
 const router = useRouter()
+const { t } = useI18n()
+const localePath = useLocalePath()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
@@ -34,8 +47,8 @@ const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 
 const rules = {
-    required: (v: string) => !!v || 'This field is required',
-    email: (v: string) => /.+@.+\..+/.test(v) || 'Enter a valid email'
+    required: (v: string) => !!v || t('errors.required'),
+    email: (v: string) => /.+@.+\..+/.test(v) || t('errors.invalidEmail')
 }
 
 const handleLogin = async () => {
@@ -52,11 +65,11 @@ const handleLogin = async () => {
         })
         const data = await res.json()
         if (!res.ok) {
-            throw new Error(data.error || 'Login failed')
+            throw new Error(data.error || t('errors.loginFailed'))
         }
         localStorage.setItem('token', data.token)
         localStorage.setItem('user', JSON.stringify(data.user))
-        router.push('/')
+        window.location.href = localePath('/')
     } catch (err: any) {
         error.value = err.message
     } finally {

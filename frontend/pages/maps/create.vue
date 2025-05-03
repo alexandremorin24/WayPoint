@@ -1,20 +1,20 @@
 <template>
     <v-container class="py-10" max-width="600">
         <v-card class="pa-6" elevation="4">
-            <h2 class="text-h5 mb-4">Create a New Map</h2>
+            <h2 class="text-h5 mb-4">{{ $t('createMap.title') }}</h2>
             <v-form v-model="formValid" @submit.prevent="handleCreate">
                 <v-text-field 
                     v-model="gameName" 
-                    label="Game Name" 
+                    :label="$t('createMap.gameName')" 
                     :rules="[rules.required, rules.min, rules.max]" 
                     @input="debounceFetchPublicMaps"
                     required 
                 />
-                <v-text-field v-model="name" label="Map Name" :rules="[rules.required, rules.min, rules.max]" required />
-                <v-textarea v-model="description" label="Description" :rules="[rules.required, rules.descMax]" required />
+                <v-text-field v-model="name" :label="$t('createMap.mapName')" :rules="[rules.required, rules.min, rules.max]" required />
+                <v-textarea v-model="description" :label="$t('createMap.description')" :rules="[rules.required, rules.descMax]" required />
 
                 <div v-if="publicMaps.length > 0">
-                    <div class="mb-2">Select an existing public map image or upload a new one:</div>
+                    <div class="mb-2">{{ $t('createMap.selectOrUpload') }}</div>
                     <v-row>
                         <v-col
                             v-for="map in publicMaps"
@@ -41,21 +41,21 @@
                     </v-row>
                     <v-divider class="my-2" />
                     <v-radio-group v-model="selectedMapId">
-                        <v-radio label="Upload a new image" value="upload" />
+                        <v-radio :label="$t('createMap.uploadNew')" value="upload" />
                     </v-radio-group>
                 </div>
 
                 <v-file-input
                     v-if="selectedMapId === 'upload' || publicMaps.length === 0"
                     v-model="imageFile"
-                    label="Map Image"
+                    :label="$t('createMap.mapImage')"
                     accept="image/*"
                     :rules="[rules.required]"
                     required
                 />
 
                 <v-btn class="mt-4" color="primary" type="submit" :disabled="!formValid || isSubmitting" block>
-                    Create Map
+                    {{ $t('createMap.create') }}
                 </v-btn>
                 <v-progress-linear v-if="uploadProgress > 0 && uploadProgress < 100" :value="uploadProgress" class="mt-4" color="primary" height="8">
                   <template #default>
@@ -63,7 +63,7 @@
                   </template>
                 </v-progress-linear>
                 <v-alert v-if="error" type="error" class="mt-4">{{ error }}</v-alert>
-                <v-alert v-if="success" type="success" class="mt-4">Map created successfully!</v-alert>
+                <v-alert v-if="success" type="success" class="mt-4">{{ $t('createMap.success') }}</v-alert>
             </v-form>
         </v-card>
     </v-container>
@@ -75,6 +75,8 @@ import { useRouter } from 'vue-router';
 const config = useRuntimeConfig();
 
 const router = useRouter();
+const localePath = useLocalePath();
+const { t } = useI18n();
 const gameName = ref('');
 const name = ref('');
 const description = ref('');
@@ -89,10 +91,10 @@ const selectedMapId = ref<string>('upload');
 const backendBase = config.public.API_BASE.replace(/\/api\/backend$/, '');
 
 const rules = {
-    required: (v: unknown) => !!v || 'This field is required',
-    min: (v: string) => v.length >= 3 || 'Minimum 3 characters',
-    max: (v: string) => v.length <= 100 || 'Maximum 100 characters',
-    descMax: (v: string) => v.length <= 500 || 'Maximum 500 characters',
+    required: (v: unknown) => !!v || t('errors.required'),
+    min: (v: string) => v.length >= 3 || t('errors.invalidUsername'),
+    max: (v: string) => v.length <= 100 || t('errors.invalidUsername'),
+    descMax: (v: string) => v.length <= 500 || t('errors.invalidUsername'),
 };
 
 // Debounce function to avoid too many API calls
@@ -132,11 +134,11 @@ const handleCreate = async () => {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            error.value = 'You must be logged in to create a map.';
+            error.value = t('createMap.mustBeLogged');
             return;
         }
         if ((selectedMapId.value === 'upload' || publicMaps.value.length === 0) && !imageFile.value) {
-            error.value = 'Please select an image.';
+            error.value = t('createMap.pleaseSelectImage');
             return;
         }
         const formData = new FormData();
@@ -163,7 +165,7 @@ const handleCreate = async () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     const data = JSON.parse(xhr.responseText);
                     success.value = true;
-                    router.push(`/maps/${data.gameId}/${data.id}`);
+                    router.push(localePath(`/maps/${data.gameId}/${data.id}`));
                     resolve();
                 } else {
                     try {

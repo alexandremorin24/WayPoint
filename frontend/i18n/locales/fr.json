@@ -1,0 +1,96 @@
+{
+    "common": {
+        "welcome": "Bienvenue",
+        "login": "Connexion",
+        "logout": "Déconnexion",
+        "register": "Inscription",
+        "email": "Email",
+        "password": "Mot de passe",
+        "submit": "Valider",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "search": "Rechercher",
+        "loading": "Chargement..."
+    },
+    "navigation": {
+        "home": "Accueil",
+        "profile": "Profil",
+        "settings": "Paramètres",
+        "map": "Carte",
+        "create": "Créer une carte"
+    },
+    "errors": {
+        "required": "Ce champ est requis",
+        "invalidEmail": "Email invalide",
+        "invalidPassword": "Mot de passe invalide",
+        "serverError": "Erreur serveur",
+        "notFound": "Page non trouvée",
+        "loginFailed": "Échec de la connexion",
+        "registrationFailed": "Échec de l'inscription",
+        "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+        "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 20 caractères, uniquement des lettres et des chiffres",
+        "weakPassword": "Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et symboles"
+    },
+    "auth": {
+        "loginTitle": "Connexion",
+        "registerTitle": "Inscription",
+        "showPassword": "Afficher le mot de passe",
+        "hidePassword": "Masquer le mot de passe",
+        "username": "Nom d'utilisateur",
+        "confirmPassword": "Confirmer le mot de passe",
+        "verificationEmailSent": "Email de vérification envoyé à {email}"
+    },
+    "home": {
+        "welcome": "Bienvenue sur WayPoint",
+        "description": "Votre compagnon de suivi de voyage personnel. Commencez à explorer et partager vos aventures dès aujourd'hui !"
+    },
+    "map": {
+        "title": "Carte Interactive",
+        "customImageTitle": "Carte avec image personnalisée",
+        "centerPoint": "Point central",
+        "error": {
+            "title": "Erreur de chargement de la carte",
+            "message": "Impossible de charger la carte. Veuillez réessayer plus tard."
+        }
+    },
+    "$vuetify": {
+        "input": {
+            "appendAction": ""
+        }
+    },
+    "vuetify": {
+        "input": {
+            "appendAction": ""
+        }
+    },
+    "createMap": {
+        "title": "Créer une nouvelle carte",
+        "gameName": "Nom du jeu",
+        "mapName": "Nom de la carte",
+        "description": "Description",
+        "selectOrUpload": "Sélectionnez une image de carte publique existante ou importez-en une nouvelle :",
+        "uploadNew": "Importer une nouvelle image",
+        "mapImage": "Image de la carte",
+        "create": "Créer la carte",
+        "success": "Carte créée avec succès !",
+        "mustBeLogged": "Vous devez être connecté pour créer une carte.",
+        "pleaseSelectImage": "Veuillez sélectionner une image."
+    },
+    "mapDetails": {
+        "title": "Carte :",
+        "description": "Description :",
+        "loading": "Chargement...",
+        "notFoundTitle": "Carte introuvable",
+        "notFoundMsg": "La carte demandée n'existe pas.",
+        "accessDeniedTitle": "Accès refusé",
+        "accessDeniedMsg": "Vous n'avez pas la permission de voir cette carte.",
+        "errorTitle": "Erreur",
+        "errorMsg": "Une erreur inattendue est survenue lors du chargement de la carte.",
+        "noImageTitle": "Aucune image disponible",
+        "noImageMsg": "Cette carte n'a pas d'image de fond.",
+        "imageNotFoundTitle": "Image introuvable",
+        "imageNotFoundMsg": "L'image de fond de cette carte n'a pas pu être chargée."
+    }
+}
