@@ -1,9 +1,0 @@
-{
-    "title": "Carte Interactive",
-    "customImageTitle": "Carte avec image personnalisée",
-    "centerPoint": "Point central",
-    "error": {
-        "title": "Erreur de chargement de la carte",
-        "message": "Impossible de charger la carte. Veuillez réessayer plus tard."
-    }
-}

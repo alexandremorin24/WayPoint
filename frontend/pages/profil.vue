@@ -7,15 +7,15 @@
             {{ $t('navigation.profile') }}
           </v-card-title>
 
-          <v-form @submit.prevent="saveProfile" ref="form">
-            <!-- Avatar + Username en ligne -->
+          <v-form ref="form" @submit.prevent="saveProfile">
+            <!-- Avatar + Username in line -->
             <v-row align="center" class="mb-2">
               <v-col cols="auto">
                 <v-avatar
                   size="100"
                   class="cursor-pointer elevation-2"
-                  @click="triggerFileInput"
                   style="border: 2px solid #ccc;"
+                  @click="triggerFileInput"
                 >
                   <v-img
                     :src="user.photo_url || '/default-avatar.png'"
@@ -23,8 +23,8 @@
                   />
                 </v-avatar>
                 <input
-                  type="file"
                   ref="fileInput"
+                  type="file"
                   accept="image/*"
                   class="d-none"
                   @change="handleFileUpload"
@@ -37,7 +37,7 @@
                   disabled
                   class="mb-0"
                 />
-                <!-- Date de création juste sous le username -->
+                <!-- Creation date just below username -->
                 <v-text-field
                   :model-value="formatDate(user.created_at)"
                   :label="$t('profile.createdAt')"
@@ -53,9 +53,9 @@
               :label="$t('common.email')"
               :rules="emailRules"
               :error-messages="emailError"
-              @input="emailError = ''"
               class="mb-4"
               :disabled="!isEditing"
+              @input="emailError = ''"
             />
 
             <!-- Preferred Language -->
@@ -78,7 +78,7 @@
               :disabled="!isEditing"
             />
 
-            <!-- Section changement de mot de passe, un champ par ligne -->
+            <!-- Password change section, one field per line -->
             <v-divider class="my-4" />
             <div>
               <v-row>
@@ -152,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -173,7 +173,7 @@ const user = ref({
   created_at: null
 });
 
-// Pour restaurer les valeurs si on annule
+// To restore values if cancelled
 const originalUser = ref({});
 
 // Password fields
@@ -221,7 +221,7 @@ const isFormValid = computed(() => {
   return valid;
 });
 
-// Méthodes
+// Methods
 const formatDate = (date) => {
   if (!date) return '';
   return new Date(date).toLocaleDateString();

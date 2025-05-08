@@ -17,9 +17,9 @@
     "navigation": {
         "home": "Home",
         "profile": "Profile",
-        "settings": "Se,ttings",
-        "map": "Map",
-        "create": "Create Map"
+        "settings": "Settings",
+        "map": "My maps",
+        "create": "Create map"
     },
     "errors": {
         "required": "This field is required",
@@ -30,8 +30,12 @@
         "loginFailed": "Login failed",
         "registrationFailed": "Registration failed",
         "passwordsDoNotMatch": "Passwords do not match",
-        "invalidUsername": "Username must be 3-20 characters, letters and numbers only",
-        "weakPassword": "Password must be 8+ chars with uppercase, lowercase, number and symbol"
+        "invalidUsername": "Username must be between 3 and 100 characters",
+        "weakPassword": "Password must be 8+ chars with uppercase, lowercase, number and symbol",
+        "unknown": "An unknown error occurred",
+        "deleteFailed": "Failed to delete the map",
+        "fetchProfileFailed": "Unable to fetch user profile",
+        "fetchMapsFailed": "Unable to fetch your maps"
     },
     "auth": {
         "loginTitle": "Login",
@@ -53,16 +57,6 @@
         "error": {
             "title": "Map Loading Error",
             "message": "Unable to load the map. Please try again later."
-        }
-    },
-    "$vuetify": {
-        "input": {
-            "appendAction": ""
-        }
-    },
-    "vuetify": {
-        "input": {
-            "appendAction": ""
         }
     },
     "createMap": {
@@ -115,5 +109,6 @@
         "deleteWarning": "Deletion is permanent. This action cannot be undone.",
         "deleteExplain": "To confirm, type delete in the field below.",
         "deleteLabel": "Type delete to confirm"
-    }
+    },
+    "vuetify": {}
 }

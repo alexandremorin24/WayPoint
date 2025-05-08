@@ -1,9 +1,0 @@
-{
-    "title": "Interactive Map",
-    "customImageTitle": "Map with custom image",
-    "centerPoint": "Center point",
-    "error": {
-        "title": "Map Loading Error",
-        "message": "Unable to load the map. Please try again later."
-    }
-}

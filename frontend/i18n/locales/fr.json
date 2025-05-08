@@ -10,7 +10,7 @@
         "cancel": "Annuler",
         "save": "Enregistrer",
         "delete": "Supprimer",
-        "edit": "Éditer",
+        "edit": "Modifier",
         "search": "Rechercher",
         "loading": "Chargement..."
     },
@@ -18,7 +18,7 @@
         "home": "Accueil",
         "profile": "Profil",
         "settings": "Paramètres",
-        "map": "Carte",
+        "map": "Mes cartes",
         "create": "Créer une carte"
     },
     "errors": {
@@ -30,8 +30,12 @@
         "loginFailed": "Échec de la connexion",
         "registrationFailed": "Échec de l'inscription",
         "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
-        "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 20 caractères, uniquement des lettres et des chiffres",
-        "weakPassword": "Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et symboles"
+        "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 100 caractères",
+        "weakPassword": "Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et symboles",
+        "unknown": "Une erreur inconnue s'est produite",
+        "deleteFailed": "Échec de la suppression de la carte",
+        "fetchProfileFailed": "Impossible de récupérer le profil utilisateur",
+        "fetchMapsFailed": "Impossible de récupérer vos cartes"
     },
     "auth": {
         "loginTitle": "Connexion",
@@ -47,7 +51,7 @@
         "description": "Votre compagnon de suivi de voyage personnel. Commencez à explorer et partager vos aventures dès aujourd'hui !"
     },
     "map": {
-        "title": "Carte Interactive",
+        "title": "Carte interactive",
         "customImageTitle": "Carte avec image personnalisée",
         "centerPoint": "Point central",
         "error": {
@@ -55,23 +59,13 @@
             "message": "Impossible de charger la carte. Veuillez réessayer plus tard."
         }
     },
-    "$vuetify": {
-        "input": {
-            "appendAction": ""
-        }
-    },
-    "vuetify": {
-        "input": {
-            "appendAction": ""
-        }
-    },
     "createMap": {
         "title": "Créer une nouvelle carte",
         "gameName": "Nom du jeu",
         "mapName": "Nom de la carte",
         "description": "Description",
-        "selectOrUpload": "Sélectionnez une image de carte publique existante ou importez-en une nouvelle :",
-        "uploadNew": "Importer une nouvelle image",
+        "selectOrUpload": "Sélectionnez une image de carte publique existante ou téléchargez-en une nouvelle :",
+        "uploadNew": "Télécharger une nouvelle image",
         "mapImage": "Image de la carte",
         "create": "Créer la carte",
         "success": "Carte créée avec succès !",
@@ -82,15 +76,15 @@
         "title": "Carte :",
         "description": "Description :",
         "loading": "Chargement...",
-        "notFoundTitle": "Carte introuvable",
+        "notFoundTitle": "Carte non trouvée",
         "notFoundMsg": "La carte demandée n'existe pas.",
         "accessDeniedTitle": "Accès refusé",
         "accessDeniedMsg": "Vous n'avez pas la permission de voir cette carte.",
         "errorTitle": "Erreur",
-        "errorMsg": "Une erreur inattendue est survenue lors du chargement de la carte.",
+        "errorMsg": "Une erreur inattendue s'est produite lors du chargement de la carte.",
         "noImageTitle": "Aucune image disponible",
         "noImageMsg": "Cette carte n'a pas d'image de fond.",
-        "imageNotFoundTitle": "Image introuvable",
+        "imageNotFoundTitle": "Image non trouvée",
         "imageNotFoundMsg": "L'image de fond de cette carte n'a pas pu être chargée."
     },
     "profile": {
@@ -112,8 +106,9 @@
         "title": "Mes cartes",
         "noMaps": "Aucune carte créée.",
         "deleteTitle": "Supprimer la carte",
-        "deleteWarning": "La suppression est définitive. Cette action est irréversible.",
+        "deleteWarning": "La suppression est définitive. Cette action ne peut pas être annulée.",
         "deleteExplain": "Pour confirmer, tapez delete dans le champ ci-dessous.",
         "deleteLabel": "Tapez delete pour confirmer"
-    }
+    },
+    "vuetify": {}
 }
