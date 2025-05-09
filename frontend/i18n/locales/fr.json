@@ -31,9 +31,9 @@
         "registrationFailed": "Échec de l'inscription",
         "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
         "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 100 caractères",
-        "weakPassword": "Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules, chiffres et symboles",
+        "weakPassword": "Le mot de passe doit contenir 8+ caractères avec majuscule, minuscule, chiffre et symbole",
         "unknown": "Une erreur inconnue s'est produite",
-        "deleteFailed": "Échec de la suppression de la carte",
+        "deleteFailed": "Impossible de supprimer la carte",
         "fetchProfileFailed": "Impossible de récupérer le profil utilisateur",
         "fetchMapsFailed": "Impossible de récupérer vos cartes"
     },
@@ -109,6 +109,37 @@
         "deleteWarning": "La suppression est définitive. Cette action ne peut pas être annulée.",
         "deleteExplain": "Pour confirmer, tapez delete dans le champ ci-dessous.",
         "deleteLabel": "Tapez delete pour confirmer"
+    },
+    "landing": {
+        "hero": {
+            "title": "Bienvenue sur WayPoint",
+            "subtitle": "Créez et partagez vos propres cartes de jeu interactives",
+            "startButton": "Commencer"
+        },
+        "features": {
+            "title": "Ce que vous pouvez faire avec WayPoint",
+            "upload": {
+                "title": "Téléchargez vos propres cartes de jeu",
+                "description": "Utilisez n'importe quelle image personnalisée comme base pour votre carte. Idéal pour les RPG, les jeux de survie ou les mondes fantastiques."
+            },
+            "poi": {
+                "title": "Ajoutez et organisez des POI",
+                "description": "Créez des points d'intérêt détaillés avec des catégories, des icônes et des descriptions."
+            },
+            "collaborate": {
+                "title": "Collaborez en temps réel",
+                "description": "Invitez vos coéquipiers à modifier les cartes ensemble et suivez les changements en direct."
+            },
+            "learnMore": "En savoir plus"
+        },
+        "community": {
+            "title": "Explorez les créations de la communauté"
+        },
+        "cta": {
+            "title": "Prêt à cartographier votre monde ?",
+            "button": "Créer votre première carte"
+        },
+        "footer": "Tous droits réservés"
     },
     "vuetify": {}
 }

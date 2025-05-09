@@ -110,5 +110,36 @@
         "deleteExplain": "To confirm, type delete in the field below.",
         "deleteLabel": "Type delete to confirm"
     },
+    "landing": {
+        "hero": {
+            "title": "Welcome to WayPoint",
+            "subtitle": "Build and share your own interactive game maps",
+            "startButton": "Start Mapping"
+        },
+        "features": {
+            "title": "What you can do with WayPoint",
+            "upload": {
+                "title": "Upload your own game maps",
+                "description": "Use any custom image as the base for your map. Ideal for RPGs, survival games, or fantasy worlds."
+            },
+            "poi": {
+                "title": "Add & organize POIs",
+                "description": "Create detailed points of interest with categories, icons, and descriptions."
+            },
+            "collaborate": {
+                "title": "Collaborate in real time",
+                "description": "Invite teammates to edit maps together and track changes as they happen."
+            },
+            "learnMore": "Learn More"
+        },
+        "community": {
+            "title": "Explore community creations"
+        },
+        "cta": {
+            "title": "Ready to map your world?",
+            "button": "Create Your First Map"
+        },
+        "footer": "All rights reserved"
+    },
     "vuetify": {}
 }

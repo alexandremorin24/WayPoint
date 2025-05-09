@@ -5,11 +5,23 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/eslint',
-    '@nuxt/fonts',
-    '@nuxt/ui',
     '@nuxt/image',
-    'vuetify-nuxt-module',
     '@nuxtjs/i18n',
+    '@nuxtjs/google-fonts'
+  ],
+
+  googleFonts: {
+    families: {
+      Roboto: [400, 500, 700],
+    },
+    display: 'swap',
+    prefetch: true,
+    preconnect: true,
+  },
+
+  css: [
+    'vuetify/styles',
+    '~/assets/css/main.css'
   ],
 
   i18n: {
@@ -31,6 +43,10 @@ export default defineNuxtConfig({
     public: {
       API_BASE: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api'
     }
+  },
+
+  build: {
+    transpile: ['vuetify']
   },
 
   vite: {

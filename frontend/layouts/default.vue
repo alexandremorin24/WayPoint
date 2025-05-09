@@ -1,52 +1,26 @@
 <template>
     <v-app>
-        <v-app-bar color="primary" dark>
-            <NuxtLink :to="localePath('/')" class="text-white text-decoration-none">WayPoint</NuxtLink>
-            <v-spacer />
-            <template v-if="!isLoggedIn">
-                <NuxtLink :to="localePath('login')" class="text-white mx-2">{{ $t('common.login') }}</NuxtLink>
-                <NuxtLink :to="localePath('register')" class="text-white mx-2">{{ $t('common.register') }}</NuxtLink>
-            </template>
-            <template v-else>
-                <NuxtLink :to="localePath('/maps/create')" class="text-white mx-2">{{ $t('navigation.create') }}</NuxtLink>
-                <v-menu>
-                    <template #activator="{ props }">
-                        <v-btn v-bind="props" color="primary" class="mx-2" variant="elevated">
-                            {{ user.displayName || 'Profil' }}
-                        </v-btn>
-                    </template>
-                    <v-list>
-                        <v-list-item :to="localePath('/profil')">
-                            <v-list-item-title>{{ $t('navigation.profile') }}</v-list-item-title>
-                        </v-list-item>
-                        <v-list-item :to="localePath('/my-maps')">
-                            <v-list-item-title>{{ $t('navigation.map') }}</v-list-item-title>
-                        </v-list-item>
-                        <v-list-item @click="logout">
-                            <v-list-item-title>{{ $t('common.logout') }}</v-list-item-title>
-                        </v-list-item>
-                    </v-list>
-                </v-menu>
-            </template>
-        </v-app-bar>
-        <v-main>
-            <v-container>
-                <NuxtPage />
-            </v-container>
+        <Header class="fixed-header" />
+        <v-main class="main-content">
+            <NuxtPage />
         </v-main>
-        <v-footer app>
-            <span>&copy; {{ new Date().getFullYear() }} WayPoint</span>
-        </v-footer>
+        <Footer class="fixed-footer" />
     </v-app>
 </template>
 
 <script setup lang="ts">
+import Header from '~/components/Header.vue'
+import Footer from '~/components/Footer.vue'
 const localePath = useLocalePath()
 const { t } = useI18n()
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 const isLoggedIn = ref(false)
 const user = ref({ displayName: '' })
+
+const route = useRoute()
+const isHome = computed(() => route.path === '/' || route.path === '/en' || route.path === '/fr')
 
 function updateUserFromStorage() {
     const token = localStorage.getItem('token')
@@ -78,3 +52,24 @@ function logout() {
     window.location.href = localePath('login')
 }
 </script>
+
+<style scoped>
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  z-index: 100;
+}
+.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  z-index: 100;
+}
+.main-content {
+  padding-top: 64px; /* hauteur du header */
+  padding-bottom: 32px; /* hauteur du footer */
+}
+</style>
