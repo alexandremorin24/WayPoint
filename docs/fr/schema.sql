@@ -31,9 +31,13 @@ CREATE TABLE maps (
   name VARCHAR(255),
   description TEXT,
   image_url TEXT,
+  thumbnail_url TEXT,
+  width INT,
+  height INT,
   is_public BOOLEAN DEFAULT FALSE,
-  owner_id CHAR(36),
+  owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  game_id VARCHAR(255),
   FOREIGN KEY (owner_id) REFERENCES users(id)
 );
 
@@ -63,14 +67,22 @@ CREATE TABLE categories (
   FOREIGN KEY (parent_category_id) REFERENCES categories(id)
 );
 
--- 👥 Collaborations
-CREATE TABLE collaborations (
-  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  user_id CHAR(36) NOT NULL,
+-- 👥 Role d'accès de carte
+CREATE TABLE map_user_roles (
   map_id CHAR(36) NOT NULL,
-  role VARCHAR(50) CHECK (role IN ('editor', 'viewer')),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (map_id) REFERENCES maps(id)
+  user_id CHAR(36) NOT NULL,
+  role VARCHAR(50) NOT NULL CHECK (
+    role IN (
+      'viewer',
+      'banned',
+      'editor_all',
+      'editor_own',
+      'contributor'
+    )
+  ),
+  PRIMARY KEY (map_id, user_id),
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 🧮 Statistiques utilisateur POI
@@ -119,17 +131,18 @@ CREATE TABLE games (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE maps ADD COLUMN game_id VARCHAR(255);
-ALTER TABLE maps ADD FOREIGN KEY (game_id) REFERENCES games(id);
-
 -- 📈 Index performances
-
 CREATE INDEX idx_maps_owner ON maps(owner_id);
 CREATE INDEX idx_maps_public_created ON maps(is_public, created_at);
 CREATE INDEX idx_pois_map ON pois(map_id);
-CREATE INDEX idx_collaborations_user ON collaborations(user_id);
+CREATE INDEX idx_pois_category ON pois(category_id);
+CREATE INDEX idx_map_user_roles_user ON map_user_roles(user_id);
+CREATE INDEX idx_map_user_roles_map ON map_user_roles(map_id);
+CREATE INDEX idx_map_user_roles_role ON map_user_roles(role);
 CREATE INDEX idx_categories_map ON categories(map_id);
 CREATE INDEX idx_poi_logs_poi ON poi_logs(poi_id);
+CREATE INDEX idx_poi_logs_user ON poi_logs(user_id);
+CREATE INDEX idx_poi_user_stats_user ON poi_user_stats(user_id);
 CREATE INDEX idx_map_votes_map_user ON map_votes(map_id, user_id);
 
 -- Exemple de pagination côté serveur pour cartes publiques :

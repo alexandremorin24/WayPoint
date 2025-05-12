@@ -25,7 +25,7 @@ async function createMap(req, res) {
 
     // Enforce map quota per user EDIT BEFORE PROD
     const mapCount = await MapModel.countByUser(ownerId);
-    if (mapCount >= 10000) {
+    if (mapCount >= 5) {
       return res.status(403).json({ error: 'Map quota exceeded (max 5 maps per user).' });
     }
 

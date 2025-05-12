@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS maps (
   description TEXT,
   image_url TEXT,
   thumbnail_url TEXT,
+  width INT,
+  height INT,
   is_public BOOLEAN DEFAULT FALSE,
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -60,14 +62,23 @@ CREATE TABLE IF NOT EXISTS pois (
   FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
-CREATE TABLE IF NOT EXISTS collaborations (
-  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  user_id CHAR(36) NOT NULL,
+CREATE TABLE IF NOT EXISTS map_user_roles (
   map_id CHAR(36) NOT NULL,
-  role VARCHAR(50) CHECK (role IN ('editor', 'viewer')),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (map_id) REFERENCES maps(id)
+  user_id CHAR(36) NOT NULL,
+  role VARCHAR(50) NOT NULL CHECK (
+    role IN (
+      'viewer',
+      'banned',
+      'editor_all',
+      'editor_own',
+      'contributor'
+    )
+  ),
+  PRIMARY KEY (map_id, user_id),
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 
 
 CREATE TABLE IF NOT EXISTS poi_user_stats (

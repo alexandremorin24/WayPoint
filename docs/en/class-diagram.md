@@ -9,7 +9,7 @@ This document illustrates the core data entities and their relationships in the 
 ```mermaid
 classDiagram
 
-%% === CORE CLASSES ===
+%% === CORE CLASSES (MVP)===
 
 class User {
   +string id
@@ -33,10 +33,13 @@ class Map {
   +string name
   +string description
   +string imageUrl
+  +string thumbnailUrl
   +boolean isPublic
   +string gameId
   +Date createdAt
   +string ownerId
+  +int width
+  +int height
   +addPOI()
   +removePOI()
   +inviteUser()
@@ -80,14 +83,12 @@ class Game {
   +string genre
 }
 
-%% === PERMISSIONS / COLLAB ===
+%% === ROLES MANAGEMENT ===
 
-class Collaboration {
-  +string id
+class MapUserRole {
   +string mapId
   +string userId
-  +string role
-  +notifyChange(actionType, payload)
+  +string role  // viewer, banned, editor_own, editor_all, contributor
 }
 
 class Invitation {
@@ -128,13 +129,13 @@ class MapVote {
 %% ==== RELATIONSHIPS (MVP) ====
 
 User "1" --> "many" Map : owns
-User "1" --> "many" Collaboration
+User "1" --> "many" MapUserRole
 User "1" --> "many" POILog
 User "1" --> "many" POIUserStat
 
 Map "1" --> "many" POI
 Map "1" --> "many" Category
-Map "1" --> "many" Collaboration
+Map "1" --> "many" MapUserRole
 Map "1" --> "many" POILog
 Map "1" --> "many" POIUserStat
 
@@ -147,6 +148,7 @@ Map "1" --> "many" MapVote
 Map "1" --> "1" Game
 
 Category "0..1" --> "many" Category : subcategories
+
 ```
 
 ---
@@ -157,7 +159,7 @@ Category "0..1" --> "many" Category : subcategories
 - **Map**: Represents an individual map created by a user.
 - **POI (Point of Interest)**: Represents markers added to a map.
 - **Category**: Organizes POIs into hierarchical categories.
-- **Collaboration**: Defines user roles and access permissions.
+- **MapUserRole**: Defines user roles and access permissions.
 - **POILog**: Tracks creation and modification actions performed on POIs.
 - **POIUserStat**: Aggregates statistics about user actions on POIs.
 - **MapVote**: Allows users to upvote their favorite maps.

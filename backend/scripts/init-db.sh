@@ -16,8 +16,8 @@ INDEXES=(
   "idx_maps_public_created maps"
   "idx_pois_map pois"
   "idx_pois_category pois"
-  "idx_collaborations_user collaborations"
-  "idx_collaborations_map collaborations"
+  "idx_map_user_roles_user map_user_roles"
+  "idx_map_user_roles_map map_user_roles"
   "idx_categories_map categories"
   "idx_poi_logs_poi poi_logs"
   "idx_poi_logs_user poi_logs"
@@ -36,8 +36,9 @@ CREATE INDEX idx_maps_owner ON maps(owner_id);
 CREATE INDEX idx_maps_public_created ON maps(is_public, created_at);
 CREATE INDEX idx_pois_map ON pois(map_id);
 CREATE INDEX idx_pois_category ON pois(category_id);
-CREATE INDEX idx_collaborations_user ON collaborations(user_id);
-CREATE INDEX idx_collaborations_map ON collaborations(map_id);
+CREATE INDEX idx_map_user_roles_user ON map_user_roles(user_id);
+CREATE INDEX idx_map_user_roles_map ON map_user_roles(map_id);
+CREATE INDEX idx_map_user_roles_role ON map_user_roles(role);
 CREATE INDEX idx_categories_map ON categories(map_id);
 CREATE INDEX idx_poi_logs_poi ON poi_logs(poi_id);
 CREATE INDEX idx_poi_logs_user ON poi_logs(user_id);

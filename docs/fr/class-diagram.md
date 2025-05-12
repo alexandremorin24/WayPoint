@@ -9,7 +9,7 @@ Ce document présente les principales entités de données et leurs relations da
 ```mermaid
 classDiagram
 
-%% ==== MAIN CLASSES (MVP) ====
+%% ==== CLASSES PRINCIPALES  ====
 
 class User {
   +string id
@@ -33,9 +33,13 @@ class Map {
   +string name
   +string description
   +string imageUrl
+  +string thumbnailUrl
   +boolean isPublic
+  +string gameId
   +Date createdAt
   +string ownerId
+  +int width
+  +int height
   +addPOI()
   +removePOI()
   +inviteUser()
@@ -49,6 +53,9 @@ class POI {
   +string id
   +string name
   +string description
+  +string mapId
+  +string categoryId
+  +string status   // active | hidden | archived
   +float x
   +float y
   +string icon
@@ -67,11 +74,32 @@ class Category {
   +removeSubCategory()
 }
 
-class Collaboration {
+class Game {
   +string id
-  +string role
-  +notifyChange(actionType, payload)
+  +string name
+  +string slug
+  +string coverUrl
+  +Date releaseDate
+  +string genre
 }
+
+%% === GESTION DES ROLES ===
+
+class MapUserRole {
+  +string mapId
+  +string userId
+  +string role  // viewer, banned, editor_own, editor_all, contributor
+}
+
+class Invitation {
+  +string id
+  +string mapId
+  +string invitedEmail
+  +string status
+  +Date createdAt
+}
+
+%% === DONNEES / LOGS ===
 
 class POILog {
   +string id
@@ -98,25 +126,16 @@ class MapVote {
   +Date createdAt
 }
 
-class Game {
-  +string id
-  +string name
-  +string slug
-  +string coverUrl
-  +Date releaseDate
-  +string genre
-}
-
 %% ==== RELATIONSHIPS (MVP) ====
 
 User "1" --> "many" Map : owns
-User "1" --> "many" Collaboration
+User "1" --> "many" MapUserRole
 User "1" --> "many" POILog
 User "1" --> "many" POIUserStat
 
 Map "1" --> "many" POI
 Map "1" --> "many" Category
-Map "1" --> "many" Collaboration
+Map "1" --> "many" MapUserRole
 Map "1" --> "many" POILog
 Map "1" --> "many" POIUserStat
 
@@ -140,7 +159,7 @@ Category "0..1" --> "many" Category : subcategories
 - **Map**: représente une carte individuelle créée par un utilisateur.
 - **POI (Point of Interest)**: représente les marqueurs ajoutés à une carte.
 - **Category**: organise les POI en catégories hiérarchiques.
-- **Collaboration**: définit les rôles et permissions d'accès des utilisateurs.
+- **MapUserRole**: définit les rôles et permissions d'accès des utilisateurs.
 - **POILog**: journalise les actions de création et modification effectuées sur les POI.
 - **POIUserStat**: compile des statistiques sur les actions utilisateur concernant les POI.
 - **MapVote**: permet aux utilisateurs de voter pour leurs cartes favorites.
