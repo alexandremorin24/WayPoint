@@ -1,5 +1,6 @@
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
+const roles = require('./roles');
 
 /**
  * Map model
@@ -89,8 +90,8 @@ async function createGame(name) {
 // Check if a user has the editor role on a map
 async function hasEditorAccess(mapId, userId) {
   const [rows] = await db.execute(
-    'SELECT * FROM collaborations WHERE map_id = ? AND user_id = ? AND role = ? LIMIT 1',
-    [mapId, userId, 'editor']
+    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role IN (?, ?) LIMIT 1',
+    [mapId, userId, 'editor_all', 'editor_own']
   );
   return !!rows[0];
 }
@@ -122,6 +123,105 @@ async function findPublicMapsByGameName(gameName) {
   return rows;
 }
 
+// Check if a user has any role on a map
+async function hasAnyRole(mapId, userId) {
+  const [rows] = await db.execute(
+    'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ? LIMIT 1',
+    [mapId, userId]
+  );
+  return rows[0]?.role || null;
+}
+
+// Check if a user is banned from a map
+async function isBanned(mapId, userId) {
+  const [rows] = await db.execute(
+    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role = ? LIMIT 1',
+    [mapId, userId, 'banned']
+  );
+  return !!rows[0];
+}
+
+// Check if a user can view a map
+async function canView(mapId, userId) {
+  const [rows] = await db.execute(
+    'SELECT * FROM maps WHERE id = ? AND (is_public = true OR owner_id = ?)',
+    [mapId, userId]
+  );
+  if (rows[0]) return true;
+
+  // If the user has a role (except banned), they can view the map
+  const role = await hasAnyRole(mapId, userId);
+  return role && role !== 'banned';
+}
+
+// Check if a user can edit a map
+async function canEdit(mapId, userId) {
+  const [map] = await db.execute('SELECT owner_id FROM maps WHERE id = ?', [mapId]);
+  if (!map[0]) return false;
+
+  // Owner can always edit
+  if (map[0].owner_id === userId) return true;
+
+  const role = await hasAnyRole(mapId, userId);
+  return role === 'editor_all' || role === 'editor_own';
+}
+
+// Add a role to a user for a map
+async function addRole(mapId, userId, role) {
+  await db.execute(
+    'INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE role = ?',
+    [mapId, userId, role, role]
+  );
+}
+
+// Remove a role from a user for a map
+async function removeRole(mapId, userId) {
+  await db.execute(
+    'DELETE FROM map_user_roles WHERE map_id = ? AND user_id = ?',
+    [mapId, userId]
+  );
+}
+
+// Get all users with their roles for a map
+async function getMapUsers(mapId) {
+  const [rows] = await db.execute(
+    `SELECT u.id, u.email, u.display_name, mur.role 
+     FROM map_user_roles mur 
+     JOIN users u ON mur.user_id = u.id 
+     WHERE mur.map_id = ?`,
+    [mapId]
+  );
+  return rows;
+}
+
+// Helper: get user role for a map (returns null if no role)
+async function getUserRole(mapId, userId) {
+  if (!userId) return null;
+  const [rows] = await db.execute(
+    'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ? LIMIT 1',
+    [mapId, userId]
+  );
+  return rows[0]?.role || null;
+}
+
+// Helper: can add a POI?
+async function canAddPOI(mapId, userId) {
+  const role = await getUserRole(mapId, userId);
+  return (
+    role === 'editor_all' ||
+    role === 'editor_own' ||
+    role === 'contributor'
+  );
+}
+
+// Helper: can edit a POI? (here, we assume we pass the POI creator's id for editor_own)
+async function canEditPOI(mapId, userId, poiOwnerId) {
+  const role = await getUserRole(mapId, userId);
+  if (role === 'editor_all') return true;
+  if (role === 'editor_own' && userId === poiOwnerId) return true;
+  return false;
+}
+
 // --- Advanced methods to implement ---
 // async function addPOI(mapId, poiData) { /* ... */ }
 // async function removePOI(mapId, poiId) { /* ... */ }
@@ -141,7 +241,17 @@ module.exports = {
   hasEditorAccess,
   countByUser,
   findPublicMapsByGameId,
-  findPublicMapsByGameName
+  findPublicMapsByGameName,
+  hasAnyRole,
+  isBanned,
+  canView,
+  canEdit,
+  addRole,
+  removeRole,
+  getMapUsers,
+  getUserRole,
+  canAddPOI,
+  canEditPOI
   // addPOI,
   // removePOI,
   // inviteUser,

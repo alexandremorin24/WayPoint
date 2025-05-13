@@ -1,6 +1,6 @@
-const db = require('../src/utils/db');
+const { closeConnection } = require('./config/database');
 
 module.exports = async () => {
   console.log('[TEARDOWN] Closing database connection...');
-  await db.end();
+  await closeConnection();
 };

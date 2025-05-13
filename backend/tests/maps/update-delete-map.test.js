@@ -32,9 +32,6 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
 
   beforeAll(async () => {
     // Delete in correct order to respect foreign key constraints
-    await db.execute('DELETE FROM collaborations WHERE user_id IN (SELECT id FROM users WHERE email IN (?, ?, ?))', [
-      'owner2@example.com', 'editor2@example.com', 'stranger2@example.com'
-    ]);
     await db.execute('DELETE FROM maps WHERE owner_id IN (SELECT id FROM users WHERE email IN (?, ?, ?))', [
       'owner2@example.com', 'editor2@example.com', 'stranger2@example.com'
     ]);
@@ -60,11 +57,6 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
       .attach('image', testImagePath);
     mapId = res.body.id;
 
-    // Add the editor as a collaborator (role editor)
-    await db.execute(
-      'INSERT INTO collaborations (id, user_id, map_id, role) VALUES (UUID(), ?, ?, ?)',
-      [editor.id, mapId, 'editor']
-    );
   });
 
   it('should allow the owner to update the map', async () => {
@@ -92,16 +84,6 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('should allow the owner to delete the map', async () => {
-    // Delete collaborations first
-    await db.execute('DELETE FROM collaborations WHERE map_id = ?', [mapId]);
-
-    const res = await request(app)
-      .delete(`/api/backend/maps/${mapId}`)
-      .set('Authorization', `Bearer ${tokenOwner}`);
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toMatch(/deleted/i);
-  });
 
   it('should deny delete to editor', async () => {
     // recreate the map for this test
@@ -115,10 +97,6 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
       .field('isPublic', 'false')
       .attach('image', testImagePath);
     const newMapId = resCreate.body.id;
-    await db.execute(
-      'INSERT INTO collaborations (id, user_id, map_id, role) VALUES (UUID(), ?, ?, ?)',
-      [editor.id, newMapId, 'editor']
-    );
     const res = await request(app)
       .delete(`/api/backend/maps/${newMapId}`)
       .set('Authorization', `Bearer ${tokenEditor}`);

@@ -4,6 +4,8 @@ const fs = require('fs');
 const sharp = require('sharp');
 const fileType = require('file-type');
 const imageUtils = require('../utils/imageUtils');
+const db = require('../utils/db');
+const roles = require('../models/roles');
 
 function slugify(str) {
   return str
@@ -40,7 +42,7 @@ async function createMap(req, res) {
       return res.status(400).json({ error: 'Game name is required.' });
     }
 
-    // Trouver ou créer le jeu, puis récupérer son id
+    // Find or create the game, then get its id
     let game = await MapModel.findGameByName(gameName);
     if (!game) {
       game = await MapModel.createGame(gameName);
@@ -161,35 +163,31 @@ async function getMapById(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
-    // If the map is public, access is OK
-    if (map.is_public) {
-      return res.json(map);
-    }
-    // Otherwise, must be owner or editor
-    let userId = null;
+
     // Get user id from token if present
+    let userId = null;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
         userId = decoded.id;
       } catch (e) {
-        // Invalid token, access denied
-        return res.status(403).json({ error: 'Forbidden: invalid token.' });
+        return res.status(401).json({ error: 'Invalid token.' });
       }
     }
-    if (!userId) {
+
+    // Check if user can view the map
+    const canAccess = await MapModel.canView(map.id, userId);
+    if (!canAccess) {
       return res.status(403).json({ error: 'Forbidden: private map.' });
     }
-    if (userId === map.owner_id) {
-      return res.json(map);
+
+    // Check if user is banned
+    if (userId && await MapModel.isBanned(map.id, userId)) {
+      return res.status(403).json({ error: 'Forbidden: you are banned from this map.' });
     }
-    // Vérifier si editor
-    const isEditor = await MapModel.hasEditorAccess(map.id, userId);
-    if (isEditor) {
-      return res.json(map);
-    }
-    return res.status(403).json({ error: 'Forbidden: private map.' });
+
+    return res.json(map);
   } catch (err) {
     console.error('getMapById error:', err);
     res.status(500).json({ error: 'Error while fetching map.' });
@@ -214,11 +212,18 @@ async function updateMap(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
-    // Only owner can update
+
     const userId = req.user && req.user.id;
-    if (!userId || userId !== map.owner_id) {
-      return res.status(403).json({ error: 'Forbidden: not the owner.' });
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required.' });
     }
+
+    // Check if user can edit the map
+    const canEdit = await MapModel.canEdit(map.id, userId);
+    if (!canEdit) {
+      return res.status(403).json({ error: 'Forbidden: insufficient permissions.' });
+    }
+
     await MapModel.updateMap(id, req.body);
     res.json({ message: 'Map updated.' });
   } catch (err) {
@@ -294,6 +299,172 @@ async function getPublicMapsByGameName(req, res) {
   }
 }
 
+// Get all users with their roles for a map
+async function getMapUsers(req, res) {
+  try {
+    const { id } = req.params;
+    const map = await MapModel.findMapById(id);
+    if (!map) return res.status(404).json({ error: 'Map not found.' });
+
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+
+    // Only owner can see the list of users
+    if (userId !== map.owner_id) {
+      return res.status(403).json({ error: 'Forbidden: only the owner can see the list of users.' });
+    }
+
+    const users = await MapModel.getMapUsers(id);
+    res.json(users);
+  } catch (err) {
+    console.error('getMapUsers error:', err);
+    res.status(500).json({ error: 'Error while fetching map users.' });
+  }
+}
+
+// Get all available roles
+async function getAvailableRoles(req, res) {
+  try {
+    res.json({ roles: roles.ROLES });
+  } catch (err) {
+    console.error('getAvailableRoles error:', err);
+    res.status(500).json({ error: 'Error while fetching available roles.' });
+  }
+}
+
+// Add or update a user's role for a map
+async function updateUserRole(req, res) {
+  try {
+    const { id: mapId, userId } = req.params;
+    const { role } = req.body;
+
+    const map = await MapModel.findMapById(mapId);
+    if (!map) return res.status(404).json({ error: 'Map not found.' });
+
+    // Check if user exists
+    const [user] = await db.execute('SELECT id FROM users WHERE id = ?', [userId]);
+    if (!user[0]) return res.status(404).json({ error: 'User not found.' });
+
+    const currentUserId = req.user && req.user.id;
+    if (!currentUserId) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+
+    // Only owner can manage roles
+    if (currentUserId !== map.owner_id) {
+      return res.status(403).json({ error: 'Forbidden: only the owner can manage roles.' });
+    }
+
+    // Validate role
+    if (!roles.ROLES.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role.' });
+    }
+
+    // Prevent self-banning
+    if (currentUserId === userId && role === 'banned') {
+      return res.status(400).json({ error: 'You cannot ban yourself.' });
+    }
+
+    // Cannot change owner's role
+    if (userId === map.owner_id) {
+      return res.status(400).json({ error: 'Cannot change owner\'s role.' });
+    }
+
+    // Check if this would remove the last editor
+    if (role === 'viewer' || role === 'banned' || role === 'contributor') {
+      const [editors] = await db.execute(
+        'SELECT COUNT(*) as count FROM map_user_roles WHERE map_id = ? AND user_id != ? AND role IN (?, ?)',
+        [mapId, userId, 'editor_all', 'editor_own']
+      );
+      const currentRole = await MapModel.getUserRole(mapId, userId);
+      if (roles.isEditor(currentRole) && editors[0].count === 0) {
+        return res.status(400).json({
+          error: 'Cannot remove the last editor. Please assign another editor first.'
+        });
+      }
+    }
+
+    await MapModel.addRole(mapId, userId, role);
+    res.json({ message: 'User role updated.' });
+  } catch (err) {
+    console.error('updateUserRole error:', err);
+    res.status(500).json({ error: 'Error while updating user role.' });
+  }
+}
+
+// Remove a user's role from a map
+async function removeUserRole(req, res) {
+  try {
+    const { id: mapId, userId } = req.params;
+
+    const map = await MapModel.findMapById(mapId);
+    if (!map) return res.status(404).json({ error: 'Map not found.' });
+
+    const currentUserId = req.user && req.user.id;
+    if (!currentUserId) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+
+    // Only owner can remove roles
+    if (currentUserId !== map.owner_id) {
+      return res.status(403).json({ error: 'Forbidden: only the owner can remove roles.' });
+    }
+
+    // Prevent self-removal
+    if (currentUserId === userId) {
+      return res.status(400).json({ error: 'You cannot remove your own role.' });
+    }
+
+    // Cannot remove owner's role
+    if (userId === map.owner_id) {
+      return res.status(400).json({ error: 'Cannot remove owner\'s role.' });
+    }
+
+    // Check if this would remove the last editor
+    const currentRole = await MapModel.getUserRole(mapId, userId);
+    if (roles.isEditor(currentRole)) {
+      const [editors] = await db.execute(
+        'SELECT COUNT(*) as count FROM map_user_roles WHERE map_id = ? AND user_id != ? AND role IN (?, ?)',
+        [mapId, userId, 'editor_all', 'editor_own']
+      );
+      if (editors[0].count === 0) {
+        return res.status(400).json({
+          error: 'Cannot remove the last editor. Please assign another editor first.'
+        });
+      }
+    }
+
+    await MapModel.removeRole(mapId, userId);
+    res.json({ message: 'User role removed.' });
+  } catch (err) {
+    console.error('removeUserRole error:', err);
+    res.status(500).json({ error: 'Error while removing user role.' });
+  }
+}
+
+// GET /api/backend/maps/:id/role
+async function getCurrentUserRole(req, res) {
+  try {
+    const { id: mapId } = req.params;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+    const map = await MapModel.findMapById(mapId);
+    if (!map) return res.status(404).json({ error: 'Map not found.' });
+    if (userId === map.owner_id) {
+      return res.json({ role: 'owner' });
+    }
+    const role = await MapModel.getUserRole(mapId, userId);
+    res.json({ role: role || null });
+  } catch (err) {
+    console.error('getCurrentUserRole error:', err);
+    res.status(500).json({ error: 'Error while fetching user role.' });
+  }
+}
+
 module.exports = {
   createMap,
   getMapById,
@@ -302,5 +473,10 @@ module.exports = {
   deleteMap,
   getPublicMaps,
   getPublicMapsByGameId,
-  getPublicMapsByGameName
+  getPublicMapsByGameName,
+  getMapUsers,
+  updateUserRole,
+  removeUserRole,
+  getCurrentUserRole,
+  getAvailableRoles
 }; 

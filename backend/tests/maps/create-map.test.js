@@ -14,7 +14,6 @@ let token;
 
 beforeAll(async () => {
   // Delete in correct order to respect foreign key constraints
-  await db.execute('DELETE FROM collaborations WHERE user_id IN (SELECT id FROM users WHERE email = ?)', ['mapcreator@example.com']);
   await db.execute('DELETE FROM maps WHERE owner_id IN (SELECT id FROM users WHERE email = ?)', ['mapcreator@example.com']);
   await db.execute('DELETE FROM users WHERE email = ?', ['mapcreator@example.com']);
   const result = await createUser({

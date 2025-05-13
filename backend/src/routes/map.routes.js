@@ -39,6 +39,9 @@ const uploadRateLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === 'test' // Disable rate limit in test
 });
 
+// Get all available roles
+router.get('/roles', mapController.getAvailableRoles);
+
 // Create a map (authenticated, with image upload)
 if (process.env.NODE_ENV !== 'test') {
   router.post('/', requireAuth, uploadRateLimiter, upload.single('image'), handleMulterError, mapController.createMap);
@@ -59,5 +62,17 @@ router.get('/', mapController.getPublicMaps);
 router.get('/public-by-game/:gameId', mapController.getPublicMapsByGameId);
 // Get public maps for a given game name
 router.get('/public-by-game-name/:gameName', mapController.getPublicMapsByGameName);
+
+// Get all users with their roles for a map (authenticated)
+router.get('/:id/users', requireAuth, mapController.getMapUsers);
+
+// Add or update a user's role for a map (authenticated)
+router.put('/:id/users/:userId/role', requireAuth, mapController.updateUserRole);
+
+// Remove a user's role from a map (authenticated)
+router.delete('/:id/users/:userId/role', requireAuth, mapController.removeUserRole);
+
+// Get current user's role for a map (authenticated)
+router.get('/:id/role', requireAuth, mapController.getCurrentUserRole);
 
 module.exports = router; 

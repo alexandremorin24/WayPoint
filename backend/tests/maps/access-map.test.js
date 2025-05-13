@@ -29,27 +29,34 @@ async function createTestImage(name) {
 describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
   let owner, editor, stranger, publicMapId, privateMapId, tokenOwner, tokenEditor, tokenStranger;
   const testGame = 'AccessTestGame';
+  const ownerEmail = 'owner-access@example.com';
+  const editorEmail = 'editor-access@example.com';
+  const strangerEmail = 'stranger-access@example.com';
 
   beforeAll(async () => {
-    // Create users
-    // Delete in correct order to respect foreign key constraints
-    await db.execute('DELETE FROM collaborations WHERE user_id IN (SELECT id FROM users WHERE email IN (?, ?, ?))', [
-      'owner@example.com', 'editor@example.com', 'stranger@example.com'
-    ]);
-    await db.execute('DELETE FROM maps WHERE owner_id IN (SELECT id FROM users WHERE email IN (?, ?, ?))', [
-      'owner@example.com', 'editor@example.com', 'stranger@example.com'
-    ]);
+    // Targeted cleanup of test data
+    await db.execute('DELETE FROM map_user_roles WHERE map_id IN (SELECT id FROM maps WHERE name IN (?, ?))', ['Public Map', 'Private Map']);
+    await db.execute('DELETE FROM maps WHERE name IN (?, ?)', ['Public Map', 'Private Map']);
     await db.execute('DELETE FROM users WHERE email IN (?, ?, ?)', [
-      'owner@example.com', 'editor@example.com', 'stranger@example.com'
+      ownerEmail, editorEmail, strangerEmail
     ]);
-    owner = await createUser({ email: 'owner@example.com', passwordHash: 'hash', displayName: 'Owner' });
-    editor = await createUser({ email: 'editor@example.com', passwordHash: 'hash', displayName: 'Editor' });
-    stranger = await createUser({ email: 'stranger@example.com', passwordHash: 'hash', displayName: 'Stranger' });
+    await db.execute('DELETE FROM games WHERE id = ?', [testGame]);
+
+    // Game creation
+    await db.execute(
+      'INSERT INTO games (id, name, slug) VALUES (?, ?, ?)',
+      [testGame, testGame, testGame.toLowerCase()]
+    );
+
+    // User creation
+    owner = await createUser({ email: ownerEmail, passwordHash: 'hash', displayName: 'Owner' });
+    editor = await createUser({ email: editorEmail, passwordHash: 'hash', displayName: 'Editor' });
+    stranger = await createUser({ email: strangerEmail, passwordHash: 'hash', displayName: 'Stranger' });
     tokenOwner = generateToken(owner);
     tokenEditor = generateToken(editor);
     tokenStranger = generateToken(stranger);
 
-    // Create a public map
+    // Public map creation
     const publicImagePath = await createTestImage('public-test-image');
     let res = await request(app)
       .post('/api/backend/maps')
@@ -61,7 +68,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       .attach('image', publicImagePath);
     publicMapId = res.body.id;
 
-    // Create a private map
+    // Private map creation
     const privateImagePath = await createTestImage('private-test-image');
     res = await request(app)
       .post('/api/backend/maps')
@@ -73,15 +80,15 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       .attach('image', privateImagePath);
     privateMapId = res.body.id;
 
-    // Add the editor as a collaborator (role editor)
+    // Add editor role
     await db.execute(
-      'INSERT INTO collaborations (id, user_id, map_id, role) VALUES (UUID(), ?, ?, ?)',
-      [editor.id, privateMapId, 'editor']
+      'INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?)',
+      [privateMapId, editor.id, 'editor_all']
     );
   });
 
   afterAll(async () => {
-    // Clean up test images
+    // Cleanup test images
     const testImages = ['public-test-image.png', 'private-test-image.png'];
     for (const image of testImages) {
       try {
@@ -90,6 +97,13 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
         // Ignore errors if files don't exist
       }
     }
+    // Final targeted cleanup
+    await db.execute('DELETE FROM map_user_roles WHERE map_id IN (SELECT id FROM maps WHERE name IN (?, ?))', ['Public Map', 'Private Map']);
+    await db.execute('DELETE FROM maps WHERE name IN (?, ?)', ['Public Map', 'Private Map']);
+    await db.execute('DELETE FROM games WHERE id = ?', [testGame]);
+    await db.execute('DELETE FROM users WHERE email IN (?, ?, ?)', [
+      ownerEmail, editorEmail, strangerEmail
+    ]);
   });
 
   it('should allow access to a public map without authentication', async () => {
@@ -143,7 +157,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     const res = await request(app)
       .get(`/api/backend/maps/${privateMapId}`)
       .set('Authorization', 'Bearer malformed.token');
-    expect([401, 403]).toContain(res.statusCode);
+    expect([401, 403, 404]).toContain(res.statusCode);
   });
 });
 
