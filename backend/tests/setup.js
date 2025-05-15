@@ -1,9 +1,14 @@
-const { resetTestDatabase } = require('./config/database');
+const { resetTestDatabase, closeConnection } = require('./config/database');
 
-// Configuration globale
+// Global timeout
 jest.setTimeout(10000);
 
-// Réinitialisation de la base de données avant tous les tests
+// Reset database before all tests
 beforeAll(async () => {
   await resetTestDatabase();
+});
+
+// Close connection after all tests
+afterAll(async () => {
+  await closeConnection();
 });

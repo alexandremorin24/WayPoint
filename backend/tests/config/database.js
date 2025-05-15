@@ -1,7 +1,5 @@
 const db = require('../../src/utils/db');
 
-let connection;
-
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const resetTestDatabase = async () => {
@@ -30,7 +28,7 @@ const resetTestDatabase = async () => {
       await db.query('ALTER TABLE users AUTO_INCREMENT = 1');
       await db.query('ALTER TABLE maps AUTO_INCREMENT = 1');
 
-      // Vérifier que les tables sont vides
+      // Check if tables are empty
       const [poiLogs] = await db.query('SELECT COUNT(*) as count FROM poi_logs');
       const [poiUserStats] = await db.query('SELECT COUNT(*) as count FROM poi_user_stats');
       const [mapVotes] = await db.query('SELECT COUNT(*) as count FROM map_votes');
@@ -52,7 +50,7 @@ const resetTestDatabase = async () => {
 
       // Commit transaction
       await db.query('COMMIT');
-      return; // Si on arrive ici, tout s'est bien passé
+      return; // If we get here, everything went well
     } catch (error) {
       // Rollback in case of error
       try {
@@ -68,20 +66,17 @@ const resetTestDatabase = async () => {
         throw error;
       }
 
-      // Attendre entre les tentatives
+      // Wait for 1 second before retrying
       await sleep(1000);
     }
   }
 };
 
 const closeConnection = async () => {
-  if (connection) {
-    try {
-      await connection.end();
-      connection = null;
-    } catch (error) {
-      console.error('Error closing database connection:', error);
-    }
+  try {
+    await db.end();
+  } catch (error) {
+    console.error('Error closing database connection:', error);
   }
 };
 

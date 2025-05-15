@@ -60,8 +60,14 @@ async function getPOIById(req, res) {
 
     // Check if user can view the map
     const userId = req.user?.id;
-    const canView = await MapModel.canView(poi.map_id, userId);
+    const canView = await MapModel.canView(poi.mapId, userId);
     if (!canView) {
+      return res.status(403).json({ error: 'Forbidden: insufficient permissions to view POI.' });
+    }
+
+    // Check if user has a valid role for this map
+    const role = await MapModel.hasAnyRole(poi.mapId, userId);
+    if (!role && !poi.isPublic) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions to view POI.' });
     }
 
@@ -105,17 +111,18 @@ async function getPOIsByMapId(req, res) {
 async function getPOIsByCategory(req, res) {
   try {
     const { categoryId } = req.params;
-    const pois = await POIModel.findPOIsByCategory(categoryId);
+    const userId = req.user?.id;
 
-    if (pois.length > 0) {
-      // Check if user can view the map
-      const userId = req.user?.id;
-      const canView = await MapModel.canView(pois[0].map_id, userId);
+    // Get the first POI to check map permissions
+    const [firstPOI] = await POIModel.findPOIsByCategory(categoryId);
+    if (firstPOI) {
+      const canView = await MapModel.canView(firstPOI.mapId, userId);
       if (!canView) {
         return res.status(403).json({ error: 'Forbidden: insufficient permissions to view POIs.' });
       }
     }
 
+    const pois = await POIModel.findPOIsByCategory(categoryId);
     res.json(pois);
   } catch (err) {
     console.error('getPOIsByCategory error:', err);
@@ -156,25 +163,22 @@ async function updatePOI(req, res) {
   try {
     const { id } = req.params;
     const updates = req.body;
+    const userId = req.user.id;
 
-    // Validate updates
-    if (updates.name && (typeof updates.name !== 'string' || updates.name.length < 1 || updates.name.length > 100)) {
-      return res.status(400).json({ error: 'Name must be 1-100 characters.' });
-    }
-    if ((updates.x !== undefined && typeof updates.x !== 'number') ||
-      (updates.y !== undefined && typeof updates.y !== 'number')) {
-      return res.status(400).json({ error: 'Coordinates must be numbers.' });
-    }
-
-    await POIModel.updatePOI(id, updates);
-    const updatedPOI = await POIModel.findPOIById(id);
-    res.json(updatedPOI);
+    const poi = await POIModel.updatePOI(id, updates, userId);
+    res.json(poi);
   } catch (err) {
     console.error('updatePOI error:', err);
     if (err.message.includes('coordinate')) {
       return res.status(400).json({ error: err.message });
     }
-    res.status(500).json({ error: 'Error updating POI.' });
+    if (err.message === 'POI not found') {
+      return res.status(404).json({ error: err.message });
+    }
+    if (err.message === 'No valid fields to update') {
+      return res.status(400).json({ error: err.message });
+    }
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
 

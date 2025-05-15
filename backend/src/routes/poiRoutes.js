@@ -8,13 +8,13 @@ const poiMiddleware = require('../middlewares/poiMiddleware');
 router.get('/map/:mapId', requireAuth, poiController.getPOIsByMapId);
 
 // Get all POIs for a category
-router.get('/category/:categoryId', requireAuth, poiController.getPOIsByCategory);
+router.get('/category/:categoryId', requireAuth, poiMiddleware.canViewPOI, poiController.getPOIsByCategory);
 
 // Get all POIs for a creator
 router.get('/creator/:creatorId', requireAuth, poiController.getPOIsByCreator);
 
 // Get a specific POI
-router.get('/:id', requireAuth, poiController.getPOIById);
+router.get('/:id', requireAuth, poiMiddleware.canViewPOI, poiController.getPOIById);
 
 // Create a new POI
 router.post('/map/:mapId', requireAuth, poiMiddleware.canAddPOI, poiController.createPOI);

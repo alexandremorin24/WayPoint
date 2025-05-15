@@ -52,10 +52,24 @@ async function findMapsByOwner(ownerId) {
 async function updateMap(id, data) {
   const fields = [];
   const values = [];
+
+  // Map camelCase to snake_case for database fields
+  const fieldMapping = {
+    isPublic: 'is_public',
+    imageUrl: 'image_url',
+    thumbnailUrl: 'thumbnail_url',
+    gameId: 'game_id',
+    ownerId: 'owner_id',
+    imageWidth: 'image_width',
+    imageHeight: 'image_height'
+  };
+
   for (const key in data) {
-    fields.push(`${key} = ?`);
+    const dbField = fieldMapping[key] || key;
+    fields.push(`${dbField} = ?`);
     values.push(data[key]);
   }
+
   values.push(id);
   await db.execute(`UPDATE maps SET ${fields.join(', ')} WHERE id = ?`, values);
 }
@@ -145,19 +159,28 @@ async function isBanned(mapId, userId) {
 
 // Check if a user can view a map
 async function canView(mapId, userId) {
-  const [rows] = await db.execute(
-    'SELECT * FROM maps WHERE id = ? AND (is_public = true OR owner_id = ?)',
-    [mapId, userId]
-  );
-  if (rows[0]) return true;
+  if (!mapId) return false;
 
-  // If the user has a role (except banned), they can view the map
+  // Get map info
+  const [map] = await db.execute('SELECT * FROM maps WHERE id = ?', [mapId]);
+  if (!map[0]) return false;
+
+  // Public maps are viewable by everyone
+  if (map[0].is_public) return true;
+
+  // Owner can always view
+  if (userId && map[0].owner_id === userId) return true;
+
+  // Check if user has a valid role
+  if (!userId) return false;
   const role = await hasAnyRole(mapId, userId);
   return role && role !== 'banned';
 }
 
 // Check if a user can edit a map
 async function canEdit(mapId, userId) {
+  if (!mapId || !userId) return false;
+
   const [map] = await db.execute('SELECT owner_id FROM maps WHERE id = ?', [mapId]);
   if (!map[0]) return false;
 
@@ -208,19 +231,36 @@ async function getUserRole(mapId, userId) {
 
 // Helper: can add a POI?
 async function canAddPOI(mapId, userId) {
-  const role = await getUserRole(mapId, userId);
-  return (
-    role === 'editor_all' ||
-    role === 'editor_own' ||
-    role === 'contributor'
-  );
+  if (!mapId || !userId) return false;
+
+  // Get map info
+  const [map] = await db.execute('SELECT owner_id FROM maps WHERE id = ?', [mapId]);
+  if (!map[0]) return false;
+
+  // Owner can always add POIs
+  if (map[0].owner_id === userId) return true;
+
+  // Check role-based permissions
+  const role = await hasAnyRole(mapId, userId);
+  return role === 'editor_all' || role === 'editor_own' || role === 'contributor';
 }
 
-// Helper: can edit a POI? (here, we assume we pass the POI creator's id for editor_own)
+// Helper: can edit a POI?
 async function canEditPOI(mapId, userId, poiOwnerId) {
-  const role = await getUserRole(mapId, userId);
+  if (!mapId || !userId) return false;
+
+  // Get map info
+  const [map] = await db.execute('SELECT owner_id FROM maps WHERE id = ?', [mapId]);
+  if (!map[0]) return false;
+
+  // Owner can always edit
+  if (map[0].owner_id === userId) return true;
+
+  // Check role-based permissions
+  const role = await hasAnyRole(mapId, userId);
   if (role === 'editor_all') return true;
-  if (role === 'editor_own' && userId === poiOwnerId) return true;
+  if (role === 'editor_own' && poiOwnerId === userId) return true;
+
   return false;
 }
 

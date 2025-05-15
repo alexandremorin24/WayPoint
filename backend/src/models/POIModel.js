@@ -30,11 +30,17 @@ async function validateCoordinates(mapId, x, y) {
   if (!map) {
     throw new Error('Map not found');
   }
-  if (x < 0 || x > map.imageWidth) {
-    throw new Error(`X coordinate must be between 0 and ${map.imageWidth}`);
+  if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
+    throw new Error('Coordinates must be numbers');
   }
-  if (y < 0 || y > map.imageHeight) {
-    throw new Error(`Y coordinate must be between 0 and ${map.imageHeight}`);
+  // Round to 2 decimal places
+  x = Math.round(x * 100) / 100;
+  y = Math.round(y * 100) / 100;
+  if (x < 0 || x > map.image_width) {
+    throw new Error(`X coordinate must be between 0 and ${map.image_width}`);
+  }
+  if (y < 0 || y > map.image_height) {
+    throw new Error(`Y coordinate must be between 0 and ${map.image_height}`);
   }
 }
 
@@ -52,16 +58,55 @@ async function validateCoordinates(mapId, x, y) {
  * @param {string} poi.creatorId
  */
 async function createPOI({ mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId }) {
+  // Round to 2 decimal places
+  x = Math.round(x * 100) / 100;
+  y = Math.round(y * 100) / 100;
   await validateCoordinates(mapId, x, y);
 
   const id = uuidv4();
   const now = new Date();
+  // Force optional fields to null if undefined
+  description = description === undefined ? null : description;
+  icon = icon === undefined ? null : icon;
+  imageUrl = imageUrl === undefined ? null : imageUrl;
+  categoryId = categoryId === undefined ? null : categoryId;
+
   await db.execute(
     `INSERT INTO pois (id, map_id, name, description, x, y, icon, image_url, category_id, creator_id, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId, now, now]
   );
+
+  // Log creation
+  await logPOIAction({ poiId: id, mapId, userId: creatorId, action: 'create', payload: { name, description, x, y, icon, imageUrl, categoryId } });
+  // Update stats
+  await incrementUserPOICreated(creatorId, mapId);
+
   return { id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId, createdAt: now, updatedAt: now };
+}
+
+/**
+ * Convert database row to API response format
+ * @param {Object} row
+ */
+function convertToApiFormat(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    mapId: row.map_id,
+    name: row.name,
+    description: row.description,
+    x: row.x,
+    y: row.y,
+    icon: row.icon,
+    imageUrl: row.image_url,
+    categoryId: row.category_id,
+    creatorId: row.creator_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    categoryName: row.category_name,
+    creatorName: row.creator_name
+  };
 }
 
 /**
@@ -77,7 +122,7 @@ async function findPOIById(id) {
      WHERE p.id = ?`,
     [id]
   );
-  return rows[0] || null;
+  return convertToApiFormat(rows[0]);
 }
 
 /**
@@ -93,7 +138,7 @@ async function findPOIsByMapId(mapId) {
      WHERE p.map_id = ?`,
     [mapId]
   );
-  return rows;
+  return rows.map(convertToApiFormat);
 }
 
 /**
@@ -109,7 +154,7 @@ async function findPOIsByCategory(categoryId) {
      WHERE p.category_id = ?`,
     [categoryId]
   );
-  return rows;
+  return rows.map(convertToApiFormat);
 }
 
 /**
@@ -125,7 +170,7 @@ async function findPOIsByCreator(creatorId) {
      WHERE p.creator_id = ?`,
     [creatorId]
   );
-  return rows;
+  return rows.map(convertToApiFormat);
 }
 
 /**
@@ -133,26 +178,41 @@ async function findPOIsByCreator(creatorId) {
  * @param {string} id
  * @param {Object} updates
  */
-async function updatePOI(id, updates) {
+async function updatePOI(id, updates, userId) {
   const fields = [];
   const values = [];
 
+  // Get current POI data
+  const currentPOI = await findPOIById(id);
+  if (!currentPOI) {
+    throw new Error('POI not found');
+  }
+
   // If coordinates are being updated, validate them
   if (updates.x !== undefined || updates.y !== undefined) {
-    const poi = await findPOIById(id);
-    if (!poi) {
-      throw new Error('POI not found');
-    }
     await validateCoordinates(
-      poi.mapId,
-      updates.x !== undefined ? updates.x : poi.x,
-      updates.y !== undefined ? updates.y : poi.y
+      currentPOI.mapId,
+      updates.x !== undefined ? updates.x : currentPOI.x,
+      updates.y !== undefined ? updates.y : currentPOI.y
     );
   }
 
+  // Convert camelCase field names to snake_case and only update provided fields
+  const fieldMappings = {
+    name: 'name',
+    description: 'description',
+    x: 'x',
+    y: 'y',
+    icon: 'icon',
+    imageUrl: 'image_url',
+    categoryId: 'category_id'
+  };
+
   for (const key in updates) {
-    fields.push(`${key} = ?`);
-    values.push(updates[key]);
+    if (fieldMappings[key] && updates[key] !== undefined) {
+      fields.push(`${fieldMappings[key]} = ?`);
+      values.push(updates[key]);
+    }
   }
 
   if (fields.length === 0) {
@@ -163,8 +223,29 @@ async function updatePOI(id, updates) {
   fields.push('updated_at = ?');
   values.push(new Date());
 
+  // If coordinates, round to 2 decimal places
+  if (updates.x !== undefined) updates.x = Math.round(updates.x * 100) / 100;
+  if (updates.y !== undefined) updates.y = Math.round(updates.y * 100) / 100;
+
   values.push(id);
   await db.execute(`UPDATE pois SET ${fields.join(', ')} WHERE id = ?`, values);
+
+  // Log update
+  await logPOIAction({
+    poiId: id,
+    mapId: currentPOI.mapId,
+    userId: userId,
+    action: 'update',
+    payload: updates
+  });
+
+  // Update stats
+  await db.execute(
+    'UPDATE poi_user_stats SET poi_updated_count = poi_updated_count + 1 WHERE user_id = ? AND map_id = ?',
+    [userId, currentPOI.mapId]
+  );
+
+  return findPOIById(id);
 }
 
 /**
@@ -175,6 +256,32 @@ async function deletePOI(id) {
   await db.execute('DELETE FROM pois WHERE id = ?', [id]);
 }
 
+async function logPOIAction({ poiId, mapId, userId, action, payload }) {
+  await db.execute(
+    `INSERT INTO poi_logs (id, poi_id, map_id, user_id, action, payload) VALUES (?, ?, ?, ?, ?, ?)`,
+    [uuidv4(), poiId, mapId, userId, action, JSON.stringify(payload)]
+  );
+}
+
+async function incrementUserPOICreated(userId, mapId) {
+  // Try to update, if no row, insert
+  const [rows] = await db.execute(
+    'SELECT * FROM poi_user_stats WHERE user_id = ? AND map_id = ?',
+    [userId, mapId]
+  );
+  if (rows.length > 0) {
+    await db.execute(
+      'UPDATE poi_user_stats SET poi_created_count = poi_created_count + 1 WHERE user_id = ? AND map_id = ?',
+      [userId, mapId]
+    );
+  } else {
+    await db.execute(
+      'INSERT INTO poi_user_stats (id, user_id, map_id, poi_created_count, poi_updated_count) VALUES (?, ?, ?, 1, 0)',
+      [uuidv4(), userId, mapId]
+    );
+  }
+}
+
 module.exports = {
   createPOI,
   findPOIById,
@@ -182,5 +289,8 @@ module.exports = {
   findPOIsByCategory,
   findPOIsByCreator,
   updatePOI,
-  deletePOI
+  deletePOI,
+  validateCoordinates,
+  logPOIAction,
+  incrementUserPOICreated
 }; 
