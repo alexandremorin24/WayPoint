@@ -14,18 +14,20 @@ const roles = require('./roles');
  * @property {string} gameId
  * @property {Date} createdAt
  * @property {string} ownerId
+ * @property {number} imageWidth
+ * @property {number} imageHeight
  */
 
 // Create a new map
-async function createMap({ name, description, imageUrl, thumbnailUrl = null, isPublic, gameId, ownerId }) {
+async function createMap({ name, description, imageUrl, thumbnailUrl = null, isPublic, gameId, ownerId, imageWidth, imageHeight }) {
   const id = uuidv4();
   const createdAt = new Date();
   await db.execute(
-    `INSERT INTO maps (id, name, description, image_url, thumbnail_url, is_public, game_id, created_at, owner_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId]
+    `INSERT INTO maps (id, name, description, image_url, thumbnail_url, is_public, game_id, created_at, owner_id, image_width, image_height)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId, imageWidth, imageHeight]
   );
-  return { id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId };
+  return { id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId, imageWidth, imageHeight };
 }
 
 // Find a map by its id

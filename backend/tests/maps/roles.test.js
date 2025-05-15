@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../../app');
 const db = require('../../src/utils/db');
-const { createUser } = require('../../src/models/UserModel');
+const { createUser, updateUserEmailVerified } = require('../../src/models/UserModel');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const sharp = require('sharp');
@@ -49,10 +49,18 @@ describe('🗺️ Map Roles Management', () => {
       [testGame, testGame, testGame.toLowerCase()]
     );
 
+    // Users creation with Email verified
     owner = await createUser({ email: ownerEmail, passwordHash: 'hash', displayName: 'Owner' });
+    await updateUserEmailVerified(owner.id);
+
     editor = await createUser({ email: editorEmail, passwordHash: 'hash', displayName: 'Editor' });
+    await updateUserEmailVerified(editor.id);
+
     viewer = await createUser({ email: viewerEmail, passwordHash: 'hash', displayName: 'Viewer' });
+    await updateUserEmailVerified(viewer.id);
+
     stranger = await createUser({ email: strangerEmail, passwordHash: 'hash', displayName: 'Stranger' });
+    await updateUserEmailVerified(stranger.id);
 
     tokenOwner = generateToken(owner);
     tokenEditor = generateToken(editor);

@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS maps (
   description TEXT,
   image_url TEXT,
   thumbnail_url TEXT,
-  width INT,
-  height INT,
+  image_width INT,
+  image_height INT,
   is_public BOOLEAN DEFAULT FALSE,
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -58,8 +58,12 @@ CREATE TABLE IF NOT EXISTS pois (
   icon VARCHAR(255),
   image_url TEXT,
   category_id CHAR(36),
+  creator_id CHAR(36) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (map_id) REFERENCES maps(id),
-  FOREIGN KEY (category_id) REFERENCES categories(id)
+  FOREIGN KEY (category_id) REFERENCES categories(id),
+  FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS map_user_roles (
@@ -79,8 +83,6 @@ CREATE TABLE IF NOT EXISTS map_user_roles (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-
-
 CREATE TABLE IF NOT EXISTS poi_user_stats (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
@@ -90,7 +92,6 @@ CREATE TABLE IF NOT EXISTS poi_user_stats (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (map_id) REFERENCES maps(id)
 );
-
 
 CREATE TABLE IF NOT EXISTS poi_logs (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
@@ -104,7 +105,6 @@ CREATE TABLE IF NOT EXISTS poi_logs (
   FOREIGN KEY (map_id) REFERENCES maps(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
 
 CREATE TABLE IF NOT EXISTS map_votes (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),

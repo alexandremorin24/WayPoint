@@ -1,5 +1,6 @@
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
+const MapModel = require('./MapModel');
 
 /**
  * POI model
@@ -14,7 +15,28 @@ const { v4: uuidv4 } = require('uuid');
  * @property {string} imageUrl
  * @property {string} categoryId
  * @property {string} creatorId
+ * @property {Date} createdAt
+ * @property {Date} updatedAt
  */
+
+/**
+ * Validate POI coordinates against map dimensions
+ * @param {string} mapId
+ * @param {number} x
+ * @param {number} y
+ */
+async function validateCoordinates(mapId, x, y) {
+  const map = await MapModel.findMapById(mapId);
+  if (!map) {
+    throw new Error('Map not found');
+  }
+  if (x < 0 || x > map.imageWidth) {
+    throw new Error(`X coordinate must be between 0 and ${map.imageWidth}`);
+  }
+  if (y < 0 || y > map.imageHeight) {
+    throw new Error(`Y coordinate must be between 0 and ${map.imageHeight}`);
+  }
+}
 
 /**
  * Create a new POI
@@ -30,13 +52,16 @@ const { v4: uuidv4 } = require('uuid');
  * @param {string} poi.creatorId
  */
 async function createPOI({ mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId }) {
+  await validateCoordinates(mapId, x, y);
+
   const id = uuidv4();
+  const now = new Date();
   await db.execute(
-    `INSERT INTO pois (id, map_id, name, description, x, y, icon, image_url, category_id, creator_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId]
+    `INSERT INTO pois (id, map_id, name, description, x, y, icon, image_url, category_id, creator_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId, now, now]
   );
-  return { id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId };
+  return { id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId, createdAt: now, updatedAt: now };
 }
 
 /**
@@ -72,6 +97,38 @@ async function findPOIsByMapId(mapId) {
 }
 
 /**
+ * Find all POIs for a category
+ * @param {string} categoryId
+ */
+async function findPOIsByCategory(categoryId) {
+  const [rows] = await db.execute(
+    `SELECT p.*, c.name as category_name, u.display_name as creator_name
+     FROM pois p 
+     LEFT JOIN categories c ON p.category_id = c.id 
+     LEFT JOIN users u ON p.creator_id = u.id
+     WHERE p.category_id = ?`,
+    [categoryId]
+  );
+  return rows;
+}
+
+/**
+ * Find all POIs created by a user
+ * @param {string} creatorId
+ */
+async function findPOIsByCreator(creatorId) {
+  const [rows] = await db.execute(
+    `SELECT p.*, c.name as category_name, u.display_name as creator_name
+     FROM pois p 
+     LEFT JOIN categories c ON p.category_id = c.id 
+     LEFT JOIN users u ON p.creator_id = u.id
+     WHERE p.creator_id = ?`,
+    [creatorId]
+  );
+  return rows;
+}
+
+/**
  * Update a POI
  * @param {string} id
  * @param {Object} updates
@@ -79,6 +136,19 @@ async function findPOIsByMapId(mapId) {
 async function updatePOI(id, updates) {
   const fields = [];
   const values = [];
+
+  // If coordinates are being updated, validate them
+  if (updates.x !== undefined || updates.y !== undefined) {
+    const poi = await findPOIById(id);
+    if (!poi) {
+      throw new Error('POI not found');
+    }
+    await validateCoordinates(
+      poi.mapId,
+      updates.x !== undefined ? updates.x : poi.x,
+      updates.y !== undefined ? updates.y : poi.y
+    );
+  }
 
   for (const key in updates) {
     fields.push(`${key} = ?`);
@@ -88,6 +158,10 @@ async function updatePOI(id, updates) {
   if (fields.length === 0) {
     throw new Error('No valid fields to update');
   }
+
+  // Add updated_at timestamp
+  fields.push('updated_at = ?');
+  values.push(new Date());
 
   values.push(id);
   await db.execute(`UPDATE pois SET ${fields.join(', ')} WHERE id = ?`, values);
@@ -105,6 +179,8 @@ module.exports = {
   createPOI,
   findPOIById,
   findPOIsByMapId,
+  findPOIsByCategory,
+  findPOIsByCreator,
   updatePOI,
   deletePOI
 }; 
