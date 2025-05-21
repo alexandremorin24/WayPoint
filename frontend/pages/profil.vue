@@ -28,7 +28,7 @@
                   accept="image/*"
                   class="d-none"
                   @change="handleFileUpload"
-                />
+                >
               </v-col>
               <v-col>
                 <v-text-field

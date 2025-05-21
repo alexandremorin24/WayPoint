@@ -48,8 +48,7 @@ if (process.env.NODE_ENV !== 'test') {
 } else {
   router.post('/', requireAuth, upload.single('image'), handleMulterError, mapController.createMap);
 }
-// Get a map by id (public)
-router.get('/:id', mapController.getMapById);
+
 // Get all maps by owner (public)
 router.get('/owner/:ownerId', mapController.getMapsByOwner);
 // Update a map (authenticated)
@@ -74,5 +73,8 @@ router.delete('/:id/users/:userId/role', requireAuth, mapController.removeUserRo
 
 // Get current user's role for a map (authenticated)
 router.get('/:id/role', requireAuth, mapController.getCurrentUserRole);
+
+// Get a map by id (public)
+router.get('/:id', mapController.getMapById);
 
 module.exports = router; 

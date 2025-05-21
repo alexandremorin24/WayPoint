@@ -8,14 +8,14 @@ import type { ThemeDefinition } from 'vuetify'
 const customTheme: ThemeDefinition = {
     dark: false,
     colors: {
-        primary: '#001D3D',      // bleu foncé
-        secondary: '#FFC300',    // jaune
-        accent: '#003566',       // bleu moyen
-        background: '#000814',   // presque noir
-        surface: '#FFFFFF',      // blanc
-        info: '#0077b6',        // bleu clair
-        error: '#d90429',        // rouge
-        success: '#43aa8b',      // vert
+        primary: '#001D3D',      // dark blue
+        secondary: '#FFC300',    // yellow
+        accent: '#000814',       // medium blue
+        background: '#003566',   // almost black
+        surface: '#FFFFFF',      // white   
+        info: '#0077b6',        // light blue
+        error: '#d90429',        // red
+        success: '#43aa8b',      // green
     },
 }
 

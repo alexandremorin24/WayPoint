@@ -7,8 +7,8 @@
                     v-model="gameName" 
                     :label="$t('createMap.gameName')" 
                     :rules="[rules.required, rules.min, rules.max]" 
-                    @input="debounceFetchPublicMaps"
-                    required 
+                    required
+                    @input="debounceFetchPublicMaps" 
                 />
                 <v-text-field v-model="name" :label="$t('createMap.mapName')" :rules="[rules.required, rules.min, rules.max]" required />
                 <v-textarea v-model="description" :label="$t('createMap.description')" :rules="[rules.required, rules.descMax]" required />
@@ -28,13 +28,13 @@
                                 width="120"
                                 height="80"
                                 class="mb-1"
-                                @click="selectExistingMap(map.id)"
                                 :class="{'border-primary': selectedMapId === map.id, 'border': true, 'cursor-pointer': true}"
+                                @click="selectExistingMap(map.id)"
                             />
                             <v-radio
+                                v-model="selectedMapId"
                                 :label="map.name"
                                 :value="map.id"
-                                v-model="selectedMapId"
                                 color="primary"
                             />
                         </v-col>
@@ -86,7 +86,7 @@ const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 const uploadProgress = ref(0);
-const publicMaps = ref<any[]>([]);
+const publicMaps = ref<RawMapData[]>([]);
 const selectedMapId = ref<string>('upload');
 const backendBase = config.public.API_BASE.replace(/\/api\/backend$/, '');
 
@@ -98,13 +98,13 @@ const rules = {
 };
 
 // Debounce function to avoid too many API calls
-const debounce = (fn: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => fn(...args), delay);
-    };
-};
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => fn(...args), delay)
+  }
+}
 
 const fetchPublicMaps = async () => {
     publicMaps.value = [];
@@ -116,6 +116,7 @@ const fetchPublicMaps = async () => {
             publicMaps.value = await res.json();
         }
     } catch (e) {
+        console.warn('fetchPublicMaps error', e)
         // Silent fail
     }
 };

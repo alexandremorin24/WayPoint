@@ -141,5 +141,21 @@
         },
         "footer": "Tous droits réservés"
     },
-    "vuetify": {}
+    "vuetify": {},
+    "access-denied": {
+        "title": "Accès refusé",
+        "message": "Vous n'avez pas l'autorisation d'accéder à cette carte.",
+        "back-home": "Retour à l'accueil"
+    },
+    "not-found": {
+        "title": "Carte introuvable",
+        "message": "La carte demandée n'existe pas ou a été supprimée.",
+        "back-home": "Retour à l'accueil"
+    },
+    "footer": {
+        "copyright": "Tous droits réservés"
+    },
+    "sidebar": {
+        "menu": "Menu"
+    }
 }

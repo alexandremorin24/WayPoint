@@ -141,5 +141,21 @@
         },
         "footer": "All rights reserved"
     },
-    "vuetify": {}
+    "vuetify": {},
+    "access-denied": {
+        "title": "Access Denied",
+        "message": "You don't have permission to access this map.",
+        "back-home": "Back to home"
+    },
+    "not-found": {
+        "title": "Map Not Found",
+        "message": "The requested map does not exist or has been deleted.",
+        "back-home": "Back to home"
+    },
+    "footer": {
+        "copyright": "All rights reserved"
+    },
+    "sidebar": {
+        "menu": "Menu"
+    }
 }

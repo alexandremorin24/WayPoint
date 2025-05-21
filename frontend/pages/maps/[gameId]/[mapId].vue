@@ -1,95 +1,76 @@
-<template>
-  <client-only>
-    <div v-if="error">
-      <MapError :title="error.title" :message="error.message" />
-    </div>
-    <div v-else-if="map && map.image_url && imageBounds">
-      <h1 class="text-h5 mb-2">{{ $t('mapDetails.title') }} {{ map.name }}</h1>
-      <p>{{ $t('mapDetails.description') }} {{ map.description }}</p>
-      <MapViewer
-        :image-url="backendBase + map.image_url"
-        :image-bounds="imageBounds"
-        :markers="[]"
-      />
-    </div>
-    <div v-else>{{ $t('mapDetails.loading') }}</div>
-  </client-only>
-</template>
+  <template>
+    <MapViewer v-if="map" :map="map" />
+  </template>
 
-<script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { ref, onMounted } from 'vue'
-import MapError from '~/components/MapError.vue'
-const config = useRuntimeConfig()
-const { t } = useI18n()
+  <script setup lang="ts">
+  import { ref, onMounted } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
+  import { useRuntimeConfig } from '#app'
+  import axios from 'axios'
+  import MapViewer from '@/components/MapViewer.vue'
+  import { transformMap, type RawMapData } from '@/utils/transform'
+  import type { MapData } from '@/types'
 
-definePageMeta({ layout: 'map' })
+  definePageMeta({
+    layout: 'map-editor'
+  })
 
-const route = useRoute()
-const map = ref<MapData | null>(null)
-const imageBounds = ref<[[number, number], [number, number]] | undefined>(undefined)
-const backendBase = config.public.API_BASE.replace(/\/api\/backend$/, '')
-const error = ref<{ title: string, message: string } | null>(null)
+  const route = useRoute()
+  const router = useRouter()
+  const config = useRuntimeConfig()
+  const map = ref<MapData | null>(null)
 
-interface MapData {
-  id: number;
-  name: string;
-  description: string;
-  image_url: string;
-  is_public: boolean;
-  owner_id: number;
-  game_id: number;
-}
-
-onMounted(async () => {
-  const mapId = route.params.mapId as string
-  const token = localStorage.getItem('token')
-  const headers: Record<string, string> = {}
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  const loadImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      img.onerror = reject
+      img.src = url
+    })
   }
-  const res = await fetch(`${config.public.API_BASE}/maps/${mapId}`, { headers })
-  if (!res.ok) {
-    if (res.status === 404) {
-      error.value = {
-        title: t('mapDetails.notFoundTitle'),
-        message: t('mapDetails.notFoundMsg')
-      }
-    } else if (res.status === 403) {
-      error.value = {
-        title: t('mapDetails.accessDeniedTitle'),
-        message: t('mapDetails.accessDeniedMsg')
-      }
-    } else {
-      error.value = {
-        title: t('mapDetails.errorTitle'),
-        message: t('mapDetails.errorMsg')
-      }
+
+  onMounted(async () => {
+    const mapId = route.params.mapId as string
+    const token = localStorage.getItem('token')
+    const headers: Record<string, string> = {}
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
-    return
-  }
-  const mapData = await res.json()
-  map.value = mapData
-  if (!mapData || !mapData.image_url) {
-    error.value = {
-      title: t('mapDetails.noImageTitle'),
-      message: t('mapDetails.noImageMsg')
+
+    try {
+      const { data } = await axios.get<RawMapData>(`${config.public.API_BASE}/maps/${mapId}`, { headers })
+      const transformed = transformMap(data)
+
+      console.log('🧩 transformed.imageUrl =', transformed.imageUrl)
+
+      if (!transformed.imageUrl) {
+        throw new Error('imageUrl is empty or invalid')
+      }
+
+      if (!transformed.width || !transformed.height) {
+        const { width, height } = await loadImageDimensions(transformed.imageUrl)
+        transformed.width = width
+        transformed.height = height
+      }
+
+      map.value = transformed
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const axiosError = err as import('axios').AxiosError
+          const status = axiosError.response?.status
+          console.warn('⚠️ Status API =', status)
+          console.warn('⚠️ Réponse API =', axiosError.response?.data)
+          
+        if (status === 401) return router.push('/login')
+        if (status === 403) return router.push('/access-denied')
+        if (status === 404) return router.push('/not-found')
+      }
+
+      console.error('Unexpected error while loading map', err)
     }
-    return
-  }
-  const img = new window.Image()
-  img.onload = () => {
-    imageBounds.value = [
-      [0, 0],
-      [img.height, img.width]
-    ]
-  }
-  img.onerror = () => {
-    error.value = {
-      title: t('mapDetails.imageNotFoundTitle'),
-      message: t('mapDetails.imageNotFoundMsg')
-    }
-  }
-  img.src = `${backendBase}${mapData.image_url}`
-})
-</script> 
+  })
+  </script>
+
+  <style scoped>
+  /* No specific styles */
+  </style>
