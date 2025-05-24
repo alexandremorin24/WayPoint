@@ -10,7 +10,7 @@
 --
 -- The SQL below is applied to the selected database. No CREATE DATABASE or USE statement is needed.
 
--- 🧑‍�� Users
+-- 🧑‍💻 Users
 CREATE TABLE users (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -32,8 +32,8 @@ CREATE TABLE maps (
   description TEXT,
   image_url TEXT,
   thumbnail_url TEXT,
-  width INT,
-  height INT,
+  image_width INT,
+  image_height INT,
   is_public BOOLEAN DEFAULT FALSE,
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -52,8 +52,12 @@ CREATE TABLE pois (
   icon VARCHAR(255),
   image_url TEXT,
   category_id CHAR(36),
+  creator_id CHAR(36) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (map_id) REFERENCES maps(id),
-  FOREIGN KEY (category_id) REFERENCES categories(id)
+  FOREIGN KEY (category_id) REFERENCES categories(id),
+  FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
 -- 🗂️ Categories
@@ -138,6 +142,7 @@ CREATE INDEX idx_maps_owner ON maps(owner_id);
 CREATE INDEX idx_maps_public_created ON maps(is_public, created_at);
 CREATE INDEX idx_pois_map ON pois(map_id);
 CREATE INDEX idx_pois_category ON pois(category_id);
+CREATE INDEX idx_pois_creator ON pois(creator_id);
 CREATE INDEX idx_map_user_roles_user ON map_user_roles(user_id);
 CREATE INDEX idx_map_user_roles_map ON map_user_roles(map_id);
 CREATE INDEX idx_map_user_roles_role ON map_user_roles(role);

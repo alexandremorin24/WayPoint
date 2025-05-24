@@ -9,9 +9,7 @@ import { onMounted, onUnmounted, ref, nextTick } from 'vue'
 import type { Map as LeafletMap, ImageOverlay } from 'leaflet'
 import type { MapData } from '@/types/map'
 
-const props = defineProps<{
-  map: MapData
-}>()
+const { map } = defineProps<{ map: MapData}>()
 
 const mapContainer = ref<HTMLElement | null>(null)
 let L: typeof import('leaflet')
@@ -20,14 +18,14 @@ let _imageOverlay: ImageOverlay | null = null
 
 onMounted(async () => {
   console.log('MapViewer mounted ✅')
-  console.log('🔍 props.map =', props.map)
+  console.log('🔍 props.map =', map)
 
   L = (await import('leaflet')).default
   await import('leaflet/dist/leaflet.css')
 
   const bounds: [[number, number], [number, number]] = [
     [0, 0],
-    [props.map.height, props.map.width]
+    [map.height, map.width]
   ]
 
   if (!mapContainer.value) return
@@ -42,12 +40,12 @@ onMounted(async () => {
   leafletMap.zoomControl.setPosition('topright')
   leafletMap.attributionControl.remove()
 
-  if (!props.map.imageUrl) {
-    console.warn('missing imageUrl', props.map)
+  if (!map.imageUrl) {
+    console.warn('missing imageUrl', map)
     return
   }
 
-  _imageOverlay = L.imageOverlay(props.map.imageUrl, bounds).addTo(leafletMap)
+  _imageOverlay = L.imageOverlay(map.imageUrl, bounds).addTo(leafletMap)
 
 
   // Display image in real size or adjusted

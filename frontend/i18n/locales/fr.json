@@ -156,6 +156,9 @@
         "copyright": "Tous droits réservés"
     },
     "sidebar": {
-        "menu": "Menu"
+        "menu": "Menu",
+        "addPoi": "Ajouter un POI",
+        "manageCategories": "Gérer les catégories",
+        "manageCollaborators": "Gérer les collaborateurs"
     }
 }

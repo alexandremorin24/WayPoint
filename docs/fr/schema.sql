@@ -32,8 +32,8 @@ CREATE TABLE maps (
   description TEXT,
   image_url TEXT,
   thumbnail_url TEXT,
-  width INT,
-  height INT,
+  image_width INT,
+  image_height INT,
   is_public BOOLEAN DEFAULT FALSE,
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -52,8 +52,12 @@ CREATE TABLE pois (
   icon VARCHAR(255),
   image_url TEXT,
   category_id CHAR(36),
+  creator_id CHAR(36) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (map_id) REFERENCES maps(id),
-  FOREIGN KEY (category_id) REFERENCES categories(id)
+  FOREIGN KEY (category_id) REFERENCES categories(id),
+  FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
 -- 🗂️ Catégories

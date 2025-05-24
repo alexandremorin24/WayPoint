@@ -36,17 +36,17 @@ class Map {
   +string thumbnailUrl
   +boolean isPublic
   +string gameId
+  +string gameName
   +Date createdAt
   +string ownerId
-  +int width
-  +int height
+  +int imageWidth
+  +int imageHeight
   +addPOI()
   +removePOI()
   +inviteUser()
   +addCategory()
   +paginatePOIs(page, limit)
   +generateThumbnails()
-  
 }
 
 class POI {
@@ -55,11 +55,15 @@ class POI {
   +string description
   +string mapId
   +string categoryId
-  +string status   // active | hidden | archived
+  +string categoryName
+  +string creatorId
+  +string creatorName
   +float x
   +float y
   +string icon
   +string imageUrl
+  +Date createdAt
+  +Date updatedAt
   +update()
   +attachImage()
   +preloadNearbyPOIs(radius)
