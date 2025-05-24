@@ -32,7 +32,10 @@ async function createMap({ name, description, imageUrl, thumbnailUrl = null, isP
 
 // Find a map by its id
 async function findMapById(id) {
-  const [rows] = await db.execute(`SELECT * FROM maps WHERE id = ?`, [id]);
+  const [rows] = await db.execute(
+    `SELECT m.*, g.name as game_name FROM maps m JOIN games g ON m.game_id = g.id WHERE m.id = ?`,
+    [id]
+  );
   return rows[0] || null;
 }
 

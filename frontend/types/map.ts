@@ -13,4 +13,5 @@ export interface MapData {
     isPublic: boolean
     createdAt: string
     updatedAt?: string
+    gameName: string
 }

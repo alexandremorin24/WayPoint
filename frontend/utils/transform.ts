@@ -8,13 +8,14 @@ export type RawMapData = {
     description?: string
     image_url: string
     thumbnail_url?: string
-    width: number
-    height: number
+    image_width: number
+    image_height: number
     game_id: string
     owner_id: string
     created_at: string
     updated_at?: string
     is_public: boolean
+    game_name: string
 }
 
 export function transformMap(raw: RawMapData): MapData {
@@ -24,13 +25,14 @@ export function transformMap(raw: RawMapData): MapData {
         description: raw.description,
         imageUrl: raw.image_url,
         thumbnailUrl: raw.thumbnail_url,
-        width: raw.width,
-        height: raw.height,
+        width: raw.image_width,
+        height: raw.image_height,
         gameId: raw.game_id,
         ownerId: raw.owner_id,
         createdAt: raw.created_at,
         updatedAt: raw.updated_at,
-        isPublic: raw.is_public
+        isPublic: raw.is_public,
+        gameName: raw.game_name
     }
 }
 
