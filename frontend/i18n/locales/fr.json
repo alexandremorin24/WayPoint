@@ -54,6 +54,7 @@
         "title": "Carte interactive",
         "customImageTitle": "Carte avec image personnalisée",
         "centerPoint": "Point central",
+        "clickToAddPoi": "Cliquez n'importe où sur la carte pour ajouter un POI",
         "error": {
             "title": "Erreur de chargement de la carte",
             "message": "Impossible de charger la carte. Veuillez réessayer plus tard."
@@ -160,5 +161,24 @@
         "addPoi": "Ajouter un POI",
         "manageCategories": "Gérer les catégories",
         "manageCollaborators": "Gérer les collaborateurs"
+    },
+    "marqueur": {
+        "form": {
+            "title": "Ajouter / Modifier un marqueur",
+            "name": "Nom du marqueur",
+            "category": "Catégorie",
+            "image": "Image",
+            "description": "Description",
+            "uploadPlaceholder": "Cliquez pour téléverser ou glissez-déposez",
+            "uploadHint": "PNG, JPG jusqu'à 5Mo",
+            "chooseCategory": "Choisir une catégorie"
+        },
+        "categories": {
+            "shop": "Boutique",
+            "restaurant": "Restaurant",
+            "hotel": "Hôtel",
+            "attraction": "Attraction",
+            "other": "Autre"
+        }
     }
 }

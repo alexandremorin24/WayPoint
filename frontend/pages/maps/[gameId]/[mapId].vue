@@ -1,5 +1,5 @@
   <template>
-    <MapViewer v-if="map" :map="map" />
+    <MapViewer v-if="map" :map="map" :add-poi-mode="false" />
   </template>
 
   <script setup lang="ts">

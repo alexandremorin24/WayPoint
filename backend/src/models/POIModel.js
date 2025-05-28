@@ -1,6 +1,7 @@
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
 const MapModel = require('./MapModel');
+const CategoryModel = require('./CategoryModel');
 
 /**
  * POI model
@@ -52,12 +53,14 @@ async function validateCoordinates(mapId, x, y) {
  * @param {string} [poi.description]
  * @param {number} poi.x
  * @param {number} poi.y
- * @param {string} [poi.icon]
  * @param {string} [poi.imageUrl]
  * @param {string} [poi.categoryId]
  * @param {string} poi.creatorId
  */
-async function createPOI({ mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId }) {
+async function createPOI({ mapId, name, description, x, y, imageUrl, categoryId, creatorId }) {
+  if (!categoryId || typeof categoryId !== 'string') {
+    throw new Error('categoryId is required and must be a string');
+  }
   // Round to 2 decimal places
   x = Math.round(x * 100) / 100;
   y = Math.round(y * 100) / 100;
@@ -67,22 +70,20 @@ async function createPOI({ mapId, name, description, x, y, icon, imageUrl, categ
   const now = new Date();
   // Force optional fields to null if undefined
   description = description === undefined ? null : description;
-  icon = icon === undefined ? null : icon;
   imageUrl = imageUrl === undefined ? null : imageUrl;
-  categoryId = categoryId === undefined ? null : categoryId;
 
   await db.execute(
-    `INSERT INTO pois (id, map_id, name, description, x, y, icon, image_url, category_id, creator_id, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId, now, now]
+    `INSERT INTO pois (id, map_id, name, description, x, y, image_url, category_id, creator_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, mapId, name, description, x, y, imageUrl, categoryId, creatorId, now, now]
   );
 
   // Log creation
-  await logPOIAction({ poiId: id, mapId, userId: creatorId, action: 'create', payload: { name, description, x, y, icon, imageUrl, categoryId } });
+  await logPOIAction({ poiId: id, mapId, userId: creatorId, action: 'create', payload: { name, description, x, y, imageUrl, categoryId } });
   // Update stats
   await incrementUserPOICreated(creatorId, mapId);
 
-  return { id, mapId, name, description, x, y, icon, imageUrl, categoryId, creatorId, createdAt: now, updatedAt: now };
+  return findPOIById(id);
 }
 
 /**
@@ -98,7 +99,8 @@ function convertToApiFormat(row) {
     description: row.description,
     x: row.x,
     y: row.y,
-    icon: row.icon,
+    icon: row.category_icon || 'map-marker',
+    color: row.category_color || '#3498db',
     imageUrl: row.image_url,
     categoryId: row.category_id,
     creatorId: row.creator_id,
@@ -115,7 +117,7 @@ function convertToApiFormat(row) {
  */
 async function findPOIById(id) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
      LEFT JOIN users u ON p.creator_id = u.id
@@ -131,7 +133,7 @@ async function findPOIById(id) {
  */
 async function findPOIsByMapId(mapId) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
      LEFT JOIN users u ON p.creator_id = u.id
@@ -147,7 +149,7 @@ async function findPOIsByMapId(mapId) {
  */
 async function findPOIsByCategory(categoryId) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
      LEFT JOIN users u ON p.creator_id = u.id
@@ -163,7 +165,7 @@ async function findPOIsByCategory(categoryId) {
  */
 async function findPOIsByCreator(creatorId) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
      LEFT JOIN users u ON p.creator_id = u.id
@@ -188,6 +190,13 @@ async function updatePOI(id, updates, userId) {
     throw new Error('POI not found');
   }
 
+  // Validate categoryId if provided
+  if (updates.categoryId !== undefined) {
+    if (!updates.categoryId || typeof updates.categoryId !== 'string') {
+      throw new Error('categoryId is required and must be a string');
+    }
+  }
+
   // If coordinates are being updated, validate them
   if (updates.x !== undefined || updates.y !== undefined) {
     await validateCoordinates(
@@ -203,7 +212,6 @@ async function updatePOI(id, updates, userId) {
     description: 'description',
     x: 'x',
     y: 'y',
-    icon: 'icon',
     imageUrl: 'image_url',
     categoryId: 'category_id'
   };

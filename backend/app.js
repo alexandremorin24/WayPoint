@@ -9,6 +9,7 @@ const authRoutes = require('./src/routes/auth.routes');
 const userRoutes = require('./src/routes/user.routes');
 const mapRoutes = require('./src/routes/map.routes');
 const poiRoutes = require('./src/routes/poiRoutes');
+const categoryRoutes = require('./src/routes/categoryRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/backend', authRoutes);
 app.use('/api/backend', userRoutes);
 app.use('/api/backend/maps', mapRoutes);
 app.use('/api/backend/pois', poiRoutes);
+app.use('/api/backend', categoryRoutes);
 
 // Fallback for testing
 app.get('/', (req, res) => {

@@ -41,11 +41,14 @@ CREATE TABLE IF NOT EXISTS maps (
 CREATE TABLE IF NOT EXISTS categories (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   map_id CHAR(36) NOT NULL,
-  name VARCHAR(255),
-  icon VARCHAR(255),
+  name VARCHAR(255) NOT NULL,
+  color VARCHAR(7) DEFAULT '#3498db', -- Blue by default
+  icon VARCHAR(255) DEFAULT 'map-marker', -- Marker icon by default
   parent_category_id CHAR(36),
-  FOREIGN KEY (map_id) REFERENCES maps(id),
-  FOREIGN KEY (parent_category_id) REFERENCES categories(id)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS pois (
@@ -55,7 +58,6 @@ CREATE TABLE IF NOT EXISTS pois (
   description TEXT,
   x FLOAT,
   y FLOAT,
-  icon VARCHAR(255),
   image_url TEXT,
   category_id CHAR(36),
   creator_id CHAR(36) NOT NULL,

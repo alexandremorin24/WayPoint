@@ -6,6 +6,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const sharp = require('sharp');
 const fs = require('fs');
+const { getTestImagePath } = require('../utils/test-utils');
 
 function generateToken(user) {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -57,7 +58,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     tokenStranger = generateToken(stranger);
 
     // Public map creation
-    const publicImagePath = await createTestImage('public-test-image');
+    const publicImagePath = getTestImagePath('test-image');
     let res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
@@ -69,7 +70,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     publicMapId = res.body.id;
 
     // Private map creation
-    const privateImagePath = await createTestImage('private-test-image');
+    const privateImagePath = getTestImagePath('test-image');
     res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)

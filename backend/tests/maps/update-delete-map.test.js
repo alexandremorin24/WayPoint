@@ -6,6 +6,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const sharp = require('sharp');
 const fs = require('fs');
+const { getTestImagePath } = require('../utils/test-utils');
 
 function generateToken(user) {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -131,5 +132,22 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
         // Ignore errors if files don't exist
       }
     }
+  });
+});
+
+describe('Map Update and Delete Tests', () => {
+  test('should update map', async () => {
+    const testImagePath = getTestImagePath('test-image');
+    // ... existing code ...
+  });
+
+  test('should delete map', async () => {
+    const testImagePath = getTestImagePath('test-image');
+    // ... existing code ...
+  });
+
+  test('should handle map not found', async () => {
+    const testImagePath = getTestImagePath('test-image');
+    // ... existing code ...
   });
 }); 

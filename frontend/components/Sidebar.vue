@@ -74,7 +74,7 @@
 
       <v-divider class="my-2" />
 
-      <v-list-item link @click="emit('add-poi')">
+      <v-list-item link @click="onAddPoi">
         <v-list-item-title>{{ $t('sidebar.addPoi') }}</v-list-item-title>
       </v-list-item>
 
@@ -113,6 +113,11 @@ const drawerProxy = computed({
 
 const { mobile } = useDisplay()
 const isMobile = computed(() => mobile.value)
+
+function onAddPoi() {
+  drawerProxy.value = false
+  emit('add-poi')
+}
 </script>
 
 <style scoped>

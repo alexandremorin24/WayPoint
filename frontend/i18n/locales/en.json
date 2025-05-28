@@ -54,6 +54,7 @@
         "title": "Interactive Map",
         "customImageTitle": "Map with custom image",
         "centerPoint": "Center point",
+        "clickToAddPoi": "Click anywhere on the map to add a POI",
         "error": {
             "title": "Map Loading Error",
             "message": "Unable to load the map. Please try again later."
@@ -160,5 +161,24 @@
         "addPoi": "Add POI",
         "manageCategories": "Manage Categories",
         "manageCollaborators": "Manage Collaborators"
+    },
+    "poi": {
+        "form": {
+            "title": "Add / Edit POI",
+            "name": "POI Name",
+            "category": "Category",
+            "image": "Image Upload",
+            "description": "Description",
+            "uploadPlaceholder": "Click to upload or drag and drop",
+            "uploadHint": "PNG, JPG up to 5MB",
+            "chooseCategory": "Choose category"
+        },
+        "categories": {
+            "shop": "Shop",
+            "restaurant": "Restaurant",
+            "hotel": "Hotel",
+            "attraction": "Attraction",
+            "other": "Other"
+        }
     }
 }

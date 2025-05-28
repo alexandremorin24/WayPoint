@@ -7,9 +7,10 @@ const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const { getTestImagePath } = require('../utils/test-utils');
 
 // Test data
-const testGame = 'POITestGame';
+const testGame = 'POICategoryTestGame';
 const ownerEmail = 'owner-poi@example.com';
 const editorEmail = 'editor-poi@example.com';
 const viewerEmail = 'viewer-poi@example.com';
@@ -20,6 +21,7 @@ describe('📍 POI Management', () => {
   let tokenOwner, tokenEditor, tokenViewer, tokenStranger;
   let mapId;
   let testPOI;
+  let categoryId;
 
   beforeAll(async () => {
     // Clean up test data
@@ -52,7 +54,7 @@ describe('📍 POI Management', () => {
     tokenStranger = jwt.sign({ id: stranger.id, email: strangerEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
     // Create test map
-    const imagePath = await createTestImage('poi-test-image');
+    const imagePath = getTestImagePath('test-image');
     const res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
@@ -66,6 +68,7 @@ describe('📍 POI Management', () => {
 
     expect(res.statusCode).toBe(201);
     mapId = res.body.id;
+    expect(mapId).toBeDefined();
 
     // Add editor role
     await request(app)
@@ -79,6 +82,19 @@ describe('📍 POI Management', () => {
       .set('Authorization', `Bearer ${tokenOwner}`)
       .send({ role: 'viewer' });
 
+    // Create test category
+    const categoryRes = await request(app)
+      .post(`/api/backend/maps/${mapId}/categories`)
+      .set('Authorization', `Bearer ${tokenOwner}`)
+      .send({
+        name: 'Test Category',
+        color: '#2196f3',
+        icon: 'default-icon'
+      });
+
+    expect(categoryRes.statusCode).toBe(201);
+    categoryId = categoryRes.body.id;
+
     // Create test POI
     const createRes = await request(app)
       .post(`/api/backend/pois/map/${mapId}`)
@@ -88,8 +104,7 @@ describe('📍 POI Management', () => {
         description: 'A test POI',
         x: 100,
         y: 100,
-        icon: 'test-icon',
-        categoryId: null
+        categoryId: categoryId
       });
 
     expect(createRes.statusCode).toBe(201);
@@ -132,8 +147,7 @@ describe('📍 POI Management', () => {
           description: 'A test POI',
           x: 100,
           y: 100,
-          icon: 'test-icon',
-          categoryId: null
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(201);
@@ -141,6 +155,7 @@ describe('📍 POI Management', () => {
       expect(res.body.name).toBe('Test POI');
       expect(res.body.x).toBe(100);
       expect(res.body.y).toBe(100);
+      expect(res.body.categoryId).toBe(categoryId);
       testPOI = res.body;
     });
 
@@ -152,8 +167,9 @@ describe('📍 POI Management', () => {
           name: 'Invalid POI',
           description: 'A POI with invalid coordinates',
           x: -1,
-          y: 1000,
-          icon: 'test-icon'
+          y: 301,
+          icon: 'test-icon',
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(400);
@@ -166,11 +182,25 @@ describe('📍 POI Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           description: 'Missing name and coordinates',
-          icon: 'test-icon'
+          icon: 'test-icon',
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatch(/required/i);
+    });
+
+    it('should reject POI creation without categoryId', async () => {
+      const res = await request(app)
+        .post(`/api/backend/pois/map/${mapId}`)
+        .set('Authorization', `Bearer ${tokenOwner}`)
+        .send({
+          name: 'No Category',
+          x: 100,
+          y: 100
+        });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatch(/categoryId is required/);
     });
 
     it('should reject POI creation by unauthorized user', async () => {
@@ -180,7 +210,8 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Unauthorized POI',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(403);
@@ -193,11 +224,13 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Decimal POI',
           x: 123.456,
-          y: 45.6789
+          y: 45.6789,
+          categoryId: categoryId
         });
       expect(res.statusCode).toBe(201);
       expect(res.body.x).toBeCloseTo(123.46, 2);
       expect(res.body.y).toBeCloseTo(45.68, 2);
+      expect(res.body.categoryId).toBe(categoryId);
     });
   });
 
@@ -232,55 +265,44 @@ describe('📍 POI Management', () => {
 
   describe('Update POI', () => {
     it('should update a POI with valid data', async () => {
-      // Create a new POI as editor
-      const createRes = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenEditor}`)
-        .send({
-          name: 'Editor POI',
-          x: 100,
-          y: 100
-        });
-
-      expect(createRes.statusCode).toBe(201);
-      const editorPOI = createRes.body;
-
       const res = await request(app)
-        .put(`/api/backend/pois/${editorPOI.id}`)
+        .put(`/api/backend/pois/${testPOI.id}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
         .send({
           name: 'Updated POI',
           description: 'An updated test POI',
           x: 150,
-          y: 150
+          y: 150,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(200);
       expect(res.body.name).toBe('Updated POI');
       expect(res.body.x).toBe(150);
       expect(res.body.y).toBe(150);
+      expect(res.body.categoryId).toBe(categoryId);
+    });
+
+    it('should reject POI update with invalid categoryId', async () => {
+      const res = await request(app)
+        .put(`/api/backend/pois/${testPOI.id}`)
+        .set('Authorization', `Bearer ${tokenEditor}`)
+        .send({
+          categoryId: null
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatch(/categoryId is required/);
     });
 
     it('should reject POI update with invalid coordinates', async () => {
-      // Create a new POI as editor
-      const createRes = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenEditor}`)
-        .send({
-          name: 'Invalid Coordinates POI',
-          x: 100,
-          y: 100
-        });
-
-      expect(createRes.statusCode).toBe(201);
-      const editorPOI = createRes.body;
-
       const res = await request(app)
-        .put(`/api/backend/pois/${editorPOI.id}`)
+        .put(`/api/backend/pois/${testPOI.id}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
         .send({
           x: -1,
-          y: 1000
+          y: 1000,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(400);
@@ -292,34 +314,26 @@ describe('📍 POI Management', () => {
         .put(`/api/backend/pois/${testPOI.id}`)
         .set('Authorization', `Bearer ${tokenStranger}`)
         .send({
-          name: 'Unauthorized Update'
+          name: 'Unauthorized Update',
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(403);
     });
 
     it('should update a POI with decimal coordinates', async () => {
-      // Create a new POI as editor
-      const createRes = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenEditor}`)
-        .send({
-          name: 'Editor POI Dec',
-          x: 10,
-          y: 10
-        });
-      expect(createRes.statusCode).toBe(201);
-      const editorPOI = createRes.body;
       const res = await request(app)
-        .put(`/api/backend/pois/${editorPOI.id}`)
+        .put(`/api/backend/pois/${testPOI.id}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
         .send({
           x: 300,
-          y: 300
+          y: 300,
+          categoryId: categoryId
         });
       expect(res.statusCode).toBe(200);
       expect(res.body.x).toBe(300);
       expect(res.body.y).toBe(300);
+      expect(res.body.categoryId).toBe(categoryId);
     });
   });
 
@@ -332,11 +346,15 @@ describe('📍 POI Management', () => {
         .send({
           name: 'POI to Delete',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
+      expect(createRes.statusCode).toBe(201);
+      const poiToDelete = createRes.body;
+
       const res = await request(app)
-        .delete(`/api/backend/pois/${createRes.body.id}`)
+        .delete(`/api/backend/pois/${poiToDelete.id}`)
         .set('Authorization', `Bearer ${tokenOwner}`);
 
       expect(res.statusCode).toBe(200);
@@ -351,11 +369,15 @@ describe('📍 POI Management', () => {
         .send({
           name: 'POI to Delete',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
+      expect(createRes.statusCode).toBe(201);
+      const poiToDelete = createRes.body;
+
       const res = await request(app)
-        .delete(`/api/backend/pois/${createRes.body.id}`)
+        .delete(`/api/backend/pois/${poiToDelete.id}`)
         .set('Authorization', `Bearer ${tokenStranger}`);
 
       expect(res.statusCode).toBe(403);
@@ -363,22 +385,6 @@ describe('📍 POI Management', () => {
   });
 
   describe('POI Categories', () => {
-    let categoryId;
-
-    beforeAll(async () => {
-      // Create a test category
-      const categoryUuid = uuidv4();
-      await db.execute(
-        'INSERT INTO categories (id, name, map_id) VALUES (?, ?, ?)',
-        [categoryUuid, 'Test Category', mapId]
-      );
-      categoryId = categoryUuid;
-    });
-
-    afterAll(async () => {
-      await db.execute('DELETE FROM categories WHERE map_id = ?', [mapId]);
-    });
-
     it('should create a POI with a category', async () => {
       const res = await request(app)
         .post(`/api/backend/pois/map/${mapId}`)
@@ -428,7 +434,8 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Stats Test POI',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(201);
@@ -442,7 +449,6 @@ describe('📍 POI Management', () => {
       expect(stats[0].poi_created_count).toBeGreaterThan(0);
     });
   });
-
   describe('POI Logs', () => {
     it('should create a log entry when creating a POI', async () => {
       const res = await request(app)
@@ -451,7 +457,8 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Log Test POI',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(201);
@@ -477,11 +484,11 @@ describe('📍 POI Management', () => {
       expect(updateRes.statusCode).toBe(200);
 
       const [logs] = await db.execute(
-        'SELECT * FROM poi_logs WHERE poi_id = ? ORDER BY timestamp DESC',
+        'SELECT * FROM poi_logs WHERE poi_id = ? ORDER BY timestamp DESC LIMIT 1',
         [testPOI.id]
       );
 
-      expect(logs.length).toBeGreaterThan(0);
+      expect(logs.length).toBe(1);
       expect(logs[0].action).toBe('update');
     });
   });
@@ -501,7 +508,8 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Editor Own POI',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
       expect(createRes.statusCode).toBe(201);
@@ -531,7 +539,8 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Contributor POI',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(201);
@@ -545,8 +554,9 @@ describe('📍 POI Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           name: 'Invalid Coordinates POI',
-          x: 1000,
-          y: 1000
+          x: 301,
+          y: 301,
+          categoryId: categoryId
         });
 
       expect(res.statusCode).toBe(400);
@@ -561,7 +571,8 @@ describe('📍 POI Management', () => {
         .send({
           name: 'Valid POI',
           x: 100,
-          y: 100
+          y: 100,
+          categoryId: categoryId
         });
 
       const updateRes = await request(app)
@@ -576,7 +587,6 @@ describe('📍 POI Management', () => {
       expect(updateRes.body.error).toMatch(/coordinate/i);
     });
   });
-
   describe('Partial POI Updates', () => {
     beforeAll(async () => {
       // Ensure editor has all permissions
@@ -596,7 +606,7 @@ describe('📍 POI Management', () => {
           description: 'Original description',
           x: 100,
           y: 100,
-          icon: 'original-icon'
+          categoryId: categoryId
         });
 
       const updateRes = await request(app)
@@ -616,7 +626,7 @@ describe('📍 POI Management', () => {
 
       expect(getRes.statusCode).toBe(200);
       expect(getRes.body.description).toBe('Original description');
-      expect(getRes.body.icon).toBe('original-icon');
+      expect(getRes.body.categoryId).toBe(categoryId);
     });
 
     it('should handle null values in updates', async () => {
@@ -629,20 +639,19 @@ describe('📍 POI Management', () => {
           description: 'Original description',
           x: 100,
           y: 100,
-          icon: 'original-icon'
+          categoryId: categoryId
         });
 
       const updateRes = await request(app)
         .put(`/api/backend/pois/${createRes.body.id}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
         .send({
-          description: null,
-          icon: null
+          description: null
         });
 
       expect(updateRes.statusCode).toBe(200);
       expect(updateRes.body.description).toBeNull();
-      expect(updateRes.body.icon).toBeNull();
+      expect(updateRes.body.categoryId).toBe(categoryId);
     });
   });
 });
@@ -661,4 +670,4 @@ async function createTestImage(name) {
     .png()
     .toFile(imagePath);
   return imagePath;
-} 
+}
