@@ -17,6 +17,9 @@ async function createPOI(req, res) {
     if (typeof x !== 'number' || typeof y !== 'number') {
       return res.status(400).json({ error: 'Valid coordinates (x, y) are required.' });
     }
+    if (!categoryId || typeof categoryId !== 'string') {
+      return res.status(400).json({ error: 'categoryId is required and must be a string.' });
+    }
 
     // Check if map exists and user has access
     const map = await MapModel.findMapById(mapId);
@@ -164,6 +167,13 @@ async function updatePOI(req, res) {
     const { id } = req.params;
     const updates = req.body;
     const userId = req.user.id;
+
+    // Validate categoryId if provided
+    if (updates.categoryId !== undefined) {
+      if (!updates.categoryId || typeof updates.categoryId !== 'string') {
+        return res.status(400).json({ error: 'categoryId is required and must be a string.' });
+      }
+    }
 
     const poi = await POIModel.updatePOI(id, updates, userId);
     res.json(poi);

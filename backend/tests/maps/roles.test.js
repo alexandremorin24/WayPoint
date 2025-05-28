@@ -6,6 +6,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const sharp = require('sharp');
 const fs = require('fs');
+const { getTestImagePath } = require('../utils/test-utils');
 
 function generateToken(user) {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -74,7 +75,7 @@ describe('🗺️ Map Roles Management', () => {
     await db.execute('DELETE FROM maps WHERE name = ?', ['Roles Test Map']);
 
     // Recreate the map for each test
-    const imagePath = await createTestImage('roles-test-image');
+    const imagePath = getTestImagePath('test-image');
     const res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
