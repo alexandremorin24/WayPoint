@@ -74,16 +74,16 @@
 
       <v-divider class="my-2" />
 
-      <v-list-item link @click="onAddPoi">
-        <v-list-item-title>{{ $t('sidebar.addPoi') }}</v-list-item-title>
+      <v-list-item link @click="emit('manage-categories')">
+        <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.manageCategories') }}</v-list-item-title>
       </v-list-item>
 
-      <v-list-item link @click="emit('manage-categories')">
-        <v-list-item-title>{{ $t('sidebar.manageCategories') }}</v-list-item-title>
+      <v-list-item link @click="onAddPoi">
+        <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.addPoi') }}</v-list-item-title>
       </v-list-item>
 
       <v-list-item link @click="emit('manage-collaborators')">
-        <v-list-item-title>{{ $t('sidebar.manageCollaborators') }}</v-list-item-title>
+        <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.manageCollaborators') }}</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-navigation-drawer>

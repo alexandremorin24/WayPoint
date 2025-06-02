@@ -160,7 +160,20 @@
         "menu": "Menu",
         "addPoi": "Add POI",
         "manageCategories": "Manage Categories",
-        "manageCollaborators": "Manage Collaborators"
+        "manageCollaborators": "Manage Collaborators",
+        "addCategory": "Add Category",
+        "editCategory": "Edit Category",
+        "addEditCategory": "Add / Edit Category",
+        "name": "Name",
+        "icon": "Icon",
+        "parentCategory": "Parent Category",
+        "selectParentCategory": "Select parent category",
+        "color": "Color",
+        "cancel": "Cancel",
+        "save": "Save",
+        "none": "None",
+        "selectIcon": "Select an icon",
+        "selectColor": "Select a color"
     },
     "poi": {
         "form": {
