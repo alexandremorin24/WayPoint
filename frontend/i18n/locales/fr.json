@@ -160,7 +160,20 @@
         "menu": "Menu",
         "addPoi": "Ajouter un POI",
         "manageCategories": "Gérer les catégories",
-        "manageCollaborators": "Gérer les collaborateurs"
+        "manageCollaborators": "Gérer les collaborateurs",
+        "addCategory": "Ajouter une catégorie",
+        "editCategory": "Modifier la catégorie",
+        "addEditCategory": "Ajouter / Modifier une catégorie",
+        "name": "Nom",
+        "icon": "Icône",
+        "parentCategory": "Catégorie parente",
+        "selectParentCategory": "Sélectionner une catégorie parente",
+        "color": "Couleur",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "none": "Aucune",
+        "selectIcon": "Sélectionner une icône",
+        "selectColor": "Sélectionner une couleur"
     },
     "marqueur": {
         "form": {

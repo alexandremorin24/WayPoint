@@ -134,6 +134,9 @@ onMounted(async () => {
       popupRef.remove()
     }
 
+    // Hide click message when popup is created
+    showClickMessage.value = false
+
     // Create popup content
     const key = locale.value === 'fr' ? 'marqueur' : 'poi'
     const popupContent = `
@@ -233,8 +236,6 @@ onMounted(async () => {
       })
     }
 
-    showClickMessage.value = true
-
     if (isMobile.value) {
       leafletMap.setView(e.latlng, leafletMap.getZoom(), {
         animate: true,
@@ -256,6 +257,7 @@ watch(() => props.addPoiMode, (active) => {
   if (leafletMap && leafletMap.getContainer()) {
     leafletMap.getContainer().classList.toggle('add-poi-cursor', active)
   }
+  showClickMessage.value = active
 }, { immediate: true })
 </script>
 
