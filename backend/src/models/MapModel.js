@@ -30,13 +30,36 @@ async function createMap({ name, description, imageUrl, thumbnailUrl = null, isP
   return { id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId, imageWidth, imageHeight };
 }
 
+// Convert a database row to a map object
+function convertRowToMap(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    imageUrl: row.image_url,
+    thumbnailUrl: row.thumbnail_url,
+    isPublic: Boolean(row.is_public),
+    is_public: row.is_public,
+    gameId: row.game_id,
+    ownerId: row.owner_id,
+    imageWidth: row.image_width,
+    imageHeight: row.image_height,
+    width: row.image_width,
+    height: row.image_height,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    gameName: row.game_name
+  };
+}
+
 // Find a map by its id
 async function findMapById(id) {
   const [rows] = await db.execute(
     `SELECT m.*, g.name as game_name FROM maps m JOIN games g ON m.game_id = g.id WHERE m.id = ?`,
     [id]
   );
-  return rows[0] || null;
+  if (!rows[0]) return null;
+  return convertRowToMap(rows[0]);
 }
 
 // Find all maps by owner
@@ -48,7 +71,7 @@ async function findMapsByOwner(ownerId) {
      WHERE m.owner_id = ?`,
     [ownerId]
   );
-  return rows;
+  return rows.map(convertRowToMap);
 }
 
 // Update a map
@@ -88,9 +111,14 @@ async function findPublicMapsPaginated(limit, offset) {
   limit = Math.max(1, Math.min(100, parseInt(limit) || 20));
   offset = Math.max(0, parseInt(offset) || 0);
   const [rows] = await db.execute(
-    `SELECT * FROM maps WHERE is_public = true ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`
+    `SELECT m.*, g.name as game_name 
+     FROM maps m 
+     JOIN games g ON m.game_id = g.id 
+     WHERE m.is_public = true 
+     ORDER BY m.created_at DESC 
+     LIMIT ${limit} OFFSET ${offset}`
   );
-  return rows;
+  return rows.map(convertRowToMap);
 }
 
 // Find a game by name
@@ -124,22 +152,25 @@ async function countByUser(ownerId) {
 // Find all public maps for a given game id
 async function findPublicMapsByGameId(gameId) {
   const [rows] = await db.execute(
-    `SELECT id, name, image_url, thumbnail_url FROM maps WHERE is_public = true AND game_id = ?`,
+    `SELECT m.*, g.name as game_name 
+     FROM maps m 
+     JOIN games g ON m.game_id = g.id 
+     WHERE m.is_public = true AND m.game_id = ?`,
     [gameId]
   );
-  return rows;
+  return rows.map(convertRowToMap);
 }
 
 // Find all public maps for a given game name
 async function findPublicMapsByGameName(gameName) {
   const [rows] = await db.execute(
-    `SELECT m.id, m.name, m.image_url, m.thumbnail_url 
+    `SELECT m.*, g.name as game_name 
      FROM maps m 
      JOIN games g ON m.game_id = g.id 
      WHERE m.is_public = true AND g.name = ?`,
     [gameName]
   );
-  return rows;
+  return rows.map(convertRowToMap);
 }
 
 // Check if a user has any role on a map
@@ -176,8 +207,20 @@ async function canView(mapId, userId) {
 
   // Check if user has a valid role
   if (!userId) return false;
-  const role = await hasAnyRole(mapId, userId);
-  return role && role !== 'banned';
+
+  // Check if user is banned
+  const [banned] = await db.execute(
+    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role = ?',
+    [mapId, userId, 'banned']
+  );
+  if (banned[0]) return false;
+
+  // Check if user has any valid role (viewer, editor, contributor)
+  const [role] = await db.execute(
+    'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role IN (?, ?, ?, ?)',
+    [mapId, userId, 'viewer', 'editor_all', 'editor_own', 'contributor']
+  );
+  return !!role[0];
 }
 
 // Check if a user can edit a map
@@ -190,6 +233,7 @@ async function canEdit(mapId, userId) {
   // Owner can always edit
   if (map[0].owner_id === userId) return true;
 
+  // Check if user has editor role
   const role = await hasAnyRole(mapId, userId);
   return role === 'editor_all' || role === 'editor_own';
 }

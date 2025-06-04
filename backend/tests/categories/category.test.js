@@ -70,20 +70,20 @@ describe('🏷️ Category Management', () => {
     tokenStranger = jwt.sign({ id: stranger.id, email: strangerEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
     // Create test map
-    testImagePath = await createTestImage('category-test-image');
-    const res = await request(app)
+    const testImagePath = await getTestImagePath('test-image');
+    const mapRes = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
-      .field('name', 'Category Test Map')
-      .field('description', 'A map for testing categories')
+      .field('name', 'Test Map')
+      .field('description', 'A test map')
       .field('gameName', testGame)
       .field('isPublic', 'false')
       .field('imageWidth', '300')
       .field('imageHeight', '300')
       .attach('image', testImagePath);
 
-    expect(res.statusCode).toBe(201);
-    mapId = res.body.id;
+    expect(mapRes.statusCode).toBe(201);
+    mapId = mapRes.body.id;
 
     // Add roles
     await request(app)

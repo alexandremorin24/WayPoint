@@ -52,10 +52,7 @@ async function canEditPOI(req, res, next) {
           updates.y !== undefined ? updates.y : poi.y
         );
       } catch (err) {
-        if (err.message.includes('coordinate')) {
-          return res.status(400).json({ error: err.message });
-        }
-        throw err;
+        return res.status(400).json({ error: err.message });
       }
     }
 
@@ -94,7 +91,7 @@ async function canDeletePOI(req, res, next) {
       return res.status(404).json({ error: 'Map not found.' });
     }
 
-    if (userId !== poi.creatorId && userId !== map.owner_id) {
+    if (userId !== poi.creatorId && userId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions to delete POI.' });
     }
 

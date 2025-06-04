@@ -34,7 +34,7 @@ router.get('/me', requireAuth, async (req, res) => {
       emailVerified: user.email_verified === 1,
       preferredLanguage: user.preferred_language,
       emailOptin: user.email_optin === 1,
-      created_at: user.created_at
+      createdAt: user.created_at
     });
   } catch (err) {
     console.error('GET /me error:', err);

@@ -23,7 +23,7 @@
                             class="d-flex flex-column align-center"
                         >
                             <v-img
-                                :src="backendBase + map.thumbnail_url"
+                                :src="backendBase + map.thumbnailUrl"
                                 :alt="map.name"
                                 width="120"
                                 height="80"
@@ -72,10 +72,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import type { MapData } from '@/types/map';
+
 const config = useRuntimeConfig();
 
 const router = useRouter();
-const localePath = useLocalePath();
 const { t } = useI18n();
 const gameName = ref('');
 const name = ref('');
@@ -86,7 +88,7 @@ const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 const uploadProgress = ref(0);
-const publicMaps = ref<RawMapData[]>([]);
+const publicMaps = ref<MapData[]>([]);
 const selectedMapId = ref<string>('upload');
 const backendBase = config.public.API_BASE.replace(/\/api\/backend$/, '');
 
@@ -147,7 +149,7 @@ const handleCreate = async () => {
         formData.append('name', name.value.trim());
         formData.append('description', description.value.trim());
         if (selectedMapId.value !== 'upload' && publicMaps.value.length > 0) {
-            formData.append('imageFromMapId', selectedMapId.value);
+            formData.append('imageFromMap', selectedMapId.value);
         } else {
             formData.append('image', imageFile.value!);
         }
@@ -166,7 +168,7 @@ const handleCreate = async () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     const data = JSON.parse(xhr.responseText);
                     success.value = true;
-                    router.push(localePath(`/maps/${data.gameId}/${data.id}`));
+                    router.push(`/maps/${data.gameId}/${data.id}`);
                     resolve();
                 } else {
                     try {

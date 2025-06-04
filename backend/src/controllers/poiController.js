@@ -21,10 +21,17 @@ async function createPOI(req, res) {
       return res.status(400).json({ error: 'categoryId is required and must be a string.' });
     }
 
-    // Check if map exists and user has access
+    // Check if map exists
     const map = await MapModel.findMapById(mapId);
     if (!map) {
       return res.status(404).json({ error: 'Map not found.' });
+    }
+
+    // Validate coordinates before checking permissions
+    try {
+      await POIModel.validateCoordinates(mapId, x, y);
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
     }
 
     const poi = await POIModel.createPOI({
@@ -42,9 +49,6 @@ async function createPOI(req, res) {
     res.status(201).json(poi);
   } catch (err) {
     console.error('createPOI error:', err);
-    if (err.message.includes('coordinate')) {
-      return res.status(400).json({ error: err.message });
-    }
     res.status(500).json({ error: 'Error creating POI.' });
   }
 }

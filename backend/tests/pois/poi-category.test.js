@@ -63,7 +63,7 @@ describe('📍 POI-Category Integration', () => {
     tokenViewer = resViewer.body.token;
 
     // Create a test map
-    const imagePath = getTestImagePath('test-image');
+    const imagePath = await getTestImagePath('test-image');
     const mapRes = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
