@@ -124,6 +124,8 @@ async function confirmDeleteMap() {
   try {
     loading.value = true
     const token = localStorage.getItem('token')
+    console.log('[Suppression] id carte à supprimer:', mapToDelete.value.id)
+    console.log('[Suppression] token:', token)
     if (!token) {
       router.push('/login')
       return
@@ -132,10 +134,14 @@ async function confirmDeleteMap() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })
-    if (!res.ok) throw new Error(t('errors.deleteFailed'))
+    console.log('[Suppression] status:', res.status)
+    const resText = await res.text()
+    console.log('[Suppression] réponse brute:', resText)
+    if (!res.ok) throw new Error(t('errors.deleteFailed') + ' (HTTP ' + res.status + ')')
     maps.value = maps.value.filter(m => m.id !== mapToDelete.value!.id)
     closeDeleteDialog()
   } catch (e: unknown) {
+    console.error('[Suppression] erreur:', e)
     error.value = e instanceof Error ? e.message : t('errors.unknown')
   } finally {
     loading.value = false

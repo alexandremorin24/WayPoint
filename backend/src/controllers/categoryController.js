@@ -167,6 +167,9 @@ async function deleteCategory(req, res) {
     res.json({ message: 'Category deleted successfully.' });
   } catch (err) {
     console.error('deleteCategory error:', err);
+    if (err.message === 'Cannot delete category with subcategories') {
+      return res.status(400).json({ error: 'Cannot delete a category that has subcategories. Please delete or move the subcategories first.' });
+    }
     res.status(500).json({ error: 'Error deleting category.' });
   }
 }

@@ -19,7 +19,8 @@
         "profile": "Profil",
         "settings": "Paramètres",
         "map": "Mes cartes",
-        "create": "Créer une carte"
+        "create": "Créer",
+        "explore": "Explorer"
     },
     "errors": {
         "required": "Ce champ est requis",
@@ -173,9 +174,14 @@
         "save": "Enregistrer",
         "none": "Aucune",
         "selectIcon": "Sélectionner une icône",
-        "selectColor": "Sélectionner une couleur"
+        "selectColor": "Sélectionner une couleur",
+        "confirmDelete": "Confirmer la suppression",
+        "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer la catégorie",
+        "cannotDeleteParent": "Impossible de supprimer une catégorie qui possède des sous-catégories. Veuillez d'abord supprimer ou déplacer les sous-catégories.",
+        "yes": "Oui",
+        "no": "Non"
     },
-    "marqueur": {
+    "poi": {
         "form": {
             "title": "Ajouter / Modifier un marqueur",
             "name": "Nom du marqueur",

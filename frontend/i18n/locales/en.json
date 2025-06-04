@@ -19,7 +19,8 @@
         "profile": "Profile",
         "settings": "Settings",
         "map": "My maps",
-        "create": "Create map"
+        "create": "Create",
+        "explore": "Explore"
     },
     "errors": {
         "required": "This field is required",
@@ -31,9 +32,9 @@
         "registrationFailed": "Registration failed",
         "passwordsDoNotMatch": "Passwords do not match",
         "invalidUsername": "Username must be between 3 and 100 characters",
-        "weakPassword": "Password must be 8+ chars with uppercase, lowercase, number and symbol",
+        "weakPassword": "Password must be 8+ characters with uppercase, lowercase, number and symbol",
         "unknown": "An unknown error occurred",
-        "deleteFailed": "Failed to delete the map",
+        "deleteFailed": "Unable to delete the map",
         "fetchProfileFailed": "Unable to fetch user profile",
         "fetchMapsFailed": "Unable to fetch your maps"
     },
@@ -43,32 +44,32 @@
         "showPassword": "Show password",
         "hidePassword": "Hide password",
         "username": "Username",
-        "confirmPassword": "Confirm Password",
+        "confirmPassword": "Confirm password",
         "verificationEmailSent": "Verification email sent to {email}"
     },
     "home": {
         "welcome": "Welcome to WayPoint",
-        "description": "Your personal journey tracking companion. Start exploring and sharing your adventures today!"
+        "description": "Your personal travel tracking companion. Start exploring and sharing your adventures today!"
     },
     "map": {
-        "title": "Interactive Map",
+        "title": "Interactive map",
         "customImageTitle": "Map with custom image",
         "centerPoint": "Center point",
         "clickToAddPoi": "Click anywhere on the map to add a POI",
         "error": {
-            "title": "Map Loading Error",
+            "title": "Map loading error",
             "message": "Unable to load the map. Please try again later."
         }
     },
     "createMap": {
-        "title": "Create a New Map",
-        "gameName": "Game Name",
-        "mapName": "Map Name",
+        "title": "Create a new map",
+        "gameName": "Game name",
+        "mapName": "Map name",
         "description": "Description",
         "selectOrUpload": "Select an existing public map image or upload a new one:",
         "uploadNew": "Upload a new image",
-        "mapImage": "Map Image",
-        "create": "Create Map",
+        "mapImage": "Map image",
+        "create": "Create map",
         "success": "Map created successfully!",
         "mustBeLogged": "You must be logged in to create a map.",
         "pleaseSelectImage": "Please select an image."
@@ -77,21 +78,21 @@
         "title": "Map:",
         "description": "Description:",
         "loading": "Loading...",
-        "notFoundTitle": "Map Not Found",
+        "notFoundTitle": "Map not found",
         "notFoundMsg": "The requested map does not exist.",
-        "accessDeniedTitle": "Access Denied",
+        "accessDeniedTitle": "Access denied",
         "accessDeniedMsg": "You do not have permission to view this map.",
         "errorTitle": "Error",
         "errorMsg": "An unexpected error occurred while loading the map.",
-        "noImageTitle": "No Image Available",
-        "noImageMsg": "This map does not have a background image.",
-        "imageNotFoundTitle": "Image Not Found",
+        "noImageTitle": "No image available",
+        "noImageMsg": "This map has no background image.",
+        "imageNotFoundTitle": "Image not found",
         "imageNotFoundMsg": "The background image for this map could not be loaded."
     },
     "profile": {
         "createdAt": "Account created on",
         "email": "Email",
-        "photo": "Profile picture",
+        "photo": "Profile photo",
         "language": "Preferred language",
         "emailOptin": "Newsletter subscription",
         "optinYes": "Subscribed",
@@ -114,42 +115,42 @@
     "landing": {
         "hero": {
             "title": "Welcome to WayPoint",
-            "subtitle": "Build and share your own interactive game maps",
-            "startButton": "Start Mapping"
+            "subtitle": "Create and share your own interactive game maps",
+            "startButton": "Get started"
         },
         "features": {
             "title": "What you can do with WayPoint",
             "upload": {
                 "title": "Upload your own game maps",
-                "description": "Use any custom image as the base for your map. Ideal for RPGs, survival games, or fantasy worlds."
+                "description": "Use any custom image as a base for your map. Perfect for RPGs, survival games, or fantasy worlds."
             },
             "poi": {
-                "title": "Add & organize POIs",
+                "title": "Add and organize POIs",
                 "description": "Create detailed points of interest with categories, icons, and descriptions."
             },
             "collaborate": {
                 "title": "Collaborate in real time",
-                "description": "Invite teammates to edit maps together and track changes as they happen."
+                "description": "Invite your teammates to edit maps together and track changes live."
             },
-            "learnMore": "Learn More"
+            "learnMore": "Learn more"
         },
         "community": {
             "title": "Explore community creations"
         },
         "cta": {
             "title": "Ready to map your world?",
-            "button": "Create Your First Map"
+            "button": "Create your first map"
         },
         "footer": "All rights reserved"
     },
     "vuetify": {},
     "access-denied": {
-        "title": "Access Denied",
-        "message": "You don't have permission to access this map.",
+        "title": "Access denied",
+        "message": "You do not have permission to access this map.",
         "back-home": "Back to home"
     },
     "not-found": {
-        "title": "Map Not Found",
+        "title": "Map not found",
         "message": "The requested map does not exist or has been deleted.",
         "back-home": "Back to home"
     },
@@ -159,32 +160,37 @@
     "sidebar": {
         "menu": "Menu",
         "addPoi": "Add POI",
-        "manageCategories": "Manage Categories",
-        "manageCollaborators": "Manage Collaborators",
-        "addCategory": "Add Category",
-        "editCategory": "Edit Category",
-        "addEditCategory": "Add / Edit Category",
+        "manageCategories": "Manage categories",
+        "manageCollaborators": "Manage collaborators",
+        "addCategory": "Add category",
+        "editCategory": "Edit category",
+        "addEditCategory": "Add / Edit category",
         "name": "Name",
         "icon": "Icon",
-        "parentCategory": "Parent Category",
+        "parentCategory": "Parent category",
         "selectParentCategory": "Select parent category",
         "color": "Color",
         "cancel": "Cancel",
         "save": "Save",
         "none": "None",
-        "selectIcon": "Select an icon",
-        "selectColor": "Select a color"
+        "selectIcon": "Select icon",
+        "selectColor": "Select color",
+        "confirmDelete": "Confirm deletion",
+        "confirmDeleteMessage": "Are you sure you want to delete the category",
+        "cannotDeleteParent": "You cannot delete a category that has subcategories. Please delete or move the subcategories first.",
+        "yes": "Yes",
+        "no": "No"
     },
     "poi": {
         "form": {
             "title": "Add / Edit POI",
-            "name": "POI Name",
+            "name": "POI name",
             "category": "Category",
-            "image": "Image Upload",
+            "image": "Image",
             "description": "Description",
             "uploadPlaceholder": "Click to upload or drag and drop",
             "uploadHint": "PNG, JPG up to 5MB",
-            "chooseCategory": "Choose category"
+            "chooseCategory": "Choose a category"
         },
         "categories": {
             "shop": "Shop",

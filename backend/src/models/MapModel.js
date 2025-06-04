@@ -39,13 +39,10 @@ function convertRowToMap(row) {
     imageUrl: row.image_url,
     thumbnailUrl: row.thumbnail_url,
     isPublic: Boolean(row.is_public),
-    is_public: row.is_public,
     gameId: row.game_id,
     ownerId: row.owner_id,
     imageWidth: row.image_width,
     imageHeight: row.image_height,
-    width: row.image_width,
-    height: row.image_height,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     gameName: row.game_name

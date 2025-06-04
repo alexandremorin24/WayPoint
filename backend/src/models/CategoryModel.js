@@ -140,10 +140,28 @@ async function updateCategory(id, updates) {
 }
 
 /**
+ * Check if a category has children
+ * @param {string} id
+ */
+async function hasChildren(id) {
+  const [rows] = await db.execute(
+    'SELECT COUNT(*) as count FROM categories WHERE parent_category_id = ?',
+    [id]
+  );
+  return rows[0].count > 0;
+}
+
+/**
  * Delete a category
  * @param {string} id
  */
 async function deleteCategory(id) {
+  // Check if category has children
+  const hasChildCategories = await hasChildren(id);
+  if (hasChildCategories) {
+    throw new Error('Cannot delete category with subcategories');
+  }
+
   // First, update all POIs in this category to have no category
   await db.execute('UPDATE pois SET category_id = NULL WHERE category_id = ?', [id]);
   // Then delete the category
@@ -169,5 +187,6 @@ module.exports = {
   findCategoriesByMapId,
   updateCategory,
   deleteCategory,
-  validateCategory
+  validateCategory,
+  hasChildren
 };
