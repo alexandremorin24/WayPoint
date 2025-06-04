@@ -37,11 +37,11 @@ async function validateCoordinates(mapId, x, y) {
   // Round to 2 decimal places
   x = Math.round(x * 100) / 100;
   y = Math.round(y * 100) / 100;
-  if (x < 0 || x > map.image_width) {
-    throw new Error(`X coordinate must be between 0 and ${map.image_width}`);
+  if (x < 0 || x > map.imageWidth) {
+    throw new Error(`X coordinate must be between 0 and ${map.imageWidth}`);
   }
-  if (y < 0 || y > map.image_height) {
-    throw new Error(`Y coordinate must be between 0 and ${map.image_height}`);
+  if (y < 0 || y > map.imageHeight) {
+    throw new Error(`Y coordinate must be between 0 and ${map.imageHeight}`);
   }
 }
 
@@ -183,6 +183,7 @@ async function findPOIsByCreator(creatorId) {
 async function updatePOI(id, updates, userId) {
   const fields = [];
   const values = [];
+  const changedFields = {};
 
   // Get current POI data
   const currentPOI = await findPOIById(id);
@@ -218,8 +219,12 @@ async function updatePOI(id, updates, userId) {
 
   for (const key in updates) {
     if (fieldMappings[key] && updates[key] !== undefined) {
-      fields.push(`${fieldMappings[key]} = ?`);
-      values.push(updates[key]);
+      // Only add to changed fields if the value is different
+      if (updates[key] !== currentPOI[key]) {
+        fields.push(`${fieldMappings[key]} = ?`);
+        values.push(updates[key]);
+        changedFields[key] = updates[key];
+      }
     }
   }
 
@@ -238,20 +243,19 @@ async function updatePOI(id, updates, userId) {
   values.push(id);
   await db.execute(`UPDATE pois SET ${fields.join(', ')} WHERE id = ?`, values);
 
-  // Log update
-  await logPOIAction({
-    poiId: id,
-    mapId: currentPOI.mapId,
-    userId: userId,
-    action: 'update',
-    payload: updates
-  });
+  // Only log if there were actual changes
+  if (Object.keys(changedFields).length > 0) {
+    await logPOIAction({
+      poiId: id,
+      mapId: currentPOI.mapId,
+      userId: userId,
+      action: 'update',
+      payload: changedFields
+    });
+  }
 
   // Update stats
-  await db.execute(
-    'UPDATE poi_user_stats SET poi_updated_count = poi_updated_count + 1 WHERE user_id = ? AND map_id = ?',
-    [userId, currentPOI.mapId]
-  );
+  await incrementUserPOIUpdated(userId, currentPOI.mapId);
 
   return findPOIById(id);
 }
@@ -290,6 +294,25 @@ async function incrementUserPOICreated(userId, mapId) {
   }
 }
 
+async function incrementUserPOIUpdated(userId, mapId) {
+  // Try to update, if no row, insert
+  const [rows] = await db.execute(
+    'SELECT * FROM poi_user_stats WHERE user_id = ? AND map_id = ?',
+    [userId, mapId]
+  );
+  if (rows.length > 0) {
+    await db.execute(
+      'UPDATE poi_user_stats SET poi_updated_count = poi_updated_count + 1 WHERE user_id = ? AND map_id = ?',
+      [userId, mapId]
+    );
+  } else {
+    await db.execute(
+      'INSERT INTO poi_user_stats (id, user_id, map_id, poi_created_count, poi_updated_count) VALUES (?, ?, ?, 0, 1)',
+      [uuidv4(), userId, mapId]
+    );
+  }
+}
+
 module.exports = {
   createPOI,
   findPOIById,
@@ -300,5 +323,6 @@ module.exports = {
   deletePOI,
   validateCoordinates,
   logPOIAction,
-  incrementUserPOICreated
+  incrementUserPOICreated,
+  incrementUserPOIUpdated
 }; 

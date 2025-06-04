@@ -1,5 +1,5 @@
 <template>
-  <!-- Flèche OUVERTURE (desktop fermée) -->
+  <!-- Arrow OPENING (desktop closed) -->
   <div
     v-if="!isMobile && !drawerProxy"
     class="toggle-arrow desktop closed"
@@ -8,7 +8,7 @@
     <v-icon>mdi-chevron-right</v-icon>
   </div>
 
-  <!-- Flèche OUVERTURE (mobile fermée) -->
+  <!-- Arrow OPENING (mobile closed) -->
   <div
     v-if="isMobile && !drawerProxy"
     class="toggle-arrow mobile closed"
@@ -27,7 +27,7 @@
     app
     :style="isMobile ? 'max-height: 50vh' : ''"
   >
-    <!-- Flèche FERMETURE (dans drawer) -->
+    <!-- Arrow CLOSING (in drawer) -->
     <div
       v-if="drawerProxy"
       class="drawer-close-btn"
@@ -132,13 +132,13 @@ function onAddPoi() {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-/* 📱 Mobile : bas droite si drawer fermé */
+/* 📱 Mobile: bottom right if drawer closed */
 .toggle-arrow.mobile.closed {
   bottom: 20px;
   right: 20px;
 }
 
-/* 💻 Desktop : haut gauche si drawer fermé */
+/* 💻 Desktop: top left if drawer closed */
 .toggle-arrow.desktop.closed {
   top: 20px;
   left: 0;
@@ -146,7 +146,7 @@ function onAddPoi() {
   border-bottom-right-radius: 4px;
 }
 
-/* 💻 ou 📱 : bouton dans drawer */
+/* 💻 or 📱 : button in drawer */
 .drawer-close-btn {
   position: absolute;
   top: 12px;

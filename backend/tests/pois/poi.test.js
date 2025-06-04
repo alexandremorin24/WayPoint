@@ -54,20 +54,20 @@ describe('📍 POI Management', () => {
     tokenStranger = jwt.sign({ id: stranger.id, email: strangerEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
     // Create test map
-    const imagePath = getTestImagePath('test-image');
-    const res = await request(app)
+    const imagePath = await getTestImagePath('test-image');
+    const mapRes = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
-      .field('name', 'POI Test Map')
-      .field('description', 'A map for testing POIs')
+      .field('name', 'Test Map')
+      .field('description', 'A test map')
       .field('gameName', testGame)
       .field('isPublic', 'false')
       .field('imageWidth', '300')
       .field('imageHeight', '300')
       .attach('image', imagePath);
 
-    expect(res.statusCode).toBe(201);
-    mapId = res.body.id;
+    expect(mapRes.statusCode).toBe(201);
+    mapId = mapRes.body.id;
     expect(mapId).toBeDefined();
 
     // Add editor role
@@ -464,7 +464,7 @@ describe('📍 POI Management', () => {
       expect(res.statusCode).toBe(201);
 
       const [logs] = await db.execute(
-        'SELECT * FROM poi_logs WHERE poi_id = ?',
+        'SELECT * FROM poi_logs WHERE poi_id = ? ORDER BY timestamp DESC LIMIT 1',
         [res.body.id]
       );
 

@@ -18,7 +18,7 @@
                     <v-img :src="getMapImage(map)" height="180px" cover />
                   </NuxtLink>
                   <v-card-title>{{ map.name }}</v-card-title>
-                  <v-card-subtitle>{{ formatDate(map.updatedAt ?? map.createdAt) }}</v-card-subtitle>
+                  <v-card-subtitle>{{ formatDate(map.updatedAt || map.createdAt) }}</v-card-subtitle>
                   <v-card-text>{{ map.description }}</v-card-text>
                   <v-card-actions>
                     <v-btn color="primary" @click="goToMap(map.id, map.gameId)">
@@ -79,8 +79,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import type { MapData } from '@/types'
-import { transformMap, type RawMapData } from '@/utils/transform'
+import type { MapData } from '@/types/map'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -172,10 +171,9 @@ async function fetchMyMaps(): Promise<void> {
     })
     if (!mapsRes.ok) throw new Error(t('errors.fetchMapsFailed'))
 
-    const raw: RawMapData[] = await mapsRes.json()
-    maps.value = raw.map(transformMap).sort((a, b) =>
-      new Date(b.updatedAt ?? b.createdAt).getTime() -
-      new Date(a.updatedAt ?? a.createdAt).getTime()
+    const raw: MapData[] = await mapsRes.json()
+    maps.value = raw.sort((a: MapData, b: MapData) => 
+      new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
     )
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : t('errors.unknown')

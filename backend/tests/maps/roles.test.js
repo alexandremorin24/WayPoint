@@ -67,6 +67,12 @@ describe('🗺️ Map Roles Management', () => {
     tokenEditor = generateToken(editor);
     tokenViewer = generateToken(viewer);
     tokenStranger = generateToken(stranger);
+
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(__dirname, '../../../public/uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
   });
 
   beforeEach(async () => {
@@ -74,8 +80,20 @@ describe('🗺️ Map Roles Management', () => {
     await db.execute('DELETE FROM map_user_roles WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['Roles Test Map']);
     await db.execute('DELETE FROM maps WHERE name = ?', ['Roles Test Map']);
 
+    // Clean up uploads directory
+    const uploadsDir = path.join(__dirname, '../../../public/uploads');
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      for (const file of files) {
+        const filePath = path.join(uploadsDir, file);
+        if (fs.lstatSync(filePath).isDirectory()) {
+          fs.rmSync(filePath, { recursive: true, force: true });
+        }
+      }
+    }
+
     // Recreate the map for each test
-    const imagePath = getTestImagePath('test-image');
+    const imagePath = await getTestImagePath('test-image');
     const res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
@@ -584,4 +602,4 @@ describe('🗺️ Map Roles Management', () => {
       expect(res.statusCode).toBe(200);
     });
   });
-}); 
+});

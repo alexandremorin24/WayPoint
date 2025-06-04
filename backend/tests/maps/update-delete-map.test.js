@@ -46,17 +46,19 @@ describe('🗺️ PUT/DELETE /api/backend/maps/:id (update/delete map)', () => {
     tokenEditor = generateToken(editor);
     tokenStranger = generateToken(stranger);
 
-    // Create a private map
-    const testImagePath = await createTestImage('test-image-1');
-    const res = await request(app)
+    // Create test map
+    const testImagePath = await getTestImagePath('test-image');
+    const mapRes = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
-      .field('name', 'Map to Update')
-      .field('description', 'desc')
+      .field('name', 'Test Map')
+      .field('description', 'A test map')
       .field('gameName', testGame)
       .field('isPublic', 'false')
+      .field('imageWidth', '300')
+      .field('imageHeight', '300')
       .attach('image', testImagePath);
-    mapId = res.body.id;
+    mapId = mapRes.body.id;
 
   });
 

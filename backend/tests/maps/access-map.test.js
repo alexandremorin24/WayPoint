@@ -58,7 +58,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     tokenStranger = generateToken(stranger);
 
     // Public map creation
-    const publicImagePath = getTestImagePath('test-image');
+    const publicImagePath = await getTestImagePath('test-image');
     let res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)
@@ -70,7 +70,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     publicMapId = res.body.id;
 
     // Private map creation
-    const privateImagePath = getTestImagePath('test-image');
+    const privateImagePath = await getTestImagePath('test-image');
     res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${tokenOwner}`)

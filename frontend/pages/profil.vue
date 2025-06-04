@@ -18,7 +18,7 @@
                   @click="triggerFileInput"
                 >
                   <v-img
-                    :src="user.photo_url || '/default-avatar.png'"
+                    :src="user.photoUrl || '/default-avatar.png'"
                     :alt="$t('profile.photo')"
                   />
                 </v-avatar>
@@ -39,7 +39,7 @@
                 />
                 <!-- Creation date just below username -->
                 <v-text-field
-                  :model-value="formatDate(user.created_at)"
+                  :model-value="formatDate(user.createdAt)"
                   :label="$t('profile.createdAt')"
                   disabled
                   class="mb-4"
@@ -167,10 +167,10 @@ const showPasswordSection = ref(false);
 const user = ref({
   displayName: '',
   email: '',
-  photo_url: '',
+  photoUrl: '',
   preferredLanguage: '',
   emailOptIn: false,
-  created_at: null
+  createdAt: null
 });
 
 // To restore values if cancelled
@@ -255,7 +255,7 @@ const handleFileUpload = async (event) => {
     }
 
     const data = await response.json();
-    user.value.photo_url = data.photo_url;
+    user.value.photoUrl = data.photoUrl;
   } catch (error) {
     console.error('Error uploading avatar:', error);
   } finally {
@@ -347,10 +347,10 @@ const loadUserData = async () => {
     user.value = {
       displayName: data.displayName,
       email: data.email,
-      photo_url: data.photoUrl,
+      photoUrl: data.photoUrl,
       preferredLanguage: data.preferredLanguage || data.language || 'fr',
-      emailOptIn: data.emailOptin ?? false,
-      created_at: data.created_at || data.createdAt || null
+      emailOptIn: data.emailOptIn ?? false,
+      createdAt: data.createdAt || null
     };
     originalUser.value = JSON.parse(JSON.stringify(user.value));
   } catch (error) {

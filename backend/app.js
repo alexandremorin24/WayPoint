@@ -5,9 +5,9 @@ const path = require('path');
 
 dotenv.config();
 
-const authRoutes = require('./src/routes/auth.routes');
-const userRoutes = require('./src/routes/user.routes');
-const mapRoutes = require('./src/routes/map.routes');
+const authRoutes = require('./src/routes/authRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const mapRoutes = require('./src/routes/mapRoutes');
 const poiRoutes = require('./src/routes/poiRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 

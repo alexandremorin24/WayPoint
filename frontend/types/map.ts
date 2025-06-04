@@ -4,6 +4,8 @@ export interface MapData {
     description?: string
     width: number
     height: number
+    imageWidth: number
+    imageHeight: number
     imageUrl: string
     thumbnailUrl?: string
 

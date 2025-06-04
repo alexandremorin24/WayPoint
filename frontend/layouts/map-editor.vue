@@ -34,7 +34,6 @@ import Sidebar from '~/components/Sidebar.vue'
 import MapViewer from '@/components/MapViewer.vue'
 import CategorySidebar from '@/components/CategorySidebar.vue'
 import axios from 'axios'
-import { transformMap, transformCategory } from '@/utils/transform'
 import type { MapData } from '@/types/map'
 import type { Category } from '@/types/category'
 
@@ -54,10 +53,10 @@ onMounted(async () => {
 
   try {
     const { data } = await axios.get(`/api/backend/maps/${mapId}`, { headers })
-    map.value = transformMap(data)
-    // Récupération des catégories associées à la map
+    map.value = data
+    // Get categories associated with the map
     const { data: catData } = await axios.get(`/api/backend/maps/${mapId}/categories`, { headers })
-    categories.value = catData.map(transformCategory)
+    categories.value = catData
   } catch (err) {
     console.error('Error fetching map or categories:', err)
     router.push('/access-denied')
@@ -79,9 +78,9 @@ function openCategorySidebar() {
 }
 
 function handleAddCategory() {
-  // À compléter : logique d'ajout de catégorie
-  // Par exemple, ouvrir un dialog ou ajouter une catégorie par défaut
-  alert('Ajouter une catégorie (à implémenter)')
+  // TODO: Implement category addition logic
+  // For example, open a dialog or add a default category
+  alert('Add a category (to be implemented)')
 }
 </script>
 
