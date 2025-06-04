@@ -32,12 +32,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const config = useRuntimeConfig()
 const { t } = useI18n()
-const localePath = useLocalePath()
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -69,7 +70,7 @@ const handleLogin = async () => {
     }
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-    window.location.href = localePath('/')
+    router.push('/my-maps')
   } catch (err) {
     if (err instanceof Error) {
       error.value = err.message
@@ -80,4 +81,11 @@ const handleLogin = async () => {
     isSubmitting.value = false
   }
 }
+
+onMounted(() => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    router.push('/my-maps')
+  }
+})
 </script>

@@ -1,10 +1,12 @@
 <template>
   <v-app>
     <CategorySidebar
+      v-if="map?.id"
       :open="categorySidebarOpen"
       :categories="categories"
+      :map-id="map.id"
       @close="categorySidebarOpen = false"
-      @add-category="handleAddCategory"
+      @update:categories="categories = $event"
     />
 
     <Sidebar
@@ -45,6 +47,27 @@ const drawer = ref(true)
 const categorySidebarOpen = ref(false)
 const categories = ref<Category[]>([])
 
+function canAccessMap(mapData: MapData, token: string | null): boolean {
+  // If user is banned, access denied (regardless of map being public or private)
+  if (mapData.userRole === 'banned') {
+    return false
+  }
+
+  // If map is public, access granted
+  if (mapData.isPublic) {
+    return true
+  }
+
+  // If map is private, check token and roles
+  if (!token) {
+    return false
+  }
+
+  // Check valid roles for private maps
+  const validRoles = ['owner', 'viewer', 'editor_all', 'editor_own', 'contributor']
+  return mapData.userRole ? validRoles.includes(mapData.userRole) : false
+}
+
 onMounted(async () => {
   const mapId = route.params.mapId as string
   const token = localStorage.getItem('token')
@@ -53,6 +76,12 @@ onMounted(async () => {
 
   try {
     const { data } = await axios.get(`/api/backend/maps/${mapId}`, { headers })
+    
+    if (!canAccessMap(data, token)) {
+      router.push('/access-denied')
+      return
+    }
+
     map.value = data
     // Get categories associated with the map
     const { data: catData } = await axios.get(`/api/backend/maps/${mapId}/categories`, { headers })
@@ -75,12 +104,6 @@ function exitAddPoiMode() {
 
 function openCategorySidebar() {
   categorySidebarOpen.value = true
-}
-
-function handleAddCategory() {
-  // TODO: Implement category addition logic
-  // For example, open a dialog or add a default category
-  alert('Add a category (to be implemented)')
 }
 </script>
 

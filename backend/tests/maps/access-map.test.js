@@ -108,34 +108,35 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
   });
 
   it('should allow access to a public map without authentication', async () => {
-    const res = await request(app).get(`/api/backend/maps/${publicMapId}`);
-    expect(res.statusCode).toBe(200);
+    const res = await request(app)
+      .get(`/api/backend/maps/${publicMapId}`)
+      .expect(200);
     expect(res.body).toHaveProperty('id', publicMapId);
-    expect(res.body.is_public).toBe(1);
+    expect(res.body.isPublic).toBe(true);
   });
 
   it('should deny access to a private map without authentication', async () => {
-    const res = await request(app).get(`/api/backend/maps/${privateMapId}`);
-    expect(res.statusCode).toBe(403);
-    expect(res.body.error).toMatch(/private map/i);
+    await request(app)
+      .get(`/api/backend/maps/${privateMapId}`)
+      .expect(403);
   });
 
   it('should allow the owner to access a private map', async () => {
     const res = await request(app)
       .get(`/api/backend/maps/${privateMapId}`)
-      .set('Authorization', `Bearer ${tokenOwner}`);
-    expect(res.statusCode).toBe(200);
+      .set('Authorization', `Bearer ${tokenOwner}`)
+      .expect(200);
     expect(res.body).toHaveProperty('id', privateMapId);
-    expect(res.body.is_public).toBe(0);
+    expect(res.body.isPublic).toBe(false);
   });
 
   it('should allow an editor to access a private map', async () => {
     const res = await request(app)
       .get(`/api/backend/maps/${privateMapId}`)
-      .set('Authorization', `Bearer ${tokenEditor}`);
-    expect(res.statusCode).toBe(200);
+      .set('Authorization', `Bearer ${tokenEditor}`)
+      .expect(200);
     expect(res.body).toHaveProperty('id', privateMapId);
-    expect(res.body.is_public).toBe(0);
+    expect(res.body.isPublic).toBe(false);
   });
 
   it('should deny access to a private map for a stranger', async () => {

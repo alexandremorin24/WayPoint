@@ -251,9 +251,14 @@ async function deleteMap(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
-    // Only owner can delete
+    // Ajout des logs pour debug
     const userId = req.user && req.user.id;
-    if (!userId || userId !== map.owner_id) {
+    console.log('[Suppression] id de la map:', id);
+    console.log('[Suppression] userId du token:', userId);
+    console.log('[Suppression] owner_id de la map:', map.owner_id);
+    console.log('[Suppression] objet map:', map);
+    // Only owner can delete
+    if (!userId || userId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: not the owner.' });
     }
     // Delete the map from DB
@@ -324,7 +329,7 @@ async function getMapUsers(req, res) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
-    // Vérifier si l'utilisateur est le propriétaire
+    // Check if user is the owner
     if (userId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: only the owner can see the list of users.' });
     }
@@ -361,39 +366,39 @@ async function updateUserRole(req, res) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
-    // Vérifier si l'utilisateur est le propriétaire
+    // Check if user is the owner
     if (currentUserId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: only the owner can manage roles.' });
     }
 
-    // Vérifier si le rôle est valide
+    // Check if role is valid
     if (!roles.ROLES.includes(role)) {
       return res.status(400).json({ error: 'Invalid role.' });
     }
 
-    // Empêcher de se bannir soi-même
+    // Prevent self-banning
     if (currentUserId === userId && role === 'banned') {
       return res.status(400).json({ error: 'You cannot ban yourself.' });
     }
 
-    // Empêcher de changer le rôle du propriétaire
+    // Prevent changing owner's role
     if (userId === map.ownerId) {
       return res.status(400).json({ error: 'Cannot change owner\'s role.' });
     }
 
-    // Vérifier si l'utilisateur existe
+    // Check if user exists
     const [user] = await db.execute('SELECT id FROM users WHERE id = ?', [userId]);
     if (!user[0]) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    // Vérifier si l'utilisateur actuel est un éditeur
+    // Check if current user is an editor
     const currentRole = await MapModel.getUserRole(mapId, userId);
     const isCurrentlyEditor = currentRole === 'editor_all' || currentRole === 'editor_own';
 
-    // Si on rétrograde un éditeur en viewer ou banned
+    // If downgrading an editor to viewer or banned
     if (isCurrentlyEditor && (role === 'viewer' || role === 'banned')) {
-      // Vérifier s'il reste d'autres éditeurs
+      // Check if there are other editors left
       const [editors] = await db.execute(
         'SELECT COUNT(*) as count FROM map_user_roles WHERE map_id = ? AND role IN (?, ?) AND user_id != ?',
         [mapId, 'editor_all', 'editor_own', userId]
@@ -424,28 +429,28 @@ async function removeUserRole(req, res) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
-    // Vérifier si l'utilisateur est le propriétaire
+    // Check if user is the owner
     if (currentUserId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: only the owner can manage roles.' });
     }
 
-    // Empêcher de se retirer soi-même
+    // Prevent self-removal
     if (currentUserId === userId) {
       return res.status(400).json({ error: 'You cannot remove your own role.' });
     }
 
-    // Empêcher de retirer le rôle du propriétaire
+    // Prevent removing owner's role
     if (userId === map.ownerId) {
       return res.status(400).json({ error: 'Cannot remove owner\'s role.' });
     }
 
-    // Vérifier si l'utilisateur actuel est un éditeur
+    // Check if current user is an editor
     const currentRole = await MapModel.getUserRole(mapId, userId);
     const isCurrentlyEditor = currentRole === 'editor_all' || currentRole === 'editor_own';
 
-    // Si on supprime le rôle d'un éditeur
+    // If removing an editor's role
     if (isCurrentlyEditor) {
-      // Vérifier s'il reste d'autres éditeurs
+      // Check if there are other editors left
       const [editors] = await db.execute(
         'SELECT COUNT(*) as count FROM map_user_roles WHERE map_id = ? AND role IN (?, ?) AND user_id != ?',
         [mapId, 'editor_all', 'editor_own', userId]
@@ -477,12 +482,12 @@ async function getCurrentUserRole(req, res) {
       return res.status(404).json({ error: 'Map not found.' });
     }
 
-    // Si l'utilisateur est le propriétaire, retourner 'owner'
+    // If user is the owner, return 'owner'
     if (userId === map.ownerId) {
       return res.json({ role: 'owner' });
     }
 
-    // Sinon, chercher le rôle dans la table map_user_roles
+    // Otherwise, look for role in map_user_roles table
     const [rows] = await db.execute(
       'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ?',
       [mapId, userId]

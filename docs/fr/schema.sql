@@ -55,7 +55,7 @@ CREATE TABLE pois (
   creator_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (map_id) REFERENCES maps(id),
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(id),
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
@@ -99,8 +99,8 @@ CREATE TABLE poi_user_stats (
   map_id CHAR(36) NOT NULL,
   poi_created_count INT DEFAULT 0,
   poi_updated_count INT DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (map_id) REFERENCES maps(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 
 -- 🕒 Logs des POI
@@ -112,9 +112,9 @@ CREATE TABLE poi_logs (
   action VARCHAR(50) CHECK (action IN ('create', 'update')),
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   payload JSON,
-  FOREIGN KEY (poi_id) REFERENCES pois(id),
-  FOREIGN KEY (map_id) REFERENCES maps(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (poi_id) REFERENCES pois(id) ON DELETE CASCADE,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 👍 Votes des cartes
@@ -123,8 +123,8 @@ CREATE TABLE map_votes (
   user_id CHAR(36) NOT NULL,
   map_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (map_id) REFERENCES maps(id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   UNIQUE (user_id, map_id)
 );
 

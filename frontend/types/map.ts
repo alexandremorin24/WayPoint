@@ -16,4 +16,5 @@ export interface MapData {
     createdAt: string
     updatedAt?: string
     gameName: string
+    userRole?: 'owner' | 'viewer' | 'editor_all' | 'editor_own' | 'contributor' | 'banned' | null
 }

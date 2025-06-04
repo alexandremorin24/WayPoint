@@ -7,24 +7,6 @@
       :style="{ backgroundImage: 'linear-gradient(rgba(0, 29, 61, 0.9), rgba(0, 29, 61, 0.9)), url(/index/hero-bg.jpg)' }"
       style="background-size: cover; background-position: center; color: white; position: relative;"
     >
-      <div class="landing-actions d-flex align-center justify-end">
-        <v-btn
-          color="secondary"
-          class="mx-2"
-          variant="flat"
-          :to="localePath('login')"
-        >
-          {{ $t('common.login') }}
-        </v-btn>
-        <v-btn
-          color="secondary"
-          class="mx-2"
-          variant="outlined"
-          :to="localePath('register')"
-        >
-          {{ $t('common.register') }}
-        </v-btn>
-      </div>
       <v-container class="fill-height d-flex align-center justify-center">
         <v-row class="fill-height d-flex align-center justify-center" justify="center" align="center">
           <v-col cols="12" md="8">
@@ -160,7 +142,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useI18n } from 'vue-i18n'
 const localePath = useLocalePath()
 const router = useRouter()
@@ -219,7 +200,6 @@ function navigateToCreate() {
 </script>
 
 <style scoped>
-/* Styles identiques à ta version précédente */
 .snap-container {
   height: 100vh;
   overflow-y: auto;
@@ -289,18 +269,6 @@ function navigateToCreate() {
 }
 .transition-swing {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.landing-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 2rem 2.5rem 0 0;
-  z-index: 10;
-}
-@media (max-width: 600px) {
-  .landing-actions {
-    padding: 1rem 1rem 0 0;
-  }
 }
 .landing-footer {
   width: 100vw;
