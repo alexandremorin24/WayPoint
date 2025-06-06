@@ -36,7 +36,8 @@
         "unknown": "Une erreur inconnue s'est produite",
         "deleteFailed": "Impossible de supprimer la carte",
         "fetchProfileFailed": "Impossible de récupérer le profil utilisateur",
-        "fetchMapsFailed": "Impossible de récupérer vos cartes"
+        "fetchMapsFailed": "Impossible de récupérer vos cartes",
+        "insufficientPermissions": "Vous n'avez pas les permissions nécessaires pour effectuer cette action"
     },
     "auth": {
         "loginTitle": "Connexion",
@@ -198,6 +199,21 @@
             "hotel": "Hôtel",
             "attraction": "Attraction",
             "other": "Autre"
+        },
+        "error": {
+            "validation": {
+                "name": "Le nom doit contenir entre 1 et 100 caractères",
+                "category": "Une catégorie est requise"
+            },
+            "save": "Erreur lors de la sauvegarde du marqueur",
+            "fetchCategories": "Erreur lors de la récupération des catégories",
+            "fetchPOIs": "Erreur lors de la récupération des marqueurs"
+        },
+        "success": {
+            "save": "Marqueur enregistré avec succès"
+        },
+        "loading": {
+            "saving": "Enregistrement en cours..."
         }
     }
 }

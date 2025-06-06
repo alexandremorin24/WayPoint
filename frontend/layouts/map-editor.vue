@@ -5,6 +5,7 @@
       :open="categorySidebarOpen"
       :categories="categories"
       :map-id="map.id"
+      :can-edit="map.userRole === 'owner' || map.userRole === 'editor_all' || map.userRole === 'editor_own'"
       @close="categorySidebarOpen = false"
       @update:categories="categories = $event"
     />
@@ -17,20 +18,23 @@
       @manage-categories="openCategorySidebar"
     />
 
-    <div class="map-container">
-      <MapViewer
-        v-if="map"
-        :map="map"
-        :add-poi-mode="addPoiMode"
-        @cancel-poi="exitAddPoiMode"
-      />
-      <NuxtPage v-else />
-    </div>
+    <v-main class="pa-0">
+      <div class="map-container">
+        <MapViewer
+          v-if="map"
+          :map="map"
+          :add-poi-mode="addPoiMode"
+          :categories="categories"
+          @cancel-poi="exitAddPoiMode"
+        />
+        <NuxtPage v-else />
+      </div>
+    </v-main>
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '~/components/Sidebar.vue'
 import MapViewer from '@/components/MapViewer.vue'
@@ -94,6 +98,7 @@ onMounted(async () => {
 
 function handleAddPoi() {
   drawer.value = false
+  categorySidebarOpen.value = false
   addPoiMode.value = true
 }
 
@@ -105,6 +110,11 @@ function exitAddPoiMode() {
 function openCategorySidebar() {
   categorySidebarOpen.value = true
 }
+
+watch(drawer, (opened) => {
+  if (opened) addPoiMode.value = false
+  else categorySidebarOpen.value = false
+})
 </script>
 
 <style scoped>

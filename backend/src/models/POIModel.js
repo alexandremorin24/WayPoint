@@ -21,31 +21,6 @@ const CategoryModel = require('./CategoryModel');
  */
 
 /**
- * Validate POI coordinates against map dimensions
- * @param {string} mapId
- * @param {number} x
- * @param {number} y
- */
-async function validateCoordinates(mapId, x, y) {
-  const map = await MapModel.findMapById(mapId);
-  if (!map) {
-    throw new Error('Map not found');
-  }
-  if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
-    throw new Error('Coordinates must be numbers');
-  }
-  // Round to 2 decimal places
-  x = Math.round(x * 100) / 100;
-  y = Math.round(y * 100) / 100;
-  if (x < 0 || x > map.imageWidth) {
-    throw new Error(`X coordinate must be between 0 and ${map.imageWidth}`);
-  }
-  if (y < 0 || y > map.imageHeight) {
-    throw new Error(`Y coordinate must be between 0 and ${map.imageHeight}`);
-  }
-}
-
-/**
  * Create a new POI
  * @param {Object} poi
  * @param {string} poi.mapId
@@ -61,10 +36,6 @@ async function createPOI({ mapId, name, description, x, y, imageUrl, categoryId,
   if (!categoryId || typeof categoryId !== 'string') {
     throw new Error('categoryId is required and must be a string');
   }
-  // Round to 2 decimal places
-  x = Math.round(x * 100) / 100;
-  y = Math.round(y * 100) / 100;
-  await validateCoordinates(mapId, x, y);
 
   const id = uuidv4();
   const now = new Date();
@@ -198,15 +169,6 @@ async function updatePOI(id, updates, userId) {
     }
   }
 
-  // If coordinates are being updated, validate them
-  if (updates.x !== undefined || updates.y !== undefined) {
-    await validateCoordinates(
-      currentPOI.mapId,
-      updates.x !== undefined ? updates.x : currentPOI.x,
-      updates.y !== undefined ? updates.y : currentPOI.y
-    );
-  }
-
   // Convert camelCase field names to snake_case and only update provided fields
   const fieldMappings = {
     name: 'name',
@@ -235,10 +197,6 @@ async function updatePOI(id, updates, userId) {
   // Add updated_at timestamp
   fields.push('updated_at = ?');
   values.push(new Date());
-
-  // If coordinates, round to 2 decimal places
-  if (updates.x !== undefined) updates.x = Math.round(updates.x * 100) / 100;
-  if (updates.y !== undefined) updates.y = Math.round(updates.y * 100) / 100;
 
   values.push(id);
   await db.execute(`UPDATE pois SET ${fields.join(', ')} WHERE id = ?`, values);
@@ -321,7 +279,6 @@ module.exports = {
   findPOIsByCreator,
   updatePOI,
   deletePOI,
-  validateCoordinates,
   logPOIAction,
   incrementUserPOICreated,
   incrementUserPOIUpdated

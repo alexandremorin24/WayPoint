@@ -74,7 +74,7 @@
 
       <v-divider class="my-2" />
 
-      <v-list-item link @click="emit('manage-categories')">
+      <v-list-item link @click="emit('manage-categories')" v-if="drawerProxy">
         <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.manageCategories') }}</v-list-item-title>
       </v-list-item>
 

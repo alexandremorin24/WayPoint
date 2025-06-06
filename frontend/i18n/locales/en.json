@@ -198,6 +198,21 @@
             "hotel": "Hotel",
             "attraction": "Attraction",
             "other": "Other"
+        },
+        "error": {
+            "validation": {
+                "name": "Name must be between 1 and 100 characters",
+                "category": "A category is required"
+            },
+            "save": "Error saving marker",
+            "fetchCategories": "Error fetching categories",
+            "fetchPOIs": "Error fetching markers"
+        },
+        "success": {
+            "save": "POI saved successfully"
+        },
+        "loading": {
+            "saving": "Saving..."
         }
     }
 }

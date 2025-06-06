@@ -2,8 +2,6 @@ export interface MapData {
     id: string
     name: string
     description?: string
-    width: number
-    height: number
     imageWidth: number
     imageHeight: number
     imageUrl: string
@@ -17,4 +15,22 @@ export interface MapData {
     updatedAt?: string
     gameName: string
     userRole?: 'owner' | 'viewer' | 'editor_all' | 'editor_own' | 'contributor' | 'banned' | null
+}
+
+export interface POIData {
+    name: string
+    description?: string
+    x: number
+    y: number
+    categoryId: string
+    mapId: string
+    imageUrl?: string
+    thumbnailUrl?: string
+}
+
+export interface Category {
+    id: string
+    name: string
+    icon?: string
+    color?: string
 }
