@@ -43,19 +43,6 @@ async function canEditPOI(req, res, next) {
       return res.status(404).json({ error: 'POI not found.' });
     }
 
-    // Validate coordinates if they are being updated
-    if (updates.x !== undefined || updates.y !== undefined) {
-      try {
-        await POIModel.validateCoordinates(
-          poi.mapId,
-          updates.x !== undefined ? updates.x : poi.x,
-          updates.y !== undefined ? updates.y : poi.y
-        );
-      } catch (err) {
-        return res.status(400).json({ error: err.message });
-      }
-    }
-
     const canEdit = await MapModel.canEditPOI(poi.mapId, userId, poi.creatorId);
     if (!canEdit) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions to edit POI.' });

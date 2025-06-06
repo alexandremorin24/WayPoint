@@ -99,7 +99,11 @@ async function updateMap(id, data) {
 
 // Delete a map
 async function deleteMap(id) {
-  await db.execute(`DELETE FROM maps WHERE id = ?`, [id]);
+  await db.execute('DELETE FROM poi_logs WHERE poi_id IN (SELECT id FROM pois WHERE map_id = ?)', [id]);
+  await db.execute('DELETE FROM pois WHERE map_id = ?', [id]);
+  await db.execute('DELETE FROM categories WHERE map_id = ? AND parent_category_id IS NOT NULL', [id]);
+  await db.execute('DELETE FROM categories WHERE map_id = ?', [id]);
+  await db.execute('DELETE FROM maps WHERE id = ?', [id]);
 }
 
 // Find public maps with pagination

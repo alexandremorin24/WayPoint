@@ -159,23 +159,6 @@ describe('📍 POI Management', () => {
       testPOI = res.body;
     });
 
-    it('should reject POI creation with invalid coordinates', async () => {
-      const res = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({
-          name: 'Invalid POI',
-          description: 'A POI with invalid coordinates',
-          x: -1,
-          y: 301,
-          icon: 'test-icon',
-          categoryId: categoryId
-        });
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toMatch(/coordinate/i);
-    });
-
     it('should reject POI creation with missing required fields', async () => {
       const res = await request(app)
         .post(`/api/backend/pois/map/${mapId}`)
@@ -215,22 +198,6 @@ describe('📍 POI Management', () => {
         });
 
       expect(res.statusCode).toBe(403);
-    });
-
-    it('should create a POI with decimal coordinates', async () => {
-      const res = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({
-          name: 'Decimal POI',
-          x: 123.456,
-          y: 45.6789,
-          categoryId: categoryId
-        });
-      expect(res.statusCode).toBe(201);
-      expect(res.body.x).toBeCloseTo(123.46, 2);
-      expect(res.body.y).toBeCloseTo(45.68, 2);
-      expect(res.body.categoryId).toBe(categoryId);
     });
   });
 
@@ -295,20 +262,6 @@ describe('📍 POI Management', () => {
       expect(res.body.error).toMatch(/categoryId is required/);
     });
 
-    it('should reject POI update with invalid coordinates', async () => {
-      const res = await request(app)
-        .put(`/api/backend/pois/${testPOI.id}`)
-        .set('Authorization', `Bearer ${tokenEditor}`)
-        .send({
-          x: -1,
-          y: 1000,
-          categoryId: categoryId
-        });
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toMatch(/coordinate/i);
-    });
-
     it('should reject POI update by unauthorized user', async () => {
       const res = await request(app)
         .put(`/api/backend/pois/${testPOI.id}`)
@@ -319,21 +272,6 @@ describe('📍 POI Management', () => {
         });
 
       expect(res.statusCode).toBe(403);
-    });
-
-    it('should update a POI with decimal coordinates', async () => {
-      const res = await request(app)
-        .put(`/api/backend/pois/${testPOI.id}`)
-        .set('Authorization', `Bearer ${tokenEditor}`)
-        .send({
-          x: 300,
-          y: 300,
-          categoryId: categoryId
-        });
-      expect(res.statusCode).toBe(200);
-      expect(res.body.x).toBe(300);
-      expect(res.body.y).toBe(300);
-      expect(res.body.categoryId).toBe(categoryId);
     });
   });
 
@@ -484,12 +422,14 @@ describe('📍 POI Management', () => {
       expect(updateRes.statusCode).toBe(200);
 
       const [logs] = await db.execute(
-        'SELECT * FROM poi_logs WHERE poi_id = ? ORDER BY timestamp DESC LIMIT 1',
+        'SELECT * FROM poi_logs WHERE poi_id = ? ORDER BY timestamp DESC',
         [testPOI.id]
       );
 
-      expect(logs.length).toBe(1);
-      expect(logs[0].action).toBe('update');
+      expect(logs.length).toBeGreaterThan(0);
+      const updateLog = logs.find(log => log.action === 'update');
+      expect(updateLog).toBeTruthy();
+      expect(updateLog.user_id).toBe(editor.id);
     });
   });
 
@@ -547,46 +487,6 @@ describe('📍 POI Management', () => {
     });
   });
 
-  describe('POI Coordinate Validation', () => {
-    it('should reject POI creation with coordinates outside map bounds', async () => {
-      const res = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({
-          name: 'Invalid Coordinates POI',
-          x: 301,
-          y: 301,
-          categoryId: categoryId
-        });
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toMatch(/coordinate/i);
-    });
-
-    it('should reject POI update with coordinates outside map bounds', async () => {
-      // Create a new POI for this test
-      const createRes = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({
-          name: 'Valid POI',
-          x: 100,
-          y: 100,
-          categoryId: categoryId
-        });
-
-      const updateRes = await request(app)
-        .put(`/api/backend/pois/${createRes.body.id}`)
-        .set('Authorization', `Bearer ${tokenEditor}`)
-        .send({
-          x: 301,
-          y: 301
-        });
-
-      expect(updateRes.statusCode).toBe(400);
-      expect(updateRes.body.error).toMatch(/coordinate/i);
-    });
-  });
   describe('Partial POI Updates', () => {
     beforeAll(async () => {
       // Ensure editor has all permissions

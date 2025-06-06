@@ -1,5 +1,10 @@
 const POIModel = require('../models/POIModel');
 const MapModel = require('../models/MapModel');
+const path = require('path');
+const fs = require('fs');
+const sharp = require('sharp');
+const { v4: uuidv4 } = require('uuid');
+const imageUtils = require('../utils/imageUtils');
 
 /**
  * Create a new POI
@@ -14,9 +19,6 @@ async function createPOI(req, res) {
     if (!name || typeof name !== 'string' || name.length < 1 || name.length > 100) {
       return res.status(400).json({ error: 'Name is required (1-100 characters).' });
     }
-    if (typeof x !== 'number' || typeof y !== 'number') {
-      return res.status(400).json({ error: 'Valid coordinates (x, y) are required.' });
-    }
     if (!categoryId || typeof categoryId !== 'string') {
       return res.status(400).json({ error: 'categoryId is required and must be a string.' });
     }
@@ -25,13 +27,6 @@ async function createPOI(req, res) {
     const map = await MapModel.findMapById(mapId);
     if (!map) {
       return res.status(404).json({ error: 'Map not found.' });
-    }
-
-    // Validate coordinates before checking permissions
-    try {
-      await POIModel.validateCoordinates(mapId, x, y);
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
     }
 
     const poi = await POIModel.createPOI({
@@ -183,9 +178,6 @@ async function updatePOI(req, res) {
     res.json(poi);
   } catch (err) {
     console.error('updatePOI error:', err);
-    if (err.message.includes('coordinate')) {
-      return res.status(400).json({ error: err.message });
-    }
     if (err.message === 'POI not found') {
       return res.status(404).json({ error: err.message });
     }
@@ -210,6 +202,66 @@ async function deletePOI(req, res) {
   }
 }
 
+/**
+ * Upload POI image
+ */
+async function uploadPOIImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file uploaded.' });
+    }
+
+    const { mapId } = req.params;
+
+    // Check if map exists
+    const map = await MapModel.findMapById(mapId);
+    if (!map) {
+      return res.status(404).json({ error: 'Map not found.' });
+    }
+
+    // Validate image
+    await imageUtils.validateImageBuffer(req.file.buffer, {
+      maxWidth: 10000,
+      maxHeight: 10000,
+      minWidth: 100,
+      minHeight: 100
+    });
+
+    // Prepare paths
+    const uploadsDir = path.join(__dirname, '../../public/uploads/pois');
+    try {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    } catch (err) {
+      console.error('Error creating uploads directory:', err);
+      return res.status(500).json({ error: 'Error creating uploads directory.' });
+    }
+
+    // Generate filenames
+    const poiId = uuidv4();
+    const finalName = `${poiId}.webp`;
+    const thumbName = `${poiId}_thumb.webp`;
+    const finalPath = path.join(uploadsDir, finalName);
+    const thumbPath = path.join(uploadsDir, thumbName);
+
+    // Process image
+    await Promise.all([
+      imageUtils.convertToWebP(req.file.buffer, finalPath),
+      imageUtils.generateThumbnail(req.file.buffer, thumbPath)
+    ]);
+
+    // Return the URLs
+    const imageUrl = `/uploads/pois/${finalName}`;
+    const thumbnailUrl = `/uploads/pois/${thumbName}`;
+    res.json({ url: imageUrl, thumbnailUrl });
+  } catch (err) {
+    console.error('uploadPOIImage error:', err);
+    if (err.message.includes('image')) {
+      return res.status(400).json({ error: err.message });
+    }
+    res.status(500).json({ error: 'Failed to process image' });
+  }
+}
+
 module.exports = {
   createPOI,
   getPOIById,
@@ -217,5 +269,6 @@ module.exports = {
   getPOIsByCategory,
   getPOIsByCreator,
   updatePOI,
-  deletePOI
+  deletePOI,
+  uploadPOIImage
 }; 

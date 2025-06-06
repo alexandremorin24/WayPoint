@@ -1,6 +1,6 @@
 <template>
   <transition name="slide-panel">
-    <div v-if="open" class="category-panel-fixed">
+    <div v-if="open && canEdit" class="category-panel-fixed">
       <!-- Main category panel -->
       <v-card class="category-sidebar-card" style="overflow-y: auto; min-width: 300px; width: 100%; background: #032040; color: #fff; border-radius: 0 8px 8px 0; border: 1px solid #fff3; border-left: none;">
         <v-card-title class="d-flex align-center justify-space-between text-white font-weight-bold">
@@ -61,8 +61,8 @@
                         <span class="text-white">{{ cat.name }}</span>
                       </template>
                       <template #append>
-                        <v-btn icon size="x-small" variant="plain" @click.stop="startEditCategory(cat)"><v-icon color="white">mdi-pencil</v-icon></v-btn>
-                        <v-btn icon size="x-small" variant="plain" @click.stop="startDeleteCategory(cat)"><v-icon color="white">mdi-delete</v-icon></v-btn>
+                        <v-btn v-if="props.canEdit" icon size="x-small" variant="plain" @click.stop="startEditCategory(cat)"><v-icon color="white">mdi-pencil</v-icon></v-btn>
+                        <v-btn v-if="props.canEdit" icon size="x-small" variant="plain" @click.stop="startDeleteCategory(cat)"><v-icon color="white">mdi-delete</v-icon></v-btn>
                       </template>
                     </v-list-item>
                   </template>
@@ -81,8 +81,8 @@
                       <span class="subcategory-label text-white">{{ sub.name }}</span>
                     </template>
                     <template #append>
-                      <v-btn icon size="x-small" variant="plain" @click.stop="startEditCategory(sub)"><v-icon color="white">mdi-pencil</v-icon></v-btn>
-                      <v-btn icon size="x-small" variant="plain" @click.stop="startDeleteCategory(sub)"><v-icon color="white">mdi-delete</v-icon></v-btn>
+                      <v-btn v-if="props.canEdit" icon size="x-small" variant="plain" @click.stop="startEditCategory(sub)"><v-icon color="white">mdi-pencil</v-icon></v-btn>
+                      <v-btn v-if="props.canEdit" icon size="x-small" variant="plain" @click.stop="startDeleteCategory(sub)"><v-icon color="white">mdi-delete</v-icon></v-btn>
                     </template>
                   </v-list-item>
                 </v-list-group>
@@ -220,6 +220,7 @@ import type { Category, CreateCategory } from '@/types/category'
 import { categoryService } from '@/services/categoryService'
 import NotificationPopup from './NotificationPopup.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import axios from 'axios'
 
 const { t } = useI18n()
 
@@ -227,8 +228,12 @@ const props = defineProps<{
   open: boolean
   categories?: Category[]
   mapId: string
+  canEdit?: boolean
 }>()
-const emit = defineEmits(['close', 'add-category', 'update:categories'])
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'update:categories', categories: Category[]): void
+}>()
 
 const search = ref('')
 const editingCategory = ref<Category | null>(null)
@@ -350,68 +355,42 @@ function startEditCategory(cat: Category) {
 function cancelEditCategory() {
   editingCategory.value = null
 }
-async function saveCategory() {
-  if (!editingCategory.value) return
 
-  // Validate name
-  if (!editingCategory.value.name.trim()) {
-    showError('Category name is required')
-    return
+const handleError = (error: any) => {
+  if (error.response?.status === 403) {
+    error.value = t('errors.insufficientPermissions')
+  } else {
+    error.value = error.response?.data?.error || t('errors.unknown')
   }
+}
 
-  // Check if the category has subcategories
-  const hasChildren = !isNewCategory.value && 
-    filteredCategories.value.some(cat => cat.parentCategoryId === editingCategory.value?.id)
-  
-  // If the category has children, it cannot have a parent
-  if (hasChildren && editingCategory.value.parentCategoryId) {
-    showError('A parent category cannot have a parent category')
-    return
-  }
-
+const saveCategory = async () => {
   try {
     loading.value = true
-
-    let updatedCategory: Category
-    if (!isNewCategory.value) {
-      // Update existing category
-      updatedCategory = await categoryService.updateCategory(editingCategory.value.id, {
-        name: editingCategory.value.name.trim(),
-        icon: editingCategory.value.icon,
-        color: editingCategory.value.color,
-        parentCategoryId: editingCategory.value.parentCategoryId
-      })
+    error.value = null
+    
+    if (isNewCategory.value) {
+      const newCategory = await categoryService.createCategory(props.mapId, editingCategory.value as CreateCategory)
+      emit('update:categories', [...(props.categories || []), newCategory])
     } else {
-      // Create new category
-      updatedCategory = await categoryService.createCategory(props.mapId, {
-        name: editingCategory.value.name.trim(),
-        icon: editingCategory.value.icon,
-        color: editingCategory.value.color,
-        parentCategoryId: editingCategory.value.parentCategoryId,
-        mapId: props.mapId
-      })
+      const updatedCategory = await categoryService.updateCategory(editingCategory.value!.id, editingCategory.value!)
+      emit('update:categories', (props.categories || []).map(cat => 
+        cat.id === updatedCategory.id ? updatedCategory : cat
+      ))
     }
-
-    // Update the categories list
-    const updatedCategories = props.categories ? [...props.categories] : []
-    const index = updatedCategories.findIndex(c => c.id === updatedCategory.id)
-    if (index !== -1) {
-      updatedCategories[index] = updatedCategory
-    } else {
-      updatedCategories.push(updatedCategory)
-    }
-    emit('update:categories', updatedCategories)
-
+    
     editingCategory.value = null
     isNewCategory.value = false
+    showIconGrid.value = false
+    showColorGrid.value = false
     showSuccess(isNewCategory.value ? 'Category created successfully' : 'Category updated successfully')
-  } catch (err: any) {
-    console.error('Error saving category:', err)
-    showError(err.response?.data?.error || 'Failed to save category')
+  } catch (err) {
+    handleError(err)
   } finally {
     loading.value = false
   }
 }
+
 function startDeleteCategory(cat: Category) {
   // Vérifier si la catégorie a des sous-catégories
   const hasChildren = filteredCategories.value.some(c => c.parentCategoryId === cat.id)
@@ -428,16 +407,14 @@ async function confirmDelete() {
 
   try {
     loading.value = true
-
+    error.value = null
+    
     await categoryService.deleteCategory(categoryToDelete.value.id)
-
-    // Update the categories list
     const updatedCategories = props.categories?.filter(c => c.id !== categoryToDelete.value?.id) || []
     emit('update:categories', updatedCategories)
     showSuccess('Category deleted successfully')
-  } catch (err: any) {
-    console.error('Error deleting category:', err)
-    showError(err.response?.data?.error || 'Failed to delete category')
+  } catch (err) {
+    handleError(err)
   } finally {
     loading.value = false
     categoryToDelete.value = null

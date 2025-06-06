@@ -6,6 +6,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRuntimeConfig } from '#app'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import MapViewer from '@/components/MapViewer.vue'
 import type { MapData } from '@/types/map'
@@ -17,16 +18,8 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const config = useRuntimeConfig()
+const { t } = useI18n()
 const map = ref<MapData | null>(null)
-
-const loadImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
-    img.onerror = reject
-    img.src = url
-  })
-}
 
 onMounted(async () => {
   const mapId = route.params.mapId as string
@@ -41,15 +34,7 @@ onMounted(async () => {
     const transformed = data
 
     if (!transformed.imageUrl) {
-      throw new Error('imageUrl is empty or invalid')
-    }
-
-    if (!transformed.imageWidth || !transformed.imageHeight) {
-      const { width, height } = await loadImageDimensions(transformed.imageUrl)
-      transformed.imageWidth = width
-      transformed.imageHeight = height
-      transformed.width = width
-      transformed.height = height
+      throw new Error(t('map.error.message'))
     }
 
     map.value = transformed
