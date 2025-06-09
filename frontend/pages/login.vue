@@ -20,11 +20,24 @@
           :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" 
           @click:append="showPassword = !showPassword"
         />
+        <div class="d-flex justify-end">
+          <v-btn
+            variant="text"
+            color="primary"
+            class="text-none"
+            to="/forgot-password"
+          >
+            {{ $t('auth.forgotPassword') }}
+          </v-btn>
+        </div>
         <v-btn class="mt-4" color="primary" type="submit" :disabled="!formValid || isSubmitting" block>
           {{ $t('common.login') }}
         </v-btn>
         <v-alert v-if="error" type="error" class="mt-4">
           {{ error }}
+        </v-alert>
+        <v-alert v-if="success" type="success" class="mt-4">
+          {{ success }}
         </v-alert>
       </v-form>
     </v-card>
@@ -34,7 +47,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const config = useRuntimeConfig()
 const { t } = useI18n()
@@ -46,6 +59,7 @@ const showPassword = ref(false)
 const formValid = ref(false)
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
+const success = ref<string | null>(null)
 
 const rules = {
   required: (v: string) => !!v || t('errors.required'),
@@ -86,6 +100,12 @@ onMounted(() => {
   const token = localStorage.getItem('token')
   if (token) {
     router.push('/my-maps')
+  }
+
+  // Check if email was just verified
+  const route = useRoute()
+  if (route.query.verified === 'true') {
+    success.value = t('auth.emailVerified')
   }
 })
 </script>

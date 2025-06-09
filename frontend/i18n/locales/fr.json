@@ -46,7 +46,18 @@
         "hidePassword": "Masquer le mot de passe",
         "username": "Nom d'utilisateur",
         "confirmPassword": "Confirmer le mot de passe",
-        "verificationEmailSent": "Email de vérification envoyé à {email}"
+        "verificationEmailSent": "Email de vérification envoyé à {email}",
+        "emailVerified": "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.",
+        "forgotPassword": "Mot de passe oublié ?",
+        "resetPassword": "Réinitialiser le mot de passe",
+        "resetPasswordTitle": "Réinitialisation du mot de passe",
+        "resetPasswordSuccess": "Votre mot de passe a été réinitialisé avec succès",
+        "resetPasswordRequest": "Demander une réinitialisation",
+        "resetPasswordRequestSuccess": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation",
+        "resetPasswordRequestTitle": "Réinitialisation du mot de passe",
+        "resetPasswordRequestDescription": "Entrez votre adresse email pour recevoir un lien de réinitialisation",
+        "newPassword": "Nouveau mot de passe",
+        "confirmNewPassword": "Confirmer le nouveau mot de passe"
     },
     "home": {
         "welcome": "Bienvenue sur WayPoint",
