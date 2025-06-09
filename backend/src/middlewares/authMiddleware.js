@@ -18,4 +18,34 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = requireAuth;
+function validatePassword(req, res, next) {
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ error: 'Password is required' });
+  }
+
+  // Check password length
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+  }
+
+  // Check password complexity
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+    return res.status(400).json({
+      error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    });
+  }
+
+  next();
+}
+
+module.exports = {
+  requireAuth,
+  validatePassword
+};

@@ -45,7 +45,18 @@
         "hidePassword": "Hide password",
         "username": "Username",
         "confirmPassword": "Confirm password",
-        "verificationEmailSent": "Verification email sent to {email}"
+        "verificationEmailSent": "Verification email sent to {email}",
+        "emailVerified": "Your email has been successfully verified. You can now log in.",
+        "forgotPassword": "Forgot password?",
+        "resetPassword": "Reset password",
+        "resetPasswordTitle": "Password reset",
+        "resetPasswordSuccess": "Your password has been successfully reset",
+        "resetPasswordRequest": "Request reset",
+        "resetPasswordRequestSuccess": "If an account exists with this email, you will receive a reset link",
+        "resetPasswordRequestTitle": "Password reset",
+        "resetPasswordRequestDescription": "Enter your email address to receive a reset link",
+        "newPassword": "New password",
+        "confirmNewPassword": "Confirm new password"
     },
     "home": {
         "welcome": "Welcome to WayPoint",

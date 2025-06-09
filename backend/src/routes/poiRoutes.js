@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const poiController = require('../controllers/poiController');
-const requireAuth = require('../middlewares/authMiddleware');
+const { requireAuth } = require('../middlewares/authMiddleware');
 const poiMiddleware = require('../middlewares/poiMiddleware');
 const multer = require('multer');
 const path = require('path');

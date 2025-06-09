@@ -141,6 +141,19 @@ async function updateUserProfile(userId, updates) {
   return result;
 }
 
+/**
+ * Update user's password
+ * @param {string} userId
+ * @param {string} passwordHash
+ */
+async function updatePassword(userId, passwordHash) {
+  const [result] = await db.execute(
+    'UPDATE users SET password_hash = ? WHERE id = ?',
+    [passwordHash, userId]
+  );
+  return result;
+}
+
 module.exports = {
   createUser,
   findUserByEmail,
@@ -148,4 +161,5 @@ module.exports = {
   updateUserEmailVerified,
   findUserByDisplayName,
   updateUserProfile,
+  updatePassword,
 };

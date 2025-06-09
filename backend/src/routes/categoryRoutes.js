@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController');
-const requireAuth = require('../middlewares/authMiddleware');
+const { requireAuth } = require('../middlewares/authMiddleware');
 
 // Get all categories for a map
 router.get('/maps/:mapId/categories', requireAuth, categoryController.getCategoriesByMapId);

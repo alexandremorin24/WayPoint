@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mapController = require('../controllers/mapController');
-const requireAuth = require('../middlewares/authMiddleware');
+const { requireAuth } = require('../middlewares/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
