@@ -195,14 +195,15 @@
     },
     "poi": {
         "form": {
-            "title": "Ajouter / Modifier un marqueur",
-            "name": "Nom du marqueur",
+            "title": "Ajouter / Modifier un point d'intérêt",
+            "name": "Nom du point d'intérêt",
             "category": "Catégorie",
             "image": "Image",
             "description": "Description",
             "uploadPlaceholder": "Cliquez pour téléverser ou glissez-déposez",
             "uploadHint": "PNG, JPG jusqu'à 5Mo",
-            "chooseCategory": "Choisir une catégorie"
+            "chooseCategory": "Choisir une catégorie",
+            "editTitle": "Modifier le point d'intérêt"
         },
         "categories": {
             "shop": "Boutique",
@@ -216,15 +217,22 @@
                 "name": "Le nom doit contenir entre 1 et 100 caractères",
                 "category": "Une catégorie est requise"
             },
-            "save": "Erreur lors de la sauvegarde du marqueur",
+            "save": "Erreur lors de la sauvegarde du point d'intérêt",
             "fetchCategories": "Erreur lors de la récupération des catégories",
-            "fetchPOIs": "Erreur lors de la récupération des marqueurs"
+            "fetchPOIs": "Erreur lors de la récupération des points d'intérêt",
+            "delete": "Erreur lors de la suppression du point d'intérêt",
+            "update": "Erreur lors de la modification du point d'intérêt"
         },
         "success": {
-            "save": "Marqueur enregistré avec succès"
+            "save": "Point d'intérêt enregistré avec succès"
         },
         "loading": {
             "saving": "Enregistrement en cours..."
-        }
+        },
+        "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce point d'intérêt ?",
+        "deleteSuccess": "Point d'intérêt supprimé avec succès",
+        "created": "Créé le",
+        "updated": "Modifié le",
+        "by": "par"
     }
 }
