@@ -25,6 +25,7 @@
           :map="map"
           :add-poi-mode="addPoiMode"
           :categories="categories"
+          :can-edit="map.userRole === 'owner' || map.userRole === 'editor_all' || map.userRole === 'editor_own'"
           @cancel-poi="exitAddPoiMode"
         />
         <NuxtPage v-else />

@@ -78,7 +78,8 @@ function convertToApiFormat(row) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     categoryName: row.category_name,
-    creatorName: row.creator_name
+    creatorName: row.creator_name,
+    updaterName: row.updater_name
   };
 }
 
@@ -88,10 +89,22 @@ function convertToApiFormat(row) {
  */
 async function findPOIById(id) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, 
+     u1.display_name as creator_name, u2.display_name as updater_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
-     LEFT JOIN users u ON p.creator_id = u.id
+     LEFT JOIN users u1 ON p.creator_id = u1.id
+     LEFT JOIN (
+       SELECT pl1.* 
+       FROM poi_logs pl1
+       INNER JOIN (
+         SELECT poi_id, MAX(timestamp) as max_timestamp
+         FROM poi_logs
+         WHERE action = 'update'
+         GROUP BY poi_id
+       ) pl2 ON pl1.poi_id = pl2.poi_id AND pl1.timestamp = pl2.max_timestamp
+     ) pl ON p.id = pl.poi_id
+     LEFT JOIN users u2 ON pl.user_id = u2.id
      WHERE p.id = ?`,
     [id]
   );
@@ -104,10 +117,22 @@ async function findPOIById(id) {
  */
 async function findPOIsByMapId(mapId) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, 
+     u1.display_name as creator_name, u2.display_name as updater_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
-     LEFT JOIN users u ON p.creator_id = u.id
+     LEFT JOIN users u1 ON p.creator_id = u1.id
+     LEFT JOIN (
+       SELECT pl1.* 
+       FROM poi_logs pl1
+       INNER JOIN (
+         SELECT poi_id, MAX(timestamp) as max_timestamp
+         FROM poi_logs
+         WHERE action = 'update'
+         GROUP BY poi_id
+       ) pl2 ON pl1.poi_id = pl2.poi_id AND pl1.timestamp = pl2.max_timestamp
+     ) pl ON p.id = pl.poi_id
+     LEFT JOIN users u2 ON pl.user_id = u2.id
      WHERE p.map_id = ?`,
     [mapId]
   );
@@ -120,10 +145,22 @@ async function findPOIsByMapId(mapId) {
  */
 async function findPOIsByCategory(categoryId) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, 
+     u1.display_name as creator_name, u2.display_name as updater_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
-     LEFT JOIN users u ON p.creator_id = u.id
+     LEFT JOIN users u1 ON p.creator_id = u1.id
+     LEFT JOIN (
+       SELECT pl1.* 
+       FROM poi_logs pl1
+       INNER JOIN (
+         SELECT poi_id, MAX(timestamp) as max_timestamp
+         FROM poi_logs
+         WHERE action = 'update'
+         GROUP BY poi_id
+       ) pl2 ON pl1.poi_id = pl2.poi_id AND pl1.timestamp = pl2.max_timestamp
+     ) pl ON p.id = pl.poi_id
+     LEFT JOIN users u2 ON pl.user_id = u2.id
      WHERE p.category_id = ?`,
     [categoryId]
   );
@@ -136,10 +173,22 @@ async function findPOIsByCategory(categoryId) {
  */
 async function findPOIsByCreator(creatorId) {
   const [rows] = await db.execute(
-    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, u.display_name as creator_name
+    `SELECT p.*, c.name as category_name, c.icon as category_icon, c.color as category_color, 
+     u1.display_name as creator_name, u2.display_name as updater_name
      FROM pois p 
      LEFT JOIN categories c ON p.category_id = c.id 
-     LEFT JOIN users u ON p.creator_id = u.id
+     LEFT JOIN users u1 ON p.creator_id = u1.id
+     LEFT JOIN (
+       SELECT pl1.* 
+       FROM poi_logs pl1
+       INNER JOIN (
+         SELECT poi_id, MAX(timestamp) as max_timestamp
+         FROM poi_logs
+         WHERE action = 'update'
+         GROUP BY poi_id
+       ) pl2 ON pl1.poi_id = pl2.poi_id AND pl1.timestamp = pl2.max_timestamp
+     ) pl ON p.id = pl.poi_id
+     LEFT JOIN users u2 ON pl.user_id = u2.id
      WHERE p.creator_id = ?`,
     [creatorId]
   );

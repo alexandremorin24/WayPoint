@@ -175,7 +175,7 @@
         "manageCollaborators": "Manage collaborators",
         "addCategory": "Add category",
         "editCategory": "Edit category",
-        "addEditCategory": "Add / Edit category",
+        "addEditCategory": "Add category",
         "name": "Name",
         "icon": "Icon",
         "parentCategory": "Parent category",
@@ -194,14 +194,15 @@
     },
     "poi": {
         "form": {
-            "title": "Add / Edit POI",
+            "title": "Add POI",
             "name": "POI name",
             "category": "Category",
             "image": "Image",
             "description": "Description",
             "uploadPlaceholder": "Click to upload or drag and drop",
             "uploadHint": "PNG, JPG up to 5MB",
-            "chooseCategory": "Choose a category"
+            "chooseCategory": "Choose a category",
+            "editTitle": "Edit POI"
         },
         "categories": {
             "shop": "Shop",
@@ -217,13 +218,20 @@
             },
             "save": "Error saving marker",
             "fetchCategories": "Error fetching categories",
-            "fetchPOIs": "Error fetching markers"
+            "fetchPOIs": "Error fetching markers",
+            "delete": "Error deleting POI",
+            "update": "Error updating POI"
         },
         "success": {
             "save": "POI saved successfully"
         },
         "loading": {
             "saving": "Saving..."
-        }
+        },
+        "confirmDelete": "Are you sure you want to delete this POI?",
+        "deleteSuccess": "POI successfully deleted",
+        "created": "Created on",
+        "updated": "Updated on",
+        "by": "by"
     }
 }
