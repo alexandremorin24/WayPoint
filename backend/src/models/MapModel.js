@@ -73,28 +73,50 @@ async function findMapsByOwner(ownerId) {
 
 // Update a map
 async function updateMap(id, data) {
-  const fields = [];
-  const values = [];
+  try {
+    // Validate required fields
+    if (!data.name) {
+      throw new Error('Map name is required');
+    }
 
-  // Map camelCase to snake_case for database fields
-  const fieldMapping = {
-    isPublic: 'is_public',
-    imageUrl: 'image_url',
-    thumbnailUrl: 'thumbnail_url',
-    gameId: 'game_id',
-    ownerId: 'owner_id',
-    imageWidth: 'image_width',
-    imageHeight: 'image_height'
-  };
+    const fields = [];
+    const values = [];
 
-  for (const key in data) {
-    const dbField = fieldMapping[key] || key;
-    fields.push(`${dbField} = ?`);
-    values.push(data[key]);
+    // Map camelCase to snake_case for database fields
+    const fieldMapping = {
+      name: 'name',
+      description: 'description',
+      isPublic: 'is_public',
+      imageUrl: 'image_url',
+      thumbnailUrl: 'thumbnail_url',
+      gameId: 'game_id',
+      ownerId: 'owner_id',
+      imageWidth: 'image_width',
+      imageHeight: 'image_height'
+    };
+
+    // Only update fields that are provided
+    for (const key in data) {
+      if (data[key] !== undefined && fieldMapping[key]) {
+        const dbField = fieldMapping[key];
+        fields.push(`${dbField} = ?`);
+        values.push(data[key]);
+      }
+    }
+
+    if (fields.length === 0) {
+      throw new Error('No valid fields to update');
+    }
+
+    values.push(id);
+    await db.execute(`UPDATE maps SET ${fields.join(', ')} WHERE id = ?`, values);
+
+    // Return the updated map
+    return findMapById(id);
+  } catch (error) {
+    console.error('Error in updateMap:', error);
+    throw error;
   }
-
-  values.push(id);
-  await db.execute(`UPDATE maps SET ${fields.join(', ')} WHERE id = ?`, values);
 }
 
 // Delete a map
@@ -197,14 +219,14 @@ async function canView(mapId, userId) {
   if (!mapId) return false;
 
   // Get map info
-  const [map] = await db.execute('SELECT * FROM maps WHERE id = ?', [mapId]);
-  if (!map[0]) return false;
+  const [rows] = await db.execute('SELECT * FROM maps WHERE id = ?', [mapId]);
+  if (!rows[0]) return false;
 
   // Public maps are viewable by everyone
-  if (map[0].is_public) return true;
+  if (rows[0].is_public) return true;
 
   // Owner can always view
-  if (userId && map[0].owner_id === userId) return true;
+  if (userId && rows[0].owner_id === userId) return true;
 
   // Check if user has a valid role
   if (!userId) return false;

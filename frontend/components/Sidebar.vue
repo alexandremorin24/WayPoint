@@ -74,36 +74,66 @@
 
       <v-divider class="my-2" />
 
-      <v-list-item link @click="emit('manage-categories')" v-if="drawerProxy">
-        <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.manageCategories') }}</v-list-item-title>
-      </v-list-item>
+      <v-list-group v-if="canEdit" value="edit-options" :model-value="false" dense class="edit-options-group">
+        <template v-slot:activator="{ props }">
+          <v-list-item
+            v-bind="props"
+            :title="$t('sidebar.editOptions')"
+            class="text-body-1 text-white"
+            dense
+            :min-height="0"
+            prepend-icon="mdi-cog"
+          />
+        </template>
 
-      <v-list-item link @click="onAddPoi">
-        <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.addPoi') }}</v-list-item-title>
-      </v-list-item>
+        <v-list-item
+          v-for="(item, i) in editOptions"
+          :key="i"
+          dense
+          link
+          :min-height="0"
+          @click="item.action"
+        >
+          <v-list-item-title class="text-body-2 text-white">{{ item.title }}</v-list-item-title>
+        </v-list-item>
 
-      <v-list-item link @click="emit('manage-collaborators')">
-        <v-list-item-title class="text-body-1 text-white">{{ $t('sidebar.manageCollaborators') }}</v-list-item-title>
-      </v-list-item>
+        <v-divider class="my-2" />
+        
+      </v-list-group>
     </v-list>
   </v-navigation-drawer>
+
+  <MapInfoSidebar
+    v-if="map"
+    :open="mapInfoSidebarOpenProxy"
+    :map="map"
+    :can-edit="map.userRole === 'owner' || map.userRole === 'editor_all'"
+    @close="mapInfoSidebarOpenProxy = false"
+    @update:map="onMapUpdate"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import type { MapData } from '@/types/map'
+import MapInfoSidebar from './MapInfoSidebar.vue'
 
 defineOptions({ name: 'AppSidebar' })
 
 const props = defineProps<{
   map: MapData
   drawer: boolean
+  mapInfoSidebarOpen: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:drawer', value: boolean): void
   (e: 'add-poi' | 'manage-categories' | 'manage-collaborators'): void
+  (e: 'update:map', map: MapData): void
+  (e: 'close-categories'): void
+  (e: 'close-map-info'): void
+  (e: 'update:map-info-sidebar-open', value: boolean): void
 }>()
 
 const drawerProxy = computed({
@@ -111,12 +141,74 @@ const drawerProxy = computed({
   set: val => emit('update:drawer', val)
 })
 
+const mapInfoSidebarOpenProxy = computed({
+  get: () => props.mapInfoSidebarOpen,
+  set: val => emit('update:map-info-sidebar-open', val)
+})
+
 const { mobile } = useDisplay()
 const isMobile = computed(() => mobile.value)
 
+const canEdit = computed(() => {
+  return props.map?.userRole === 'owner' || 
+         props.map?.userRole === 'editor_all' || 
+         props.map?.userRole === 'editor_own' || 
+         props.map?.userRole === 'contributor'
+})
+
+const canManageCollaborators = computed(() => {
+  return props.map?.userRole === 'owner' || 
+         props.map?.userRole === 'editor_all'
+})
+
+const editOptions = computed(() => {
+  const options = [
+    {
+      title: 'Edit Map Info',
+      action: onEditMapInfo
+    },
+    {
+      title: 'Manage Categories',
+      action: onManageCategories
+    },
+    {
+      title: 'Add POI',
+      action: onAddPoi
+    }
+  ]
+
+  if (canManageCollaborators.value) {
+    options.splice(1, 0, {
+      title: 'Manage Collaborators',
+      action: () => emit('manage-collaborators')
+    })
+  }
+
+  return options
+})
+
 function onAddPoi() {
+  mapInfoSidebarOpenProxy.value = false
   drawerProxy.value = false
   emit('add-poi')
+}
+
+function onEditMapInfo() {
+  if (mapInfoSidebarOpenProxy.value) {
+    mapInfoSidebarOpenProxy.value = false
+  } else {
+    emit('close-categories')
+    mapInfoSidebarOpenProxy.value = true
+  }
+}
+
+function onManageCategories() {
+  emit('close-map-info')
+  emit('manage-categories')
+}
+
+function onMapUpdate(updatedMap: MapData) {
+  emit('update:map', updatedMap)
 }
 </script>
 
@@ -129,24 +221,18 @@ function onAddPoi() {
   padding: 6px;
   border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-/* 📱 Mobile: bottom right if drawer closed */
 .toggle-arrow.mobile.closed {
   bottom: 20px;
   right: 20px;
 }
 
-/* 💻 Desktop: top left if drawer closed */
 .toggle-arrow.desktop.closed {
   top: 20px;
   left: 0;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
 }
 
-/* 💻 or 📱 : button in drawer */
 .drawer-close-btn {
   position: absolute;
   top: 12px;
@@ -156,5 +242,9 @@ function onAddPoi() {
   border-radius: 4px;
   padding: 4px;
   cursor: pointer;
+}
+
+:deep(.edit-options-group .v-list-group__header__append-icon) {
+  font-size: 16px;
 }
 </style>
