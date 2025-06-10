@@ -27,10 +27,10 @@ async function createMap(req, res) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
-    // Enforce map quota per user EDIT BEFORE PROD
+    // Enforce map quota per user
     const mapCount = await MapModel.countByUser(ownerId);
-    if (mapCount >= 5) {
-      return res.status(403).json({ error: 'Map quota exceeded (max 5 maps per user).' });
+    if (mapCount >= 4) {
+      return res.status(403).json({ error: 'Map quota exceeded (max 4 maps per user).' });
     }
 
     // Validate fields
@@ -237,10 +237,28 @@ async function updateMap(req, res) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions.' });
     }
 
-    await MapModel.updateMap(id, req.body);
-    res.json({ message: 'Map updated.' });
+    // Validate input data
+    const { name, description, isPublic } = req.body;
+    if (name !== undefined && (typeof name !== 'string' || name.length < 3 || name.length > 100)) {
+      return res.status(400).json({ error: 'Map name must be between 3 and 100 characters.' });
+    }
+    if (description !== undefined && (typeof description !== 'string' || description.length > 500)) {
+      return res.status(400).json({ error: 'Description must be less than 500 characters.' });
+    }
+    if (isPublic !== undefined && typeof isPublic !== 'boolean') {
+      return res.status(400).json({ error: 'isPublic must be a boolean value.' });
+    }
+
+    const updatedMap = await MapModel.updateMap(id, req.body);
+    res.json(updatedMap);
   } catch (err) {
     console.error('updateMap error:', err);
+    if (err.message === 'Map name is required') {
+      return res.status(400).json({ error: err.message });
+    }
+    if (err.message === 'No valid fields to update') {
+      return res.status(400).json({ error: err.message });
+    }
     res.status(500).json({ error: 'Error while updating map.' });
   }
 }
@@ -251,12 +269,6 @@ async function deleteMap(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
-    // Ajout des logs pour debug
-    const userId = req.user && req.user.id;
-    console.log('[Suppression] id de la map:', id);
-    console.log('[Suppression] userId du token:', userId);
-    console.log('[Suppression] owner_id de la map:', map.owner_id);
-    console.log('[Suppression] objet map:', map);
     // Only owner can delete
     if (!userId || userId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: not the owner.' });

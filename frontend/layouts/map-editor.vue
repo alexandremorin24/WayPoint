@@ -14,8 +14,12 @@
       v-if="map"
       v-model:drawer="drawer"
       :map="map"
+      v-model:map-info-sidebar-open="mapInfoSidebarOpen"
       @add-poi="handleAddPoi"
       @manage-categories="openCategorySidebar"
+      @update:map="updateMap"
+      @close-categories="categorySidebarOpen = false"
+      @close-map-info="mapInfoSidebarOpen = false"
     />
 
     <v-main class="pa-0">
@@ -50,6 +54,7 @@ const map = ref<MapData | null>(null)
 const addPoiMode = ref(false)
 const drawer = ref(true)
 const categorySidebarOpen = ref(false)
+const mapInfoSidebarOpen = ref(false)
 const categories = ref<Category[]>([])
 
 function canAccessMap(mapData: MapData, token: string | null): boolean {
@@ -110,6 +115,10 @@ function exitAddPoiMode() {
 
 function openCategorySidebar() {
   categorySidebarOpen.value = true
+}
+
+function updateMap(updatedMap: MapData) {
+  map.value = updatedMap
 }
 
 watch(drawer, (opened) => {

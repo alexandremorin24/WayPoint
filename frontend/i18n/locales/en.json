@@ -173,6 +173,11 @@
         "addPoi": "Add POI",
         "manageCategories": "Manage categories",
         "manageCollaborators": "Manage collaborators",
+        "editMapInfo": "Edit map information",
+        "mapName": "Map name",
+        "mapDescription": "Map description",
+        "isPublic": "Public map",
+        "mapUpdated": "Map updated successfully",
         "addCategory": "Add category",
         "editCategory": "Edit category",
         "addEditCategory": "Add category",
@@ -190,7 +195,8 @@
         "confirmDeleteMessage": "Are you sure you want to delete the category",
         "cannotDeleteParent": "You cannot delete a category that has subcategories. Please delete or move the subcategories first.",
         "yes": "Yes",
-        "no": "No"
+        "no": "No",
+        "editOptions": "Edit Options"
     },
     "poi": {
         "form": {
