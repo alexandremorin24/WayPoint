@@ -9,8 +9,6 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:reset": "jest --runInBand --detectOpenHandles",
-    "db:drop:test": "mysql < scripts/drop-test-db.sql",
-    "db:init:test": "mysql < scripts/init-test-db.sql",
     "db:reset:test": "mysql < scripts/init-test-db.sql",
     "test:full": "node scripts/test-with-reset.js"
   },

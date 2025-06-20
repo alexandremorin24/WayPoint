@@ -83,7 +83,8 @@
         "create": "Create map",
         "success": "Map created successfully!",
         "mustBeLogged": "You must be logged in to create a map.",
-        "pleaseSelectImage": "Please select an image."
+        "pleaseSelectImage": "Please select an image.",
+        "isPublic": "Public map"
     },
     "mapDetails": {
         "title": "Map:",
@@ -219,7 +220,7 @@
         },
         "error": {
             "validation": {
-                "name": "Name must be between 1 and 100 characters",
+                "name": "Name must be between 1 and 40 characters",
                 "category": "A category is required"
             },
             "save": "Error saving marker",

@@ -16,8 +16,8 @@ async function createPOI(req, res) {
     const creatorId = req.user.id;
 
     // Validate required fields
-    if (!name || typeof name !== 'string' || name.length < 1 || name.length > 100) {
-      return res.status(400).json({ error: 'Name is required (1-100 characters).' });
+    if (!name || typeof name !== 'string' || name.length < 1 || name.length > 40) {
+      return res.status(400).json({ error: 'Name is required (1-40 characters).' });
     }
     if (!categoryId || typeof categoryId !== 'string') {
       return res.status(400).json({ error: 'categoryId is required and must be a string.' });
@@ -86,15 +86,23 @@ async function getPOIById(req, res) {
 async function getPOIsByMapId(req, res) {
   try {
     const { mapId } = req.params;
+    const userId = req.user?.id;
+
+    console.log('getPOIsByMapId - Debug Info:');
+    console.log('mapId:', mapId);
+    console.log('userId:', userId);
 
     // Check if map exists and user has access
     const map = await MapModel.findMapById(mapId);
+    console.log('map found:', map ? 'yes' : 'no');
+
     if (!map) {
       return res.status(404).json({ error: 'Map not found.' });
     }
 
-    const userId = req.user?.id;
     const canView = await MapModel.canView(mapId, userId);
+    console.log('canView result:', canView);
+
     if (!canView) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions to view POIs.' });
     }

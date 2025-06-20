@@ -13,6 +13,13 @@
                 <v-text-field v-model="name" :label="$t('createMap.mapName')" :rules="[rules.required, rules.min, rules.max]" required />
                 <v-textarea v-model="description" :label="$t('createMap.description')" :rules="[rules.required, rules.descMax]" required />
 
+                <v-switch
+                    v-model="isPublic"
+                    :label="$t('createMap.isPublic')"
+                    color="primary"
+                    class="mb-4"
+                />
+
                 <div v-if="publicMaps.length > 0">
                     <div class="mb-2">{{ $t('createMap.selectOrUpload') }}</div>
                     <v-row>
@@ -91,6 +98,7 @@ const uploadProgress = ref(0);
 const publicMaps = ref<MapData[]>([]);
 const selectedMapId = ref<string>('upload');
 const backendBase = config.public.API_BASE.replace(/\/api\/backend$/, '');
+const isPublic = ref(false);
 
 const rules = {
     required: (v: unknown) => !!v || t('errors.required'),
@@ -148,6 +156,7 @@ const handleCreate = async () => {
         formData.append('gameName', gameName.value.trim());
         formData.append('name', name.value.trim());
         formData.append('description', description.value.trim());
+        formData.append('isPublic', isPublic.value.toString());
         if (selectedMapId.value !== 'upload' && publicMaps.value.length > 0) {
             formData.append('imageFromMap', selectedMapId.value);
         } else {

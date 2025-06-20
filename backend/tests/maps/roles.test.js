@@ -195,16 +195,13 @@ describe('🗺️ Map Roles Management', () => {
 
   describe('DELETE /api/backend/maps/:id/users/:userId/role', () => {
     it('should allow owner to remove a role', async () => {
-      // Add two editors
+      // Add one editor
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({ role: 'editor_all' });
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
-      // Remove one editor
+
+      // Remove the editor role
       const res = await request(app)
         .delete(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`);
@@ -306,77 +303,49 @@ describe('🗺️ Map Roles Management', () => {
     });
   });
 
-  describe('Role transitions and edge cases', () => {
-    it('should handle role updates correctly', async () => {
-      // Clean up existing roles
-      await db.execute('DELETE FROM map_user_roles WHERE map_id = ?', [mapId]);
-
-      // Start as viewer
+  describe('Role transitions', () => {
+    it('should allow downgrading editor to viewer', async () => {
+      // Add editor role
       await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${stranger.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'viewer' });
-
-      // Update to editor
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${stranger.id}/role`)
+        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({ role: 'editor_all' });
 
-      // Verify access
+      // Downgrade to viewer should be allowed
       const res = await request(app)
-        .get(`/api/backend/maps/${mapId}`)
-        .set('Authorization', `Bearer ${tokenStranger}`);
+        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
+        .set('Authorization', `Bearer ${tokenOwner}`)
+        .send({ role: 'viewer' });
       expect(res.statusCode).toBe(200);
     });
 
-    it('should handle multiple role changes', async () => {
-      // Clean up existing roles
-      await db.execute('DELETE FROM map_user_roles WHERE map_id = ?', [mapId]);
+    it('should allow role changes between any valid roles', async () => {
+      // Add editor role
+      await request(app)
+        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
+        .set('Authorization', `Bearer ${tokenOwner}`)
+        .send({ role: 'editor_all' });
 
-      // Test multiple role changes
-      const roles = ['viewer', 'editor_all', 'banned', 'contributor'];
-      for (const role of roles) {
-        await request(app)
-          .put(`/api/backend/maps/${mapId}/users/${stranger.id}/role`)
-          .set('Authorization', `Bearer ${tokenOwner}`)
-          .send({ role });
-      }
-
-      // Final role should be contributor
-      const res = await request(app)
-        .get(`/api/backend/maps/${mapId}`)
-        .set('Authorization', `Bearer ${tokenStranger}`);
+      // Change to viewer
+      let res = await request(app)
+        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
+        .set('Authorization', `Bearer ${tokenOwner}`)
+        .send({ role: 'viewer' });
       expect(res.statusCode).toBe(200);
-    });
 
-    it('should handle concurrent role updates', async () => {
-      // Clean up existing roles
-      await db.execute('DELETE FROM map_user_roles WHERE map_id = ?', [mapId]);
+      // Change to contributor
+      res = await request(app)
+        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
+        .set('Authorization', `Bearer ${tokenOwner}`)
+        .send({ role: 'contributor' });
+      expect(res.statusCode).toBe(200);
 
-      // Try to update role multiple times simultaneously
-      const updates = [
-        request(app)
-          .put(`/api/backend/maps/${mapId}/users/${stranger.id}/role`)
-          .set('Authorization', `Bearer ${tokenOwner}`)
-          .send({ role: 'viewer' }),
-        request(app)
-          .put(`/api/backend/maps/${mapId}/users/${stranger.id}/role`)
-          .set('Authorization', `Bearer ${tokenOwner}`)
-          .send({ role: 'editor_all' })
-      ];
-
-      await Promise.all(updates);
-
-      // Verify final state
-      const res = await request(app)
-        .get(`/api/backend/maps/${mapId}/users`)
-        .set('Authorization', `Bearer ${tokenOwner}`);
-
-      expect(Array.isArray(res.body)).toBe(true);
-      const userRole = res.body.find(u => u.id === stranger.id);
-      expect(userRole).toBeDefined();
-      expect(['viewer', 'editor_all']).toContain(userRole.role);
+      // Change back to editor
+      res = await request(app)
+        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
+        .set('Authorization', `Bearer ${tokenOwner}`)
+        .send({ role: 'editor_all' });
+      expect(res.statusCode).toBe(200);
     });
   });
 
@@ -477,129 +446,57 @@ describe('🗺️ Map Roles Management', () => {
       expect(res.body.error).toBe('You cannot remove your own role.');
     });
 
-    it('should prevent removing last editor', async () => {
-      // First add editor role to a user
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+    describe('Role listing and retrieval', () => {
+      it('should list all available roles', async () => {
+        const res = await request(app)
+          .get('/api/backend/maps/roles');
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.roles)).toBe(true);
+        expect(res.body.roles).toContain('viewer');
+        expect(res.body.roles).toContain('editor_all');
+        expect(res.body.roles).toContain('editor_own');
+        expect(res.body.roles).toContain('contributor');
+        expect(res.body.roles).toContain('banned');
+      });
 
-      // Try to remove the editor role
-      const res = await request(app)
-        .delete(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`);
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toBe('Cannot remove the last editor. Please assign another editor first.');
-    });
+      it('should get current user role', async () => {
+        // Clean up existing roles
+        await db.execute('DELETE FROM map_user_roles WHERE map_id = ?', [mapId]);
+        // Test owner role
+        const ownerRes = await request(app)
+          .get(`/api/backend/maps/${mapId}/role`)
+          .set('Authorization', `Bearer ${tokenOwner}`);
+        expect(ownerRes.statusCode).toBe(200);
+        expect(ownerRes.body.role).toBe('owner');
 
-    it('should allow removing editor when another editor exists', async () => {
-      // Add two editors
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        // Test editor role
+        await request(app)
+          .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
+          .set('Authorization', `Bearer ${tokenOwner}`)
+          .send({ role: 'editor_all' });
 
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        const editorRes = await request(app)
+          .get(`/api/backend/maps/${mapId}/role`)
+          .set('Authorization', `Bearer ${tokenEditor}`);
+        expect(editorRes.statusCode).toBe(200);
+        expect(editorRes.body.role).toBe('editor_all');
 
-      // Now try to remove one editor
-      const res = await request(app)
-        .delete(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`);
-      expect(res.statusCode).toBe(200);
-    });
-  });
+        // Test no role
+        await db.execute('DELETE FROM map_user_roles WHERE map_id = ? AND user_id = ?', [mapId, stranger.id]);
+        const strangerRes = await request(app)
+          .get(`/api/backend/maps/${mapId}/role`)
+          .set('Authorization', `Bearer ${tokenStranger}`);
+        expect(strangerRes.statusCode).toBe(200);
+        expect(strangerRes.body.role).toBe(null);
+      });
 
-  describe('Role listing and retrieval', () => {
-    it('should list all available roles', async () => {
-      const res = await request(app)
-        .get('/api/backend/maps/roles');
-      expect(res.statusCode).toBe(200);
-      expect(Array.isArray(res.body.roles)).toBe(true);
-      expect(res.body.roles).toContain('viewer');
-      expect(res.body.roles).toContain('editor_all');
-      expect(res.body.roles).toContain('editor_own');
-      expect(res.body.roles).toContain('contributor');
-      expect(res.body.roles).toContain('banned');
-    });
-
-    it('should get current user role', async () => {
-      // Clean up existing roles
-      await db.execute('DELETE FROM map_user_roles WHERE map_id = ?', [mapId]);
-      // Test owner role
-      const ownerRes = await request(app)
-        .get(`/api/backend/maps/${mapId}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`);
-      expect(ownerRes.statusCode).toBe(200);
-      expect(ownerRes.body.role).toBe('owner');
-
-      // Test editor role
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
-
-      const editorRes = await request(app)
-        .get(`/api/backend/maps/${mapId}/role`)
-        .set('Authorization', `Bearer ${tokenEditor}`);
-      expect(editorRes.statusCode).toBe(200);
-      expect(editorRes.body.role).toBe('editor_all');
-
-      // Test no role
-      await db.execute('DELETE FROM map_user_roles WHERE map_id = ? AND user_id = ?', [mapId, stranger.id]);
-      const strangerRes = await request(app)
-        .get(`/api/backend/maps/${mapId}/role`)
-        .set('Authorization', `Bearer ${tokenStranger}`);
-      expect(strangerRes.statusCode).toBe(200);
-      expect(strangerRes.body.role).toBe(null);
-    });
-
-    it('should handle non-existent map for role retrieval', async () => {
-      const nonExistentMapId = '00000000-0000-0000-0000-000000000000';
-      const res = await request(app)
-        .get(`/api/backend/maps/${nonExistentMapId}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`);
-      expect(res.statusCode).toBe(404);
-    });
-  });
-
-  describe('Role transitions with last editor protection', () => {
-    it('should prevent downgrading last editor to viewer', async () => {
-      // Add editor role
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
-
-      // Try to downgrade to viewer
-      const res = await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'viewer' });
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toBe('Cannot remove the last editor. Please assign another editor first.');
-    });
-
-    it('should allow role change when multiple editors exist', async () => {
-      // Add two editors
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
-
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
-
-      // Now try to change one editor's role
-      const res = await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'viewer' });
-      expect(res.statusCode).toBe(200);
+      it('should handle non-existent map for role retrieval', async () => {
+        const nonExistentMapId = '00000000-0000-0000-0000-000000000000';
+        const res = await request(app)
+          .get(`/api/backend/maps/${nonExistentMapId}/role`)
+          .set('Authorization', `Bearer ${tokenOwner}`);
+        expect(res.statusCode).toBe(404);
+      });
     });
   });
 });

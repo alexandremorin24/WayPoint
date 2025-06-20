@@ -10,8 +10,8 @@
 --
 -- The SQL below is applied to the selected database. No CREATE DATABASE or USE statement is needed.
 
--- 🧑‍💻 Users
-CREATE TABLE users (
+-- 🧑‍�� Users
+CREATE TABLE IF NOT EXISTS users (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   email VARCHAR(255) NOT NULL UNIQUE,
   display_name VARCHAR(255) NOT NULL,
@@ -25,8 +25,30 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 🔑 Password Reset Tokens
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id CHAR(36) NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 🎮 Games
+CREATE TABLE IF NOT EXISTS games (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(255),
+  cover_url TEXT,
+  release_date DATE,
+  genres TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 🗺️ Maps
-CREATE TABLE maps (
+CREATE TABLE IF NOT EXISTS maps (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255),
   description TEXT,
@@ -38,18 +60,32 @@ CREATE TABLE maps (
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   game_id VARCHAR(255),
-  FOREIGN KEY (owner_id) REFERENCES users(id)
+  FOREIGN KEY (owner_id) REFERENCES users(id),
+  FOREIGN KEY (game_id) REFERENCES games(id)
+);
+
+-- 🗂️ Categories
+CREATE TABLE IF NOT EXISTS categories (
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  map_id CHAR(36) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  color VARCHAR(7) DEFAULT '#3498db', -- Blue by default
+  icon VARCHAR(255) DEFAULT 'map-marker', -- Marker icon by default
+  parent_category_id CHAR(36),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- 📌 POIs (Points of Interest)
-CREATE TABLE pois (
+CREATE TABLE IF NOT EXISTS pois (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   map_id CHAR(36) NOT NULL,
   name VARCHAR(255),
   description TEXT,
   x FLOAT,
   y FLOAT,
-  icon VARCHAR(255),
   image_url TEXT,
   category_id CHAR(36),
   creator_id CHAR(36) NOT NULL,
@@ -60,22 +96,8 @@ CREATE TABLE pois (
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
--- 🗂️ Categories
-CREATE TABLE categories (
-  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  map_id CHAR(36) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  color VARCHAR(7) DEFAULT '#3498db', -- Default blue
-  icon VARCHAR(255) DEFAULT 'map-marker', -- Default marker icon
-  parent_category_id CHAR(36),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (parent_category_id) REFERENCES categories(id) ON DELETE SET NULL
-);
-
 -- 👥 Map Access Roles
-CREATE TABLE map_user_roles (
+CREATE TABLE IF NOT EXISTS map_user_roles (
   map_id CHAR(36) NOT NULL,
   user_id CHAR(36) NOT NULL,
   role VARCHAR(50) NOT NULL CHECK (
@@ -93,18 +115,18 @@ CREATE TABLE map_user_roles (
 );
 
 -- 🧮 POI User Statistics
-CREATE TABLE poi_user_stats (
+CREATE TABLE IF NOT EXISTS poi_user_stats (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
   map_id CHAR(36) NOT NULL,
   poi_created_count INT DEFAULT 0,
   poi_updated_count INT DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 
 -- 🕒 POI Logs
-CREATE TABLE poi_logs (
+CREATE TABLE IF NOT EXISTS poi_logs (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   poi_id CHAR(36) NOT NULL,
   map_id CHAR(36) NOT NULL,
@@ -114,46 +136,19 @@ CREATE TABLE poi_logs (
   payload JSON,
   FOREIGN KEY (poi_id) REFERENCES pois(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- 👍 Map Votes
-CREATE TABLE map_votes (
+CREATE TABLE IF NOT EXISTS map_votes (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
   map_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   UNIQUE (user_id, map_id)
 );
-
-CREATE TABLE games (
-  id VARCHAR(255) PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(255),
-  cover_url TEXT,
-  release_date DATE,
-  genres TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- 📈 Optimizations for Scalability and Performance
-
--- Indexes for critical and frequently queried columns
-CREATE INDEX idx_maps_owner ON maps(owner_id);
-CREATE INDEX idx_maps_public_created ON maps(is_public, created_at);
-CREATE INDEX idx_pois_map ON pois(map_id);
-CREATE INDEX idx_pois_category ON pois(category_id);
-CREATE INDEX idx_pois_creator ON pois(creator_id);
-CREATE INDEX idx_map_user_roles_user ON map_user_roles(user_id);
-CREATE INDEX idx_map_user_roles_map ON map_user_roles(map_id);
-CREATE INDEX idx_map_user_roles_role ON map_user_roles(role);
-CREATE INDEX idx_categories_map ON categories(map_id);
-CREATE INDEX idx_poi_logs_poi ON poi_logs(poi_id);
-CREATE INDEX idx_poi_logs_user ON poi_logs(user_id);
-CREATE INDEX idx_poi_user_stats_user ON poi_user_stats(user_id);
-CREATE INDEX idx_map_votes_map_user ON map_votes(map_id, user_id);
 
 -- Example pagination query for public maps
 -- SELECT * FROM maps WHERE is_public = true ORDER BY created_at DESC LIMIT 20 OFFSET 0;

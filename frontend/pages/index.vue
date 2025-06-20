@@ -43,38 +43,48 @@
     </section>
 
     <!-- Features Section -->
-    <section id="section-2" class="snap-section d-flex align-center justify-center" style="background-color: #001D3D; color: white;">
-      <v-container class="fill-height d-flex align-center justify-center">
-        <v-slide-y-transition>
-          <h2 class="text-h4 font-weight-bold text-center mb-10">{{ $t('landing.features.title') }}</h2>
-        </v-slide-y-transition>
-        <v-row dense class="fill-height d-flex align-center justify-center">
-          <v-col
-            v-for="(feature, index) in features"
-            :key="index"
-            cols="12"
-            md="4"
-            class="mb-6"
-          >
-            <v-hover v-slot="{ isHovering, props }">
-              <v-card
-                v-bind="props"
-                :elevation="isHovering === true ? 8 : 2"
-                class="feature-card transition-swing"
-                color="primary"
-              >
-                <v-img height="180" :src="feature.image" :alt="feature.title" cover class="mb-4" />
-                <v-card-title class="text-h6 font-weight-bold">{{ feature.title }}</v-card-title>
-                <v-card-text>{{ feature.description }}</v-card-text>
-                <v-fade-transition>
-                  <template v-if="isHovering">
-                    <v-overlay :model-value="true" contained scrim="primary" class="align-center justify-center">
-                      <v-btn color="secondary" variant="text">{{ $t('landing.features.learnMore') }}</v-btn>
-                    </v-overlay>
-                  </template>
-                </v-fade-transition>
-              </v-card>
-            </v-hover>
+    <section id="section-2" class="snap-section" style="background-color: #001D3D; color: white;">
+      <v-container fluid class="fill-height pa-0">
+        <v-row class="fill-height ma-0" align="center" justify="center">
+          <v-col cols="12" class="px-4">
+            <v-row justify="center" no-gutters>
+              <v-col cols="12" class="text-center mb-8">
+                <v-slide-y-transition>
+                  <h2 class="text-h3 font-weight-bold">{{ $t('landing.features.title') }}</h2>
+                </v-slide-y-transition>
+              </v-col>
+              <v-col cols="12">
+                <v-row dense justify="center" class="px-4">
+                  <v-col
+                    v-for="(feature, index) in features"
+                    :key="index"
+                    cols="12"
+                    md="4"
+                    class="mb-6 px-4"
+                  >
+                    <v-hover v-slot="{ isHovering, props }">
+                      <v-card
+                        v-bind="props"
+                        :elevation="isHovering === true ? 8 : 2"
+                        class="feature-card transition-swing"
+                        color="primary"
+                      >
+                        <v-img height="180" :src="feature.image" :alt="feature.title" cover class="mb-4" />
+                        <v-card-title class="text-h6 font-weight-bold">{{ feature.title }}</v-card-title>
+                        <v-card-text>{{ feature.description }}</v-card-text>
+                        <v-fade-transition>
+                          <template v-if="isHovering">
+                            <v-overlay :model-value="true" contained scrim="primary" class="align-center justify-center">
+                              <v-btn color="secondary" variant="text">{{ $t('landing.features.learnMore') }}</v-btn>
+                            </v-overlay>
+                          </template>
+                        </v-fade-transition>
+                      </v-card>
+                    </v-hover>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
           </v-col>
         </v-row>
       </v-container>

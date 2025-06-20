@@ -84,7 +84,8 @@
         "create": "Créer la carte",
         "success": "Carte créée avec succès !",
         "mustBeLogged": "Vous devez être connecté pour créer une carte.",
-        "pleaseSelectImage": "Veuillez sélectionner une image."
+        "pleaseSelectImage": "Veuillez sélectionner une image.",
+        "isPublic": "Carte publique"
     },
     "mapDetails": {
         "title": "Carte :",
@@ -220,7 +221,7 @@
         },
         "error": {
             "validation": {
-                "name": "Le nom doit contenir entre 1 et 100 caractères",
+                "name": "Le nom doit contenir entre 1 et 40 caractères",
                 "category": "Une catégorie est requise"
             },
             "save": "Erreur lors de la sauvegarde du point d'intérêt",

@@ -250,7 +250,10 @@ async function updateMap(req, res) {
     }
 
     const updatedMap = await MapModel.updateMap(id, req.body);
-    res.json(updatedMap);
+    res.json({
+      message: 'Map updated successfully',
+      map: updatedMap
+    });
   } catch (err) {
     console.error('updateMap error:', err);
     if (err.message === 'Map name is required') {
@@ -269,8 +272,14 @@ async function deleteMap(req, res) {
     const { id } = req.params;
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
+
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+
     // Only owner can delete
-    if (!userId || userId !== map.ownerId) {
+    if (userId !== map.ownerId) {
       return res.status(403).json({ error: 'Forbidden: not the owner.' });
     }
     // Delete the map from DB
@@ -404,22 +413,6 @@ async function updateUserRole(req, res) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    // Check if current user is an editor
-    const currentRole = await MapModel.getUserRole(mapId, userId);
-    const isCurrentlyEditor = currentRole === 'editor_all' || currentRole === 'editor_own';
-
-    // If downgrading an editor to viewer or banned
-    if (isCurrentlyEditor && (role === 'viewer' || role === 'banned')) {
-      // Check if there are other editors left
-      const [editors] = await db.execute(
-        'SELECT COUNT(*) as count FROM map_user_roles WHERE map_id = ? AND role IN (?, ?) AND user_id != ?',
-        [mapId, 'editor_all', 'editor_own', userId]
-      );
-      if (editors[0].count === 0) {
-        return res.status(400).json({ error: 'Cannot remove the last editor. Please assign another editor first.' });
-      }
-    }
-
     await MapModel.addRole(mapId, userId, role);
     res.json({ message: 'Role updated successfully.' });
   } catch (err) {
@@ -454,22 +447,6 @@ async function removeUserRole(req, res) {
     // Prevent removing owner's role
     if (userId === map.ownerId) {
       return res.status(400).json({ error: 'Cannot remove owner\'s role.' });
-    }
-
-    // Check if current user is an editor
-    const currentRole = await MapModel.getUserRole(mapId, userId);
-    const isCurrentlyEditor = currentRole === 'editor_all' || currentRole === 'editor_own';
-
-    // If removing an editor's role
-    if (isCurrentlyEditor) {
-      // Check if there are other editors left
-      const [editors] = await db.execute(
-        'SELECT COUNT(*) as count FROM map_user_roles WHERE map_id = ? AND role IN (?, ?) AND user_id != ?',
-        [mapId, 'editor_all', 'editor_own', userId]
-      );
-      if (editors[0].count === 0) {
-        return res.status(400).json({ error: 'Cannot remove the last editor. Please assign another editor first.' });
-      }
     }
 
     await MapModel.removeRole(mapId, userId);

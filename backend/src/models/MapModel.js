@@ -27,6 +27,7 @@ async function createMap({ name, description, imageUrl, thumbnailUrl = null, isP
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId, imageWidth, imageHeight]
   );
+
   return { id, name, description, imageUrl, thumbnailUrl, isPublic, gameId, createdAt, ownerId, imageWidth, imageHeight };
 }
 
@@ -216,34 +217,33 @@ async function isBanned(mapId, userId) {
 
 // Check if a user can view a map
 async function canView(mapId, userId) {
-  if (!mapId) return false;
+  // If no userId provided, check if map is public
+  if (!userId) {
+    const [rows] = await db.execute('SELECT is_public FROM maps WHERE id = ?', [mapId]);
+    const isPublic = rows[0]?.is_public;
+    return !!isPublic;
+  }
 
-  // Get map info
-  const [rows] = await db.execute('SELECT * FROM maps WHERE id = ?', [mapId]);
-  if (!rows[0]) return false;
+  // First check if user is the owner
+  const [mapRows] = await db.execute('SELECT owner_id, is_public FROM maps WHERE id = ?', [mapId]);
+  if (!mapRows[0]) return false;
 
-  // Public maps are viewable by everyone
-  if (rows[0].is_public) return true;
+  // Owner can always view their own maps
+  if (mapRows[0].owner_id === userId) return true;
 
-  // Owner can always view
-  if (userId && rows[0].owner_id === userId) return true;
-
-  // Check if user has a valid role
-  if (!userId) return false;
-
-  // Check if user is banned
-  const [banned] = await db.execute(
-    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role = ?',
-    [mapId, userId, 'banned']
+  // Check if user has any role on the map
+  const [roleRows] = await db.execute(
+    'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ? LIMIT 1',
+    [mapId, userId]
   );
-  if (banned[0]) return false;
+  const hasRole = !!roleRows[0];
+  // If user has a role, they can view
+  if (hasRole) {
+    return true;
+  }
 
-  // Check if user has any valid role (viewer, editor, contributor)
-  const [role] = await db.execute(
-    'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role IN (?, ?, ?, ?)',
-    [mapId, userId, 'viewer', 'editor_all', 'editor_own', 'contributor']
-  );
-  return !!role[0];
+  // If no role, check if map is public
+  return !!mapRows[0].is_public;
 }
 
 // Check if a user can edit a map

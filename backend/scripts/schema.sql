@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS poi_logs (
   action VARCHAR(50) CHECK (action IN ('create', 'update')),
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   payload JSON,
-  FOREIGN KEY (poi_id) REFERENCES pois(id),
+  FOREIGN KEY (poi_id) REFERENCES pois(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

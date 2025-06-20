@@ -4,7 +4,7 @@ const categoryController = require('../controllers/categoryController');
 const { requireAuth } = require('../middlewares/authMiddleware');
 
 // Get all categories for a map
-router.get('/maps/:mapId/categories', categoryController.getCategoriesByMapId);
+router.get('/maps/:mapId/categories', requireAuth, categoryController.getCategoriesByMapId);
 
 // Get a specific category
 router.get('/categories/:id', requireAuth, categoryController.getCategoryById);

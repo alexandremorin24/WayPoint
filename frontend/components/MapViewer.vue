@@ -123,7 +123,7 @@ function cancelAddPoi() {
 }
 
 function validatePOIData(data: any) {
-  if (!data.name || data.name.length < 1 || data.name.length > 100) {
+  if (!data.name || data.name.length < 1 || data.name.length > 40) {
     throw new Error(t('poi.error.validation.name'))
   }
   if (!data.categoryId) {

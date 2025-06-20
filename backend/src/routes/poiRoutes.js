@@ -30,7 +30,7 @@ const handleMulterError = (err, req, res, next) => {
 };
 
 // Get all POIs for a map
-router.get('/map/:mapId', poiController.getPOIsByMapId);
+router.get('/map/:mapId', requireAuth, poiController.getPOIsByMapId);
 
 // Get all POIs for a category
 router.get('/category/:categoryId', requireAuth, poiMiddleware.canViewPOI, poiController.getPOIsByCategory);
