@@ -20,7 +20,7 @@ jobs:
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build Docker Image
-      run: docker build -t alexandremorin24/WayPoint-back:latest .
+      run: docker build -t alexandremorin24/waypoint-back:latest .
 
     - name: Push Docker Image
-      run: docker push alexandremorin24/WayPoint-back:latest
+      run: docker push alexandremorin24/waypoint-back:latest
