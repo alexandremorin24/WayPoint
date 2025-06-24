@@ -12,7 +12,10 @@
         "delete": "Delete",
         "edit": "Edit",
         "search": "Search",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "yes": "Yes",
+        "no": "No",
+        "unknown": "Unknown"
     },
     "navigation": {
         "home": "Home",
@@ -36,7 +39,16 @@
         "unknown": "An unknown error occurred",
         "deleteFailed": "Unable to delete the map",
         "fetchProfileFailed": "Unable to fetch user profile",
-        "fetchMapsFailed": "Unable to fetch your maps"
+        "fetchMapsFailed": "Unable to fetch your maps",
+        "insufficientPermissions": "You do not have the required permissions for this action",
+        "fetchInvitationsFailed": "Failed to fetch invitations",
+        "fetchCollaboratorsFailed": "Failed to fetch collaborators list",
+        "searchFailed": "Search failed",
+        "cancelFailed": "Failed to cancel invitation",
+        "notImplemented": "This feature is not yet available",
+        "invitationFailed": "Failed to send invitation",
+        "updateFailed": "Update failed",
+        "revokeFailed": "Failed to revoke access"
     },
     "auth": {
         "loginTitle": "Login",
@@ -171,10 +183,10 @@
     },
     "sidebar": {
         "menu": "Menu",
-        "addPoi": "Add POI",
-        "manageCategories": "Manage categories",
-        "manageCollaborators": "Manage collaborators",
-        "editMapInfo": "Edit map information",
+        "addPoi": "Add Point of Interest",
+        "manageCategories": "Manage Categories",
+        "manageCollaborators": "Manage Collaborators",
+        "editMapInfo": "Edit Information",
         "mapName": "Map name",
         "mapDescription": "Map description",
         "isPublic": "Public map",
@@ -243,5 +255,64 @@
         "created": "Created on",
         "updated": "Updated on",
         "by": "by"
+    },
+    "invitation": {
+        "title": "Collaboration Invitation",
+        "loading": "Loading invitation...",
+        "error": "Error",
+        "confirmTitle": "Collaboration Invitation",
+        "confirmDescription": "{owner} invites you to collaborate on the map \"{map}\" for the game \"{game}\".",
+        "roleTitle": "Do you accept the role of {role}?",
+        "accept": "Yes, I accept",
+        "reject": "No, I decline",
+        "confirmReject": "Are you sure you want to reject this invitation?",
+        "accepted": "Invitation accepted successfully",
+        "rejected": "Invitation rejected",
+        "inviteCollaborator": "Manage Collaborators",
+        "send": "Send Invitation",
+        "sent": "Invitation sent successfully",
+        "pendingInvitations": "Pending Invitations",
+        "collaborators": "Collaborators",
+        "searchUser": "Search User",
+        "emailOrUsername": "Email or username",
+        "confirmCancel": "Cancel Invitation",
+        "confirmCancelMessage": "Are you sure you want to cancel the invitation sent to {email}?",
+        "cancelled": "Invitation cancelled",
+        "roleUpdated": "Role updated successfully",
+        "confirmRevoke": "Revoke access",
+        "confirmRevokeMessage": "Are you sure you want to revoke {user}'s access?",
+        "revoked": "Access revoked successfully",
+        "typeMore": "Type at least 2 characters to search",
+        "noResults": "No results found"
+    },
+    "validation": {
+        "required": "This field is required",
+        "email": "Please enter a valid email address"
+    },
+    "roles": {
+        "editor_all": "Editor (all POIs)",
+        "editor_own": "Editor (own POIs)",
+        "contributor": "Contributor",
+        "viewer": "Viewer",
+        "editor_all_description": "Can edit all points of interest on the map",
+        "editor_own_description": "Can only edit their own points of interest",
+        "contributor_description": "Can add new points of interest",
+        "viewer_description": "Can only view the map and points of interest"
+    },
+    "success": {
+        "invitationSent": "Invitation sent successfully",
+        "roleUpdated": "Role updated successfully",
+        "accessRevoked": "Access revoked successfully"
+    },
+    "invitationSidebar": {
+        "searchOrEmail": "Search for a user or enter an email",
+        "searchHint": "Search for an existing user or invite someone by email",
+        "noUsers": "No users found",
+        "typeMore": "Type at least 2 characters",
+        "inviteByEmail": "Invite {email}",
+        "tryEmail": "Try inviting by email instead",
+        "searchUser": "Search for a user",
+        "noResults": "No users found",
+        "searching": "Searching..."
     }
 }

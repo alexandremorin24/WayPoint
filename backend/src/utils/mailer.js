@@ -3,6 +3,14 @@ const passwordResetTemplates = {
   en: require('../templates/emails/passwordReset.en'),
   fr: require('../templates/emails/passwordReset.fr')
 };
+const mapInvitationTemplates = {
+  en: require('../templates/emails/mapInvitation.en'),
+  fr: require('../templates/emails/mapInvitation.fr')
+};
+const invitationResponseTemplates = {
+  en: require('../templates/emails/invitationResponse.en'),
+  fr: require('../templates/emails/invitationResponse.fr')
+};
 
 // Email transporter setup
 const transporter = nodemailer.createTransport({
@@ -122,7 +130,79 @@ async function sendPasswordResetEmail(email, name, token, locale = 'en') {
   }
 }
 
+/**
+ * Send a map invitation email
+ * @param {string} to - Recipient email
+ * @param {string} inviterName - Name of the person sending the invitation
+ * @param {string} mapName - Name of the map
+ * @param {string} role - Role being offered
+ * @param {string} token - Invitation token
+ * @param {string} locale - User's preferred language (en/fr)
+ */
+async function sendMapInvitationEmail(to, inviterName, mapName, role, token, locale = 'en') {
+  const acceptUrl = `${process.env.FRONTEND_URL}/invitations/accept/${token}`;
+  const rejectUrl = `${process.env.FRONTEND_URL}/invitations/reject/${token}`;
+  const template = mapInvitationTemplates[locale] || mapInvitationTemplates.en;
+
+  const mailOptions = {
+    from: '"WayPoint" <no-reply@waypoint.app>',
+    to,
+    subject: template.subject,
+    html: template.html(inviterName, mapName, role, acceptUrl, rejectUrl)
+  };
+
+  try {
+    // In development, display URLs in console
+    console.log('📧 [DEV] Map invitation email would be sent to:', to);
+    console.log('🔗 [DEV] Accept URL:', acceptUrl);
+    console.log('🔗 [DEV] Reject URL:', rejectUrl);
+
+    await sendMailWithRetry(mailOptions);
+    console.log(`📧 Map invitation email sent to ${to}`);
+  } catch (err) {
+    console.error('Failed to send map invitation email:', err);
+    if (process.env.NODE_ENV === 'production') {
+      throw err;
+    }
+  }
+}
+
+/**
+ * Send an invitation response email to the inviter
+ * @param {string} to - Inviter's email
+ * @param {string} inviteeName - Name of the person who responded
+ * @param {string} mapName - Name of the map
+ * @param {string} status - Response status (accepted/rejected)
+ * @param {string} locale - User's preferred language (en/fr)
+ */
+async function sendInvitationResponseEmail(to, inviteeName, mapName, status, locale = 'en') {
+  const template = invitationResponseTemplates[locale] || invitationResponseTemplates.en;
+
+  const mailOptions = {
+    from: '"WayPoint" <no-reply@waypoint.app>',
+    to,
+    subject: template.subject(status),
+    html: template.html(inviteeName, mapName, status)
+  };
+
+  try {
+    // In development, display info in console
+    console.log(`📧 [DEV] Invitation response email would be sent to: ${to}`);
+    console.log(`📧 [DEV] Status: ${status}`);
+
+    await sendMailWithRetry(mailOptions);
+    console.log(`📧 Invitation response email sent to ${to}`);
+  } catch (err) {
+    console.error('Failed to send invitation response email:', err);
+    if (process.env.NODE_ENV === 'production') {
+      throw err;
+    }
+  }
+}
+
 module.exports = {
   sendVerificationEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendMapInvitationEmail,
+  sendInvitationResponseEmail
 };

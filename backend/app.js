@@ -11,6 +11,7 @@ const mapRoutes = require('./src/routes/mapRoutes');
 const poiRoutes = require('./src/routes/poiRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 const passwordResetRoutes = require('./src/routes/passwordResetRoutes');
+const invitationRoutes = require('./src/routes/invitationRoutes');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/backend/maps', mapRoutes);
 app.use('/api/backend/pois', poiRoutes);
 app.use('/api/backend', categoryRoutes);
 app.use('/api/backend/password-reset', passwordResetRoutes);
+app.use('/api/backend', invitationRoutes);
 
 // Fallback for testing
 app.get('/', (req, res) => {

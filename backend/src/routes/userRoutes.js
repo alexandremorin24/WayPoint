@@ -48,6 +48,9 @@ router.put('/me', requireAuth, express.json(), userController.updateMe);
 // Upload avatar (with file upload)
 router.put('/me/avatar', requireAuth, upload.single('avatar'), userController.uploadAvatar);
 
+// Search users
+router.get('/search', requireAuth, userController.searchUsers);
+
 // Multer error handler middleware (must be after all routes)
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {

@@ -82,14 +82,12 @@ const resetPassword = async (req, res) => {
     // Validate token
     const tokenData = await PasswordResetTokenModel.validateToken(token)
     if (!tokenData) {
-      console.log(`[Password Reset] Invalid token attempt: ${token}`)
       return res.status(400).json({ error: 'Invalid or expired token.' })
     }
 
     // Validate password strength
     const passwordValidation = validatePasswordStrength(password)
     if (!passwordValidation.valid) {
-      console.log(`[Password Reset] Weak password attempt for user: ${tokenData.user_id}`)
       return res.status(400).json({ error: passwordValidation.message })
     }
 
@@ -102,7 +100,6 @@ const resetPassword = async (req, res) => {
     // Mark token as used
     await PasswordResetTokenModel.markTokenAsUsed(token)
 
-    console.log(`[Password Reset] Successfully reset password for user: ${tokenData.user_id}`)
     res.status(200).json({ message: 'Password has been reset successfully.' })
   } catch (error) {
     console.error('[Password Reset] Error resetting password:', error)

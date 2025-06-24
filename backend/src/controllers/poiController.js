@@ -87,22 +87,13 @@ async function getPOIsByMapId(req, res) {
   try {
     const { mapId } = req.params;
     const userId = req.user?.id;
-
-    console.log('getPOIsByMapId - Debug Info:');
-    console.log('mapId:', mapId);
-    console.log('userId:', userId);
-
     // Check if map exists and user has access
     const map = await MapModel.findMapById(mapId);
-    console.log('map found:', map ? 'yes' : 'no');
-
     if (!map) {
       return res.status(404).json({ error: 'Map not found.' });
     }
 
     const canView = await MapModel.canView(mapId, userId);
-    console.log('canView result:', canView);
-
     if (!canView) {
       return res.status(403).json({ error: 'Forbidden: insufficient permissions to view POIs.' });
     }

@@ -53,7 +53,10 @@ function convertRowToMap(row) {
 // Find a map by its id
 async function findMapById(id) {
   const [rows] = await db.execute(
-    `SELECT m.*, g.name as game_name FROM maps m JOIN games g ON m.game_id = g.id WHERE m.id = ?`,
+    `SELECT m.*, g.name as game_name 
+     FROM maps m 
+     LEFT JOIN games g ON m.game_id = g.id 
+     WHERE m.id = ?`,
     [id]
   );
   if (!rows[0]) return null;

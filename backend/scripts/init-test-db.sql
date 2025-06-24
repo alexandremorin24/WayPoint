@@ -21,6 +21,7 @@ TRUNCATE TABLE map_votes;
 TRUNCATE TABLE pois;
 TRUNCATE TABLE categories;
 TRUNCATE TABLE map_user_roles;
+TRUNCATE TABLE map_invitations;
 
 -- 2. Main tables
 TRUNCATE TABLE maps;
@@ -44,6 +45,7 @@ SELECT
     (SELECT COUNT(*) FROM pois) as pois_count,
     (SELECT COUNT(*) FROM categories) as categories_count,
     (SELECT COUNT(*) FROM map_user_roles) as map_user_roles_count,
+    (SELECT COUNT(*) FROM map_invitations) as map_invitations_count,
     (SELECT COUNT(*) FROM maps) as maps_count,
     (SELECT COUNT(*) FROM users) as users_count,
     (SELECT COUNT(*) FROM games) as games_count;

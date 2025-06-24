@@ -304,16 +304,28 @@
     @close="mapInfoSidebarOpenProxy = false"
     @update:map="onMapUpdate"
   />
+
+  <InvitationSidebar
+    v-if="map"
+    :open="invitationSidebarOpen"
+    :map-id="map.id"
+    :game-id="map.gameId"
+    @close="invitationSidebarOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useI18n } from 'vue-i18n'
 import type { MapData } from '@/types/map'
 import type { Category } from '@/types/category'
 import MapInfoSidebar from './MapInfoSidebar.vue'
+import InvitationSidebar from './InvitationSidebar.vue'
 
 defineOptions({ name: 'AppSidebar' })
+
+const { t } = useI18n()
 
 const props = defineProps<{
   map: MapData
@@ -344,6 +356,8 @@ const mapInfoSidebarOpenProxy = computed({
   set: val => emit('update:map-info-sidebar-open', val)
 })
 
+const invitationSidebarOpen = ref(false)
+
 const { mobile } = useDisplay()
 const isMobile = computed(() => mobile.value)
 
@@ -362,23 +376,23 @@ const canManageCollaborators = computed(() => {
 const editOptions = computed(() => {
   const options = [
     {
-      title: 'Edit Map Info',
+      title: t('sidebar.editMapInfo'),
       action: onEditMapInfo
     },
     {
-      title: 'Manage Categories',
+      title: t('sidebar.manageCategories'),
       action: onManageCategories
     },
     {
-      title: 'Add POI',
+      title: t('sidebar.addPoi'),
       action: onAddPoi
     }
   ]
 
   if (canManageCollaborators.value) {
     options.splice(1, 0, {
-      title: 'Manage Collaborators',
-      action: () => emit('manage-collaborators')
+      title: t('sidebar.manageCollaborators'),
+      action: onManageCollaborators
     })
   }
 
@@ -436,6 +450,12 @@ function onEditMapInfo() {
 function onManageCategories() {
   emit('close-map-info')
   emit('manage-categories')
+}
+
+function onManageCollaborators() {
+  emit('close-map-info')
+  emit('close-categories')
+  invitationSidebarOpen.value = true
 }
 
 function onMapUpdate(updatedMap: MapData) {

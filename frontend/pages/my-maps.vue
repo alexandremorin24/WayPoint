@@ -93,8 +93,9 @@ const deleteDialog = ref(false)
 const deleteConfirmText = ref('')
 
 // ✅ Format de date lisible
-function formatDate(date?: string) {
-  return date ? new Date(date).toLocaleDateString() : ''
+function formatDate(date?: string | Date) {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString()
 }
 
 // ✅ Gestion image avec fallback
@@ -124,8 +125,6 @@ async function confirmDeleteMap() {
   try {
     loading.value = true
     const token = localStorage.getItem('token')
-    console.log('[Suppression] id carte à supprimer:', mapToDelete.value.id)
-    console.log('[Suppression] token:', token)
     if (!token) {
       router.push('/login')
       return
@@ -134,9 +133,7 @@ async function confirmDeleteMap() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })
-    console.log('[Suppression] status:', res.status)
     const resText = await res.text()
-    console.log('[Suppression] réponse brute:', resText)
     if (!res.ok) throw new Error(t('errors.deleteFailed') + ' (HTTP ' + res.status + ')')
     maps.value = maps.value.filter(m => m.id !== mapToDelete.value!.id)
     closeDeleteDialog()
@@ -178,9 +175,12 @@ async function fetchMyMaps(): Promise<void> {
     if (!mapsRes.ok) throw new Error(t('errors.fetchMapsFailed'))
 
     const raw: MapData[] = await mapsRes.json()
-    maps.value = raw.sort((a: MapData, b: MapData) => 
-      new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
-    )
+    maps.value = raw.sort((a: MapData, b: MapData) => {
+      const dateA = a.updatedAt || a.createdAt
+      const dateB = b.updatedAt || b.createdAt
+      if (!dateA || !dateB) return 0
+      return new Date(dateB).getTime() - new Date(dateA).getTime()
+    })
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : t('errors.unknown')
   } finally {

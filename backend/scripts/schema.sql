@@ -95,6 +95,29 @@ CREATE TABLE IF NOT EXISTS map_user_roles (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS map_invitations (
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  map_id CHAR(36) NOT NULL,
+  inviter_id CHAR(36) NOT NULL,
+  invitee_email VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL CHECK (
+    role IN (
+      'viewer',
+      'editor_all',
+      'editor_own',
+      'contributor'
+    )
+  ),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (
+    status IN ('pending', 'accepted', 'rejected', 'expired', 'cancelled')
+  ),
+  token VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS poi_user_stats (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,

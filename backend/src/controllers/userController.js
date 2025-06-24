@@ -196,4 +196,32 @@ exports.uploadAvatar = async (req, res) => {
     }
     res.status(500).json({ error: 'Failed to process image' });
   }
+};
+
+/**
+ * Search users by display name or email
+ */
+exports.searchUsers = async (req, res) => {
+  const { q } = req.query;
+  console.log('[DEBUG] Search query:', q);
+
+  if (!q || q.length < 2) {
+    console.log('[DEBUG] Query too short');
+    return res.status(400).json({ error: 'Search query must be at least 2 characters long' });
+  }
+
+  try {
+    const query = `SELECT id, email, display_name, photo_url as avatar_url FROM users WHERE (LOWER(display_name) LIKE ? OR LOWER(email) LIKE ?) AND id != ? LIMIT 10`;
+    const params = [`%${q.toLowerCase()}%`, `%${q.toLowerCase()}%`, req.user.id];
+    console.log('[DEBUG] SQL Query:', query);
+    console.log('[DEBUG] SQL Params:', params);
+
+    const [users] = await db.execute(query, params);
+    console.log('[DEBUG] Found users:', users);
+
+    res.json(users);
+  } catch (err) {
+    console.error('Error searching users:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }; 

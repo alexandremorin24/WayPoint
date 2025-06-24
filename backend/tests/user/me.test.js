@@ -35,9 +35,7 @@ describe('🔐 GET /api/backend/me', () => {
       [testUser.id]
     );
 
-    console.log('[DEBUG] created user ID:', testUser.id);
     const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [testUser.id]);
-    console.log('[DEBUG] user found in DB:', rows[0]);
 
     // Create a valid JWT token
     validToken = jwt.sign(

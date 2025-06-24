@@ -514,9 +514,7 @@ onMounted(async () => {
 
     // Setup map click handler
     setupMapClickHandler(leafletMap, props.addPoiMode, (e) => {
-      console.log('Map clicked:', e.latlng)
       if (!props.addPoiMode || !leafletMap) {
-        console.log('Not in addPoiMode or map not initialized')
         return
       }
 
@@ -540,9 +538,7 @@ watch(() => props.addPoiMode, (active) => {
     updateMapCursor(leafletMap.getContainer(), active)
     // Reconfigure the click handler
     setupMapClickHandler(leafletMap, active, (e) => {
-      console.log('Map clicked:', e.latlng)
       if (!leafletMap) {
-        console.log('Map not initialized')
         return
       }
 

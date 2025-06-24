@@ -18,6 +18,7 @@ const resetTestDatabase = async () => {
       await db.execute('TRUNCATE TABLE map_votes');
       await db.execute('TRUNCATE TABLE pois');
       await db.execute('TRUNCATE TABLE categories');
+      await db.execute('TRUNCATE TABLE map_invitations');
       await db.execute('TRUNCATE TABLE map_user_roles');
       await db.execute('TRUNCATE TABLE maps');
       await db.execute('TRUNCATE TABLE users');
@@ -34,14 +35,15 @@ const resetTestDatabase = async () => {
       const [mapVotes] = await db.query('SELECT COUNT(*) as count FROM map_votes');
       const [pois] = await db.query('SELECT COUNT(*) as count FROM pois');
       const [categories] = await db.query('SELECT COUNT(*) as count FROM categories');
+      const [mapInvitations] = await db.query('SELECT COUNT(*) as count FROM map_invitations');
       const [mapUserRoles] = await db.query('SELECT COUNT(*) as count FROM map_user_roles');
       const [maps] = await db.query('SELECT COUNT(*) as count FROM maps');
       const [users] = await db.query('SELECT COUNT(*) as count FROM users');
       const [games] = await db.query('SELECT COUNT(*) as count FROM games');
 
       if (poiLogs[0].count > 0 || poiUserStats[0].count > 0 || mapVotes[0].count > 0 ||
-        pois[0].count > 0 || categories[0].count > 0 || mapUserRoles[0].count > 0 ||
-        maps[0].count > 0 || users[0].count > 0 || games[0].count > 0) {
+        pois[0].count > 0 || categories[0].count > 0 || mapInvitations[0].count > 0 ||
+        mapUserRoles[0].count > 0 || maps[0].count > 0 || users[0].count > 0 || games[0].count > 0) {
         throw new Error('Tables not properly truncated');
       }
 
