@@ -102,11 +102,13 @@ const props = defineProps<{
   map: MapData
   addPoiMode: boolean
   categories?: Category[]
+  visibleCategories?: string[]
 }>()
 
 const emit = defineEmits<{
   (e: 'cancel-poi'): void
   (e: 'show-sidebar'): void
+  (e: 'update:visible-categories', categories: string[]): void
 }>()
 
 interface POI extends MapMarker {
@@ -417,6 +419,32 @@ function handlePoiForm(poi: POIData | null, latlng: LatLng, onSave: () => void) 
   }
 }
 
+// Update the visibility of the markers of a category
+function updateMarkersVisibility(categoryId: string, visible: boolean) {
+  pois.value.forEach(poi => {
+    if (poi.category === categoryId && poi.marker) {
+      poi.marker.setOpacity(visible ? 1 : 0)
+      const icon = poi.marker.getElement()
+      if (icon) {
+        icon.style.pointerEvents = visible ? 'auto' : 'none'
+      }
+    }
+  })
+}
+
+// Update the visibility of all markers
+function updateAllMarkersVisibility(visible: boolean) {
+  pois.value.forEach(poi => {
+    if (poi.marker) {
+      poi.marker.setOpacity(visible ? 1 : 0)
+      const icon = poi.marker.getElement()
+      if (icon) {
+        icon.style.pointerEvents = visible ? 'auto' : 'none'
+      }
+    }
+  })
+}
+
 onMounted(async () => {
   L = (await import('leaflet')).default
   await import('leaflet/dist/leaflet.css')
@@ -535,6 +563,23 @@ watch(() => props.categories, (newCategories) => {
   if (newCategories) {
     categories.value = newCategories
   }
+}, { deep: true })
+
+// Add the watch for the visibility of the categories
+watch(() => props.visibleCategories, (newVisibleCategories) => {
+  if (!newVisibleCategories) return
+  
+  // Update the visibility of all markers
+  pois.value.forEach(poi => {
+    if (poi.marker) {
+      const isVisible = newVisibleCategories.includes(poi.category)
+      poi.marker.setOpacity(isVisible ? 1 : 0)
+      const icon = poi.marker.getElement()
+      if (icon) {
+        icon.style.pointerEvents = isVisible ? 'auto' : 'none'
+      }
+    }
+  })
 }, { deep: true })
 </script>
 

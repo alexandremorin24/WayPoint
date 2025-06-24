@@ -197,7 +197,10 @@
         "cannotDeleteParent": "You cannot delete a category that has subcategories. Please delete or move the subcategories first.",
         "yes": "Yes",
         "no": "No",
-        "editOptions": "Edit Options"
+        "editOptions": "Edit Options",
+        "pois": "Points of Interest",
+        "showAll": "Show all",
+        "hideAll": "Hide all"
     },
     "poi": {
         "form": {

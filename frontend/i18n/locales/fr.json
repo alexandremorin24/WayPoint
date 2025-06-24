@@ -198,7 +198,10 @@
         "cannotDeleteParent": "Impossible de supprimer une catégorie qui possède des sous-catégories. Veuillez d'abord supprimer ou déplacer les sous-catégories.",
         "yes": "Oui",
         "no": "Non",
-        "editOptions": "Options d'édition"
+        "editOptions": "Options d'édition",
+        "pois": "Points d'intérêt",
+        "showAll": "Tout afficher",
+        "hideAll": "Tout masquer"
     },
     "poi": {
         "form": {
