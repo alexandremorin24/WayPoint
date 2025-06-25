@@ -58,7 +58,6 @@ out/
 
 # 📦 Docker
 *.dockerignore
-Dockerfile
 
 # Local playground for temporary code and UI tests
 .playground/
