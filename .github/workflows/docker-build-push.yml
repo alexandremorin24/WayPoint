@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   build_back:
@@ -20,7 +21,7 @@ jobs:
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build Docker Image
-      run: docker build -t overflooow/waypoint-back:latest .
+      run: docker build -t overflooow/waypoint-back:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }} .
 
     - name: Push Docker Image
-      run: docker push overflooow/waypoint-back:latest
+      run: docker push overflooow/waypoint-back:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }}
