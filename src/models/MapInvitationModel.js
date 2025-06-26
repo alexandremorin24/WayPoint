@@ -48,12 +48,20 @@ async function createInvitation({ mapId, inviterId, inviteeEmail, role }) {
  */
 async function findInvitationByToken(token) {
   const [rows] = await db.execute(
-    `SELECT i.*, m.name as map_name, u.display_name as inviter_name 
-     FROM map_invitations i
-     JOIN maps m ON i.map_id = m.id
-     JOIN users u ON i.inviter_id = u.id
-     WHERE i.token = ? AND i.status = 'pending' AND i.expires_at > NOW()
-     LIMIT 1`,
+    `SELECT 
+      i.*,
+      m.name as map_name,
+      m.game_id,
+      g.id as game_id,
+      g.name as game_name,
+      u.display_name as inviter_name,
+      u.email as inviter_email
+    FROM map_invitations i
+    JOIN maps m ON i.map_id = m.id
+    JOIN games g ON m.game_id = g.id
+    JOIN users u ON i.inviter_id = u.id
+    WHERE i.token = ?
+    LIMIT 1`,
     [token]
   );
   return rows[0] || null;
@@ -84,6 +92,9 @@ async function updateInvitationStatus(token, status) {
  * @returns {Promise<boolean>}
  */
 async function checkExistingInvitation(mapId, inviteeEmail) {
+  // Clean up expired invitations first
+  await cleanupExpiredInvitations();
+
   const [rows] = await db.execute(
     `SELECT COUNT(*) as count 
      FROM map_invitations 
@@ -154,6 +165,10 @@ async function cancelInvitation(invitationId, inviterId) {
   return result.affectedRows > 0;
 }
 
+async function isInvitationValid(invitation) {
+  return invitation.status === 'pending' && new Date(invitation.expires_at) > new Date();
+}
+
 module.exports = {
   createInvitation,
   findInvitationByToken,
@@ -162,5 +177,6 @@ module.exports = {
   cleanupExpiredInvitations,
   getPendingInvitationsForMap,
   getPendingInvitationsForUser,
-  cancelInvitation
+  cancelInvitation,
+  isInvitationValid
 }; 

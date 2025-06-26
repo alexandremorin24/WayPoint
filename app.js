@@ -20,7 +20,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Middlewares
 app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: process.env.NODE_ENV === 'test' ? '*' : 'http://localhost:3001',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -28,13 +28,16 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
-app.use('/api/backend', authRoutes);
-app.use('/api/backend', userRoutes);
-app.use('/api/backend/maps', mapRoutes);
-app.use('/api/backend/pois', poiRoutes);
-app.use('/api/backend', categoryRoutes);
-app.use('/api/backend/password-reset', passwordResetRoutes);
-app.use('/api/backend', invitationRoutes);
+const apiRouter = express.Router();
+apiRouter.use('/', authRoutes);
+apiRouter.use('/', userRoutes);
+apiRouter.use('/maps', mapRoutes);
+apiRouter.use('/pois', poiRoutes);
+apiRouter.use('/', categoryRoutes);
+apiRouter.use('/password-reset', passwordResetRoutes);
+apiRouter.use('/', invitationRoutes);
+
+app.use('/api/backend', apiRouter);
 
 // Fallback for testing
 app.get('/', (req, res) => {

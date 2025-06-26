@@ -156,7 +156,7 @@ describe('🗺️ Map Roles Management', () => {
       const res = await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
       expect(res.statusCode).toBe(200);
     });
 
@@ -199,7 +199,7 @@ describe('🗺️ Map Roles Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
 
       // Remove the editor role
       const res = await request(app)
@@ -232,7 +232,7 @@ describe('🗺️ Map Roles Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
 
       const res = await request(app)
         .get(`/api/backend/maps/${mapId}`)
@@ -256,19 +256,6 @@ describe('🗺️ Map Roles Management', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('should deny access to banned user', async () => {
-      // Ban the viewer
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'banned' });
-
-      const res = await request(app)
-        .get(`/api/backend/maps/${mapId}`)
-        .set('Authorization', `Bearer ${tokenViewer}`);
-      expect(res.statusCode).toBe(403);
-    });
-
     it('should deny access to stranger', async () => {
       const res = await request(app)
         .get(`/api/backend/maps/${mapId}`)
@@ -276,29 +263,16 @@ describe('🗺️ Map Roles Management', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should allow editor_own to edit their own POIs', async () => {
-      // Add editor_own role
+    it('should allow editor to edit POIs', async () => {
+      // Add editor role
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_own' });
+        .send({ role: 'editor' });
 
       const res = await request(app)
         .get(`/api/backend/maps/${mapId}`)
         .set('Authorization', `Bearer ${tokenEditor}`);
-      expect(res.statusCode).toBe(200);
-    });
-
-    it('should allow contributor to add POIs', async () => {
-      // Add contributor role
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'contributor' });
-
-      const res = await request(app)
-        .get(`/api/backend/maps/${mapId}`)
-        .set('Authorization', `Bearer ${tokenViewer}`);
       expect(res.statusCode).toBe(200);
     });
   });
@@ -309,7 +283,7 @@ describe('🗺️ Map Roles Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
 
       // Downgrade to viewer should be allowed
       const res = await request(app)
@@ -324,7 +298,7 @@ describe('🗺️ Map Roles Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
 
       // Change to viewer
       let res = await request(app)
@@ -333,18 +307,11 @@ describe('🗺️ Map Roles Management', () => {
         .send({ role: 'viewer' });
       expect(res.statusCode).toBe(200);
 
-      // Change to contributor
-      res = await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'contributor' });
-      expect(res.statusCode).toBe(200);
-
       // Change back to editor
       res = await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
       expect(res.statusCode).toBe(200);
     });
   });
@@ -390,7 +357,7 @@ describe('🗺️ Map Roles Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
 
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
@@ -406,7 +373,7 @@ describe('🗺️ Map Roles Management', () => {
         const editorUser = res.body.find(u => u.id === editor.id);
         const viewerUser = res.body.find(u => u.id === viewer.id);
         expect(editorUser).toBeDefined();
-        expect(editorUser.role).toBe('editor_all');
+        expect(editorUser.role).toBe('editor');
         expect(viewerUser).toBeDefined();
         expect(viewerUser.role).toBe('viewer');
       } else {
@@ -417,17 +384,6 @@ describe('🗺️ Map Roles Management', () => {
   });
 
   describe('Role management security', () => {
-    it('should prevent self-banning', async () => {
-      // Clean up existing roles
-      await db.execute('DELETE FROM map_user_roles WHERE map_id = ?', [mapId]);
-
-      const res = await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${owner.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'banned' });
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toBe('You cannot ban yourself.');
-    });
 
     it('should prevent self-role-removal', async () => {
       // Clean up existing roles
@@ -437,7 +393,7 @@ describe('🗺️ Map Roles Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${owner.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
 
       const res = await request(app)
         .delete(`/api/backend/maps/${mapId}/users/${owner.id}/role`)
@@ -453,10 +409,7 @@ describe('🗺️ Map Roles Management', () => {
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body.roles)).toBe(true);
         expect(res.body.roles).toContain('viewer');
-        expect(res.body.roles).toContain('editor_all');
-        expect(res.body.roles).toContain('editor_own');
-        expect(res.body.roles).toContain('contributor');
-        expect(res.body.roles).toContain('banned');
+        expect(res.body.roles).toContain('editor');
       });
 
       it('should get current user role', async () => {
@@ -473,13 +426,13 @@ describe('🗺️ Map Roles Management', () => {
         await request(app)
           .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
           .set('Authorization', `Bearer ${tokenOwner}`)
-          .send({ role: 'editor_all' });
+          .send({ role: 'editor' });
 
         const editorRes = await request(app)
           .get(`/api/backend/maps/${mapId}/role`)
           .set('Authorization', `Bearer ${tokenEditor}`);
         expect(editorRes.statusCode).toBe(200);
-        expect(editorRes.body.role).toBe('editor_all');
+        expect(editorRes.body.role).toBe('editor');
 
         // Test no role
         await db.execute('DELETE FROM map_user_roles WHERE map_id = ? AND user_id = ?', [mapId, stranger.id]);

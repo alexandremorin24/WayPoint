@@ -3,8 +3,9 @@ const MapModel = require('../models/MapModel');
 const UserModel = require('../models/UserModel');
 const { sendMapInvitationEmail, sendInvitationResponseEmail } = require('../utils/mailer');
 const jwt = require('jsonwebtoken');
-const { ROLES } = require('../models/roles');
+const { ROLES, getRolePermissions } = require('../models/roles');
 const db = require('../utils/db');
+const bcrypt = require('bcrypt');
 
 /**
  * Send a map invitation
@@ -12,12 +13,17 @@ const db = require('../utils/db');
 async function sendInvitation(req, res) {
   try {
     const { mapId } = req.params;
-    const { email, role } = req.body;
+    const { role, email } = req.body;
     const inviterId = req.user.id;
 
     // Validate role
     if (!role || !ROLES.includes(role)) {
       return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    // Validate email
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
     }
 
     // Verify that the inviter is the map owner
@@ -43,6 +49,17 @@ async function sendInvitation(req, res) {
       role
     });
 
+    // Log invitation link for testing
+    console.log('\n=== INVITATION LINK FOR TESTING ===');
+    // Utiliser la langue préférée de l'invité ou 'en' par défaut
+    const [inviteeRows] = await db.execute(
+      `SELECT preferred_language FROM users WHERE email = ?`,
+      [email]
+    );
+    const lang = inviteeRows?.[0]?.preferred_language || 'en';
+    console.log(`${process.env.FRONTEND_URL}/${lang}/invitations/${invitation.token}`);
+    console.log('===================================\n');
+
     // Send the invitation email
     await sendMapInvitationEmail(
       email,
@@ -56,7 +73,7 @@ async function sendInvitation(req, res) {
     res.status(201).json({ message: 'Invitation sent successfully' });
   } catch (error) {
     console.error('Error sending invitation:', error);
-    res.status(500).json({ error: 'Failed to send invitation' });
+    res.status(500).json({ error: error.message });
   }
 }
 
@@ -69,24 +86,61 @@ async function checkInvitationToken(req, res) {
 
     const invitation = await MapInvitationModel.findInvitationByToken(token);
     if (!invitation) {
-      return res.status(404).json({ error: 'Invalid or expired invitation' });
+      return res.status(404).json({
+        error: 'Invitation not found',
+        code: 'INVITATION_NOT_FOUND'
+      });
     }
 
-    // Check if the email already has an account
-    const existingUser = await UserModel.findUserByEmail(invitation.invitee_email);
-
-    res.json({
+    // Build the response
+    const response = {
       invitation: {
-        mapName: invitation.map_name,
+        status: invitation.status,
         inviterName: invitation.inviter_name,
+        mapName: invitation.map_name,
+        gameName: invitation.game_name,
+        gameId: invitation.game_id,
+        mapId: invitation.map_id,
+        role: invitation.role,
         email: invitation.invitee_email,
-        role: invitation.role
-      },
-      hasAccount: !!existingUser
-    });
+        expiresAt: invitation.expires_at,
+        updatedAt: invitation.updated_at || invitation.created_at
+      }
+    };
+
+    // Check if the invitation is still valid
+    const isValid = await MapInvitationModel.isInvitationValid(invitation);
+    if (isValid) {
+      response.invitation.canAccept = true;
+      response.invitation.permissions = getRolePermissions(invitation.role);
+
+      // Simplified authentication logic
+      if (req.user) {
+        if (req.user.email.toLowerCase() === invitation.invitee_email.toLowerCase()) {
+          // Connected with the correct account
+          response.authStatus = 'ready';
+        } else {
+          // Connected with the wrong account
+          response.authStatus = 'wrong_account';
+          response.currentUserEmail = req.user.email;
+        }
+      } else {
+        // Not connected
+        response.authStatus = 'needs_auth';
+
+        // Check if the user already has an account
+        const existingUser = await UserModel.findUserByEmail(invitation.invitee_email);
+        response.hasAccount = !!existingUser;
+      }
+    }
+
+    res.json(response);
   } catch (error) {
     console.error('Error checking invitation:', error);
-    res.status(500).json({ error: 'Failed to check invitation' });
+    res.status(500).json({
+      error: 'Failed to check invitation',
+      code: 'INVITATION_CHECK_FAILED'
+    });
   }
 }
 
@@ -96,103 +150,153 @@ async function checkInvitationToken(req, res) {
 async function handleInvitationResponse(req, res) {
   try {
     const { token } = req.params;
-    const { action, registrationData } = req.body; // registrationData is optional
+    const { action, registrationData } = req.body;
 
     if (!['accept', 'reject'].includes(action)) {
-      return res.status(400).json({ error: 'Invalid action' });
+      return res.status(400).json({
+        error: 'Invalid action',
+        code: 'INVALID_ACTION'
+      });
     }
 
     // Find and validate the invitation
     const invitation = await MapInvitationModel.findInvitationByToken(token);
     if (!invitation) {
-      return res.status(404).json({ error: 'Invalid or expired invitation' });
+      return res.status(404).json({
+        error: 'Invitation not found',
+        code: 'INVITATION_NOT_FOUND'
+      });
     }
 
-    // If accepting, we need to handle user creation/verification
-    if (action === 'accept') {
-      let userId;
-      let existingUser;
+    // Check if the invitation has already been processed
+    if (invitation.status === 'accepted' || invitation.status === 'rejected') {
+      return res.status(400).json({
+        error: `Cette invitation a déjà été ${invitation.status === 'accepted' ? 'acceptée' : 'refusée'}`,
+        code: 'INVITATION_ALREADY_PROCESSED'
+      });
+    }
 
-      // Check if user exists
-      existingUser = await UserModel.findUserByEmail(invitation.invitee_email);
+    // Check if the invitation is expired or cancelled
+    if (invitation.status === 'expired' || invitation.status === 'cancelled' || new Date(invitation.expires_at) <= new Date()) {
+      return res.status(400).json({
+        error: 'Cette invitation n\'est plus valide',
+        code: 'INVITATION_INVALID'
+      });
+    }
 
-      if (existingUser) {
-        // If user exists, they must be logged in
-        if (!req.user || req.user.email !== invitation.invitee_email) {
-          return res.status(403).json({
-            error: 'You must be logged in with the invited email address to accept this invitation'
-          });
-        }
-        userId = existingUser.id;
-      } else {
-        // Create new user if registration data is provided
-        if (!registrationData) {
-          return res.status(400).json({
-            error: 'Registration data required for new account'
-          });
-        }
+    // Check the connection state
+    const existingUser = await UserModel.findUserByEmail(invitation.invitee_email);
+    let newUser = null;
 
-        // Validate registration data
-        if (!registrationData.displayName || !registrationData.password) {
-          return res.status(400).json({
-            error: 'Display name and password are required'
-          });
-        }
-
-        // Create the user account
-        const newUser = await UserModel.createUser({
-          email: invitation.invitee_email,
-          passwordHash: registrationData.password, // Note: Hash this in the actual implementation
-          displayName: registrationData.displayName,
-          emailVerified: true // Auto-verify since we know they got the invitation email
+    if (existingUser) {
+      // If the user exists, they must be connected with the correct account
+      if (!req.user || req.user.email.toLowerCase() !== invitation.invitee_email.toLowerCase()) {
+        return res.status(403).json({
+          error: 'You must be logged in with the invited email address to accept this invitation',
+          code: 'WRONG_USER'
         });
-        userId = newUser.id;
+      }
+    } else if (action === 'accept') {
+      // Account creation is required to accept
+      if (!registrationData) {
+        return res.status(400).json({
+          error: 'Registration data required for new account',
+          code: 'REGISTRATION_REQUIRED'
+        });
+      }
 
-        // Log the user in by generating a token
-        const token = jwt.sign(
-          { id: userId, email: invitation.invitee_email },
+      // Validate registration data
+      if (!registrationData.displayName || !registrationData.password) {
+        return res.status(400).json({
+          error: 'Display name and password are required',
+          code: 'INVALID_REGISTRATION_DATA'
+        });
+      }
+
+      try {
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(registrationData.password, salt);
+
+        // Create the account
+        newUser = await UserModel.createUser({
+          email: invitation.invitee_email,
+          passwordHash,
+          displayName: registrationData.displayName,
+          emailVerified: true,
+          preferredLanguage: req.query.lang || 'en'
+        });
+
+        // Generate the connection token
+        const authToken = jwt.sign(
+          { id: newUser.id, email: invitation.invitee_email },
           process.env.JWT_SECRET,
           { expiresIn: '1h' }
         );
 
-        // Add token to response
-        res.setHeader('X-Auth-Token', token);
-      }
-
-      // Add the user role to the map
-      await MapModel.addRole(invitation.map_id, userId, invitation.role);
-    }
-
-    // Update invitation status
-    const status = action === 'accept' ? 'accepted' : 'rejected';
-    await MapInvitationModel.updateInvitationStatus(token, status);
-
-    // Get inviter details for the response email
-    const inviter = await UserModel.findUserById(invitation.inviter_id);
-
-    // Send response email to the inviter
-    if (inviter) {
-      try {
-        await sendInvitationResponseEmail(
-          inviter.email,
-          existingUser ? existingUser.display_name : (registrationData ? registrationData.displayName : ''),
-          invitation.map_name,
-          status,
-          inviter.preferred_language
-        );
+        res.setHeader('X-Auth-Token', authToken);
       } catch (error) {
-        console.error('Error sending response email:', error);
-        // Continue execution even if email fails
+        console.error('Error creating user:', error);
+        return res.status(500).json({
+          error: 'Failed to create user account',
+          code: 'USER_CREATION_FAILED'
+        });
       }
     }
 
-    res.json({
-      message: `Invitation ${status} successfully`,
-      redirectTo: action === 'accept' ? `/maps/${invitation.map_id}` : '/'
-    });
+    try {
+      // Update the invitation status
+      const status = action === 'accept' ? 'accepted' : 'rejected';
+      await MapInvitationModel.updateInvitationStatus(token, status);
+
+      // Add the role if accepted
+      if (action === 'accept') {
+        const userId = existingUser ? existingUser.id : newUser.id;
+        await MapModel.addRole(invitation.map_id, userId, invitation.role);
+      }
+
+      // Send the response email
+      const inviter = await UserModel.findUserById(invitation.inviter_id);
+      if (inviter) {
+        try {
+          await sendInvitationResponseEmail(
+            inviter.email,
+            existingUser ? existingUser.display_name : (registrationData ? registrationData.displayName : ''),
+            invitation.map_name,
+            status,
+            inviter.preferred_language
+          );
+        } catch (error) {
+          console.error('Error sending response email:', error);
+        }
+      }
+
+      // Determine the language for the redirection
+      const userLang = (
+        req.user?.preferred_language ||
+        existingUser?.preferred_language ||
+        req.query.lang ||
+        'en'
+      );
+
+      res.json({
+        message: `Invitation ${status} successfully`,
+        redirectTo: action === 'accept' ? `/${userLang}/maps/${invitation.game_id}/${invitation.map_id}` : `/${userLang}/`,
+        status
+      });
+    } catch (error) {
+      console.error('Error handling invitation response:', error);
+      res.status(500).json({
+        error: 'Failed to process invitation response',
+        code: 'INVITATION_RESPONSE_FAILED'
+      });
+    }
   } catch (error) {
     console.error('Error handling invitation response:', error);
-    res.status(500).json({ error: 'Failed to process invitation response' });
+    res.status(500).json({
+      error: 'Failed to process invitation response',
+      code: 'INVITATION_RESPONSE_FAILED'
+    });
   }
 }
 

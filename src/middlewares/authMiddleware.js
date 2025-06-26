@@ -19,7 +19,7 @@ function requireAuth(req, res, next) {
 }
 
 function validatePassword(req, res, next) {
-  const { password } = req.body;
+  const password = req.body.password || (req.body.registrationData && req.body.registrationData.password);
 
   if (!password) {
     return res.status(400).json({ error: 'Password is required' });

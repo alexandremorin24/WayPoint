@@ -65,7 +65,7 @@ async function registerUser(req, res) {
     await sendVerificationEmail(normalizedEmail, token);
 
     console.log(`[DEV] Use this link to verify manually:`);
-    console.log(`http://localhost:3000/api/verify-email?token=${token}`);
+    console.log(`http://localhost:3000/api/backend/verify-email?token=${token}`);
 
     return res.status(201).json({
       message: 'User created successfully',
@@ -162,7 +162,7 @@ async function verifyEmail(req, res) {
 
     await updateUserEmailVerified(user.id);
 
-    return res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
+    return res.redirect(`${process.env.FRONTEND_URL}/verify-email?verified=true`);
 
   } catch (err) {
     console.error('verifyEmail Error :', err);

@@ -179,11 +179,6 @@ async function getMapById(req, res) {
       return res.status(403).json({ error: 'Forbidden: private map.' });
     }
 
-    // Check if user is banned
-    if (userId && await MapModel.isBanned(map.id, userId)) {
-      return res.status(403).json({ error: 'Forbidden: you are banned from this map.' });
-    }
-
     // Get user role if authenticated
     let userRole = null;
     if (userId) {
@@ -395,11 +390,6 @@ async function updateUserRole(req, res) {
     // Check if role is valid
     if (!roles.ROLES.includes(role)) {
       return res.status(400).json({ error: 'Invalid role.' });
-    }
-
-    // Prevent self-banning
-    if (currentUserId === userId && role === 'banned') {
-      return res.status(400).json({ error: 'You cannot ban yourself.' });
     }
 
     // Prevent changing owner's role

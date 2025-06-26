@@ -103,15 +103,36 @@ CREATE TABLE IF NOT EXISTS map_user_roles (
   role VARCHAR(50) NOT NULL CHECK (
     role IN (
       'viewer',
-      'banned',
-      'editor_all',
-      'editor_own',
-      'contributor'
+      'editor'
     )
   ),
   PRIMARY KEY (map_id, user_id),
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 📧 Invitations aux cartes
+CREATE TABLE IF NOT EXISTS map_invitations (
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  map_id CHAR(36) NOT NULL,
+  inviter_id CHAR(36) NOT NULL,
+  invitee_email VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL CHECK (
+    role IN (
+      'viewer',
+      'editor'
+    )
+  ),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (
+    status IN ('pending', 'accepted', 'rejected', 'expired', 'cancelled')
+  ),
+  token VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+  -- Empêcher les invitations en double pour la même carte et email
+  UNIQUE KEY unique_pending_invitation (map_id, invitee_email, status)
 );
 
 -- 🧮 Statistiques utilisateur POI
@@ -163,6 +184,13 @@ CREATE INDEX idx_poi_logs_poi ON poi_logs(poi_id);
 CREATE INDEX idx_poi_logs_user ON poi_logs(user_id);
 CREATE INDEX idx_poi_user_stats_user ON poi_user_stats(user_id);
 CREATE INDEX idx_map_votes_map_user ON map_votes(map_id, user_id);
+
+-- 🤝 Index collaboration optimisés
+CREATE INDEX idx_map_user_roles_map_user ON map_user_roles(map_id, user_id);
+CREATE INDEX idx_map_user_roles_user_role ON map_user_roles(user_id, role);
+CREATE INDEX idx_map_invitations_email_status ON map_invitations(invitee_email, status);
+CREATE INDEX idx_map_invitations_token ON map_invitations(token);
+CREATE INDEX idx_map_invitations_expires ON map_invitations(expires_at, status);
 
 -- Exemple de requête de pagination pour les cartes publiques :
 -- SELECT * FROM maps WHERE is_public = true ORDER BY created_at DESC LIMIT 20 OFFSET 0;

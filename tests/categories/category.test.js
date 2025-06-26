@@ -14,7 +14,6 @@ const testGame = 'CategoryTestGame';
 const ownerEmail = 'owner-category@example.com';
 const editorEmail = 'editor-category@example.com';
 const viewerEmail = 'viewer-category@example.com';
-const contributorEmail = 'contributor-category@example.com';
 const strangerEmail = 'stranger-category@example.com';
 
 async function createTestImage(name) {
@@ -33,21 +32,23 @@ async function createTestImage(name) {
 }
 
 describe('🏷️ Category Management', () => {
-  let owner, editor, viewer, contributor, stranger;
-  let tokenOwner, tokenEditor, tokenViewer, tokenContributor, tokenStranger;
+  let owner, editor, viewer, stranger;
+  let tokenOwner, tokenEditor, tokenViewer, tokenStranger;
   let mapId;
   let testCategory;
   let testImagePath;
 
   beforeAll(async () => {
-    // Clean up test data
+    // Clean up test data (disable FK checks temporarily)
+    await db.execute('SET FOREIGN_KEY_CHECKS = 0');
     await db.execute('DELETE FROM categories WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['Category Test Map']);
     await db.execute('DELETE FROM map_user_roles WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['Category Test Map']);
     await db.execute('DELETE FROM maps WHERE name = ?', ['Category Test Map']);
-    await db.execute('DELETE FROM users WHERE email IN (?, ?, ?, ?, ?)', [
-      ownerEmail, editorEmail, viewerEmail, contributorEmail, strangerEmail
+    await db.execute('DELETE FROM users WHERE email IN (?, ?, ?, ?)', [
+      ownerEmail, editorEmail, viewerEmail, strangerEmail
     ]);
     await db.execute('DELETE FROM games WHERE id = ?', [testGame]);
+    await db.execute('SET FOREIGN_KEY_CHECKS = 1');
 
     // Create test game
     await db.execute(
@@ -59,14 +60,12 @@ describe('🏷️ Category Management', () => {
     owner = await createUser({ email: ownerEmail, passwordHash: 'hash', displayName: 'Owner' });
     editor = await createUser({ email: editorEmail, passwordHash: 'hash', displayName: 'Editor' });
     viewer = await createUser({ email: viewerEmail, passwordHash: 'hash', displayName: 'Viewer' });
-    contributor = await createUser({ email: contributorEmail, passwordHash: 'hash', displayName: 'Contributor' });
     stranger = await createUser({ email: strangerEmail, passwordHash: 'hash', displayName: 'Stranger' });
 
     // Generate tokens
     tokenOwner = jwt.sign({ id: owner.id, email: ownerEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
     tokenEditor = jwt.sign({ id: editor.id, email: editorEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
     tokenViewer = jwt.sign({ id: viewer.id, email: viewerEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
-    tokenContributor = jwt.sign({ id: contributor.id, email: contributorEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
     tokenStranger = jwt.sign({ id: stranger.id, email: strangerEmail }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
     // Create test map
@@ -89,17 +88,12 @@ describe('🏷️ Category Management', () => {
     await request(app)
       .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
       .set('Authorization', `Bearer ${tokenOwner}`)
-      .send({ role: 'editor_all' });
+      .send({ role: 'editor' });
 
     await request(app)
       .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
       .set('Authorization', `Bearer ${tokenOwner}`)
       .send({ role: 'viewer' });
-
-    await request(app)
-      .put(`/api/backend/maps/${mapId}/users/${contributor.id}/role`)
-      .set('Authorization', `Bearer ${tokenOwner}`)
-      .send({ role: 'contributor' });
 
     // Create test category
     const createRes = await request(app)
@@ -125,14 +119,16 @@ describe('🏷️ Category Management', () => {
       }
     }
 
-    // Final cleanup
+    // Final cleanup (disable FK checks temporarily)
+    await db.execute('SET FOREIGN_KEY_CHECKS = 0');
     await db.execute('DELETE FROM categories WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['Category Test Map']);
     await db.execute('DELETE FROM map_user_roles WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['Category Test Map']);
     await db.execute('DELETE FROM maps WHERE name = ?', ['Category Test Map']);
-    await db.execute('DELETE FROM users WHERE email IN (?, ?, ?, ?, ?)', [
-      ownerEmail, editorEmail, viewerEmail, contributorEmail, strangerEmail
+    await db.execute('DELETE FROM users WHERE email IN (?, ?, ?, ?)', [
+      ownerEmail, editorEmail, viewerEmail, strangerEmail
     ]);
     await db.execute('DELETE FROM games WHERE id = ?', [testGame]);
+    await db.execute('SET FOREIGN_KEY_CHECKS = 1');
   });
 
   describe('Create Category', () => {
@@ -150,7 +146,7 @@ describe('🏷️ Category Management', () => {
       expect(res.body.name).toBe('Owner Category');
     });
 
-    it('should create a category as editor_all', async () => {
+    it('should create a category as editor', async () => {
       const res = await request(app)
         .post(`/api/backend/maps/${mapId}/categories`)
         .set('Authorization', `Bearer ${tokenEditor}`)
@@ -170,19 +166,6 @@ describe('🏷️ Category Management', () => {
         .set('Authorization', `Bearer ${tokenViewer}`)
         .send({
           name: 'Viewer Category',
-          color: '#3498db',
-          icon: 'test-icon'
-        });
-
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should reject category creation as contributor', async () => {
-      const res = await request(app)
-        .post(`/api/backend/maps/${mapId}/categories`)
-        .set('Authorization', `Bearer ${tokenContributor}`)
-        .send({
-          name: 'Contributor Category',
           color: '#3498db',
           icon: 'test-icon'
         });
@@ -219,7 +202,7 @@ describe('🏷️ Category Management', () => {
       expect(res.body.color).toBe('#e74c3c');
     });
 
-    it('should update a category as editor_all', async () => {
+    it('should update a category as editor', async () => {
       const res = await request(app)
         .put(`/api/backend/categories/${testCategory.id}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
@@ -239,17 +222,6 @@ describe('🏷️ Category Management', () => {
         .set('Authorization', `Bearer ${tokenViewer}`)
         .send({
           name: 'Updated Viewer Category'
-        });
-
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should reject category update as contributor', async () => {
-      const res = await request(app)
-        .put(`/api/backend/categories/${testCategory.id}`)
-        .set('Authorization', `Bearer ${tokenContributor}`)
-        .send({
-          name: 'Updated Contributor Category'
         });
 
       expect(res.statusCode).toBe(403);
@@ -286,7 +258,7 @@ describe('🏷️ Category Management', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('should delete a category as editor_all', async () => {
+    it('should delete a category as editor', async () => {
       // Create a category to delete
       const createRes = await request(app)
         .post(`/api/backend/maps/${mapId}/categories`)
@@ -308,14 +280,6 @@ describe('🏷️ Category Management', () => {
       const res = await request(app)
         .delete(`/api/backend/categories/${testCategory.id}`)
         .set('Authorization', `Bearer ${tokenViewer}`);
-
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should reject category deletion as contributor', async () => {
-      const res = await request(app)
-        .delete(`/api/backend/categories/${testCategory.id}`)
-        .set('Authorization', `Bearer ${tokenContributor}`);
 
       expect(res.statusCode).toBe(403);
     });
@@ -352,15 +316,6 @@ describe('🏷️ Category Management', () => {
       const res = await request(app)
         .get(`/api/backend/maps/${mapId}/categories`)
         .set('Authorization', `Bearer ${tokenViewer}`);
-
-      expect(res.statusCode).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-    });
-
-    it('should allow contributor to view categories', async () => {
-      const res = await request(app)
-        .get(`/api/backend/maps/${mapId}/categories`)
-        .set('Authorization', `Bearer ${tokenContributor}`);
 
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);

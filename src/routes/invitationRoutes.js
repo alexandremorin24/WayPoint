@@ -33,7 +33,7 @@ router.get('/maps/:mapId/invitations', requireAuth, invitationController.getPend
 router.get('/invitations/me', requireAuth, invitationController.getUserInvitations);
 
 // Check invitation token (public route)
-router.get('/invitations/:token/check', invitationController.checkInvitationToken);
+router.get('/invitations/:token', optionalAuth, invitationController.checkInvitationToken);
 
 // Handle invitation response (auth optional - will be checked in controller if needed)
 router.post('/invitations/:token/response', optionalAuth, invitationController.handleInvitationResponse);

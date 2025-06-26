@@ -84,7 +84,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
     // Add editor role
     await db.execute(
       'INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?)',
-      [privateMapId, editor.id, 'editor_all']
+      [privateMapId, editor.id, 'editor']
     );
   });
 

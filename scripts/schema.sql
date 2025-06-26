@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS maps (
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   game_id VARCHAR(255),
-  FOREIGN KEY (owner_id) REFERENCES users(id),
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (game_id) REFERENCES games(id)
 );
 
@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS pois (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (category_id) REFERENCES categories(id),
-  FOREIGN KEY (creator_id) REFERENCES users(id)
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+  FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS map_user_roles (
@@ -84,10 +84,7 @@ CREATE TABLE IF NOT EXISTS map_user_roles (
   role VARCHAR(50) NOT NULL CHECK (
     role IN (
       'viewer',
-      'banned',
-      'editor_all',
-      'editor_own',
-      'contributor'
+      'editor'
     )
   ),
   PRIMARY KEY (map_id, user_id),
@@ -103,9 +100,7 @@ CREATE TABLE IF NOT EXISTS map_invitations (
   role VARCHAR(50) NOT NULL CHECK (
     role IN (
       'viewer',
-      'editor_all',
-      'editor_own',
-      'contributor'
+      'editor'
     )
   ),
   status VARCHAR(20) DEFAULT 'pending' CHECK (
@@ -115,7 +110,9 @@ CREATE TABLE IF NOT EXISTS map_invitations (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   expires_at TIMESTAMP NOT NULL,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+  -- Prevent duplicate pending invitations for same map and email
+  UNIQUE KEY unique_pending_invitation (map_id, invitee_email, status)
 );
 
 CREATE TABLE IF NOT EXISTS poi_user_stats (
@@ -124,7 +121,7 @@ CREATE TABLE IF NOT EXISTS poi_user_stats (
   map_id CHAR(36) NOT NULL,
   poi_created_count INT DEFAULT 0,
   poi_updated_count INT DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 
@@ -138,7 +135,7 @@ CREATE TABLE IF NOT EXISTS poi_logs (
   payload JSON,
   FOREIGN KEY (poi_id) REFERENCES pois(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS map_votes (
@@ -146,12 +143,12 @@ CREATE TABLE IF NOT EXISTS map_votes (
   user_id CHAR(36) NOT NULL,
   map_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   UNIQUE (user_id, map_id)
 );
 
--- (Index creation is handled by backend/scripts/init-db.sh)
+-- Performance indexes for collaboration queries will be created separately
 
 -- Example pagination query for public maps
 -- SELECT * FROM maps WHERE is_public = true ORDER BY created_at DESC LIMIT 20 OFFSET 0;

@@ -31,6 +31,12 @@ const transporter = nodemailer.createTransport({
 
 // Utility function for retries
 async function sendMailWithRetry(mailOptions, maxRetries = 3) {
+  // Skip sending emails in test environment
+  if (process.env.NODE_ENV === 'test') {
+    console.log('📧 [TEST] Email sending skipped:', mailOptions);
+    return { messageId: 'test-message-id' };
+  }
+
   let lastError;
 
   for (let i = 0; i < maxRetries; i++) {
@@ -84,7 +90,7 @@ async function sendVerificationEmail(to, token, locale = 'en') {
     console.log(`📧 Verification email sent to ${to}`);
   } catch (err) {
     console.error('Failed to send verification email:', err);
-    // In development, don't fail the request if email sending fails
+    // In development or test, don't fail the request if email sending fails
     if (process.env.NODE_ENV === 'production') {
       throw err;
     }
@@ -123,7 +129,7 @@ async function sendPasswordResetEmail(email, name, token, locale = 'en') {
     console.log(`📧 Password reset email sent to ${email}`);
   } catch (err) {
     console.error('Failed to send password reset email after retries:', err);
-    // In development, don't fail the request if email sending fails
+    // In development or test, don't fail the request if email sending fails
     if (process.env.NODE_ENV === 'production') {
       throw err;
     }
@@ -140,27 +146,26 @@ async function sendPasswordResetEmail(email, name, token, locale = 'en') {
  * @param {string} locale - User's preferred language (en/fr)
  */
 async function sendMapInvitationEmail(to, inviterName, mapName, role, token, locale = 'en') {
-  const acceptUrl = `${process.env.FRONTEND_URL}/invitations/accept/${token}`;
-  const rejectUrl = `${process.env.FRONTEND_URL}/invitations/reject/${token}`;
+  const invitationUrl = `${process.env.FRONTEND_URL}/${locale}/invitations/${token}`;
   const template = mapInvitationTemplates[locale] || mapInvitationTemplates.en;
 
   const mailOptions = {
     from: '"WayPoint" <no-reply@waypoint.app>',
     to,
     subject: template.subject,
-    html: template.html(inviterName, mapName, role, acceptUrl, rejectUrl)
+    html: template.html(inviterName, mapName, role, invitationUrl)
   };
 
   try {
     // In development, display URLs in console
     console.log('📧 [DEV] Map invitation email would be sent to:', to);
-    console.log('🔗 [DEV] Accept URL:', acceptUrl);
-    console.log('🔗 [DEV] Reject URL:', rejectUrl);
+    console.log('🔗 [DEV] Invitation URL:', invitationUrl);
 
     await sendMailWithRetry(mailOptions);
     console.log(`📧 Map invitation email sent to ${to}`);
   } catch (err) {
     console.error('Failed to send map invitation email:', err);
+    // In development or test, don't fail the request if email sending fails
     if (process.env.NODE_ENV === 'production') {
       throw err;
     }
@@ -194,6 +199,7 @@ async function sendInvitationResponseEmail(to, inviteeName, mapName, status, loc
     console.log(`📧 Invitation response email sent to ${to}`);
   } catch (err) {
     console.error('Failed to send invitation response email:', err);
+    // In development or test, don't fail the request if email sending fails
     if (process.env.NODE_ENV === 'production') {
       throw err;
     }

@@ -107,83 +107,60 @@ exports.updateMe = async (req, res) => {
  * Upload avatar
  */
 exports.uploadAvatar = async (req, res) => {
-  console.log('[DEBUG] Starting avatar upload process');
-
   if (!req.file) {
-    console.log('[DEBUG] No file uploaded');
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
   try {
-    console.log('[DEBUG] File received:', {
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      originalname: req.file.originalname
-    });
-
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(req.file.mimetype)) {
-      console.log('[DEBUG] Invalid file type:', req.file.mimetype);
       return res.status(400).json({ error: 'Invalid image file. Only JPEG, PNG and WebP images are allowed.' });
     }
 
     // Process image
     const image = sharp(req.file.buffer);
     const metadata = await image.metadata();
-    console.log('[DEBUG] Image metadata:', metadata);
 
     // Validate dimensions
     if (metadata.width > 500 || metadata.height > 500) {
-      console.log('[DEBUG] Image too large:', { width: metadata.width, height: metadata.height });
       return res.status(400).json({ error: 'Image is too large. Maximum dimensions are 500x500 pixels.' });
     }
 
     // Ensure avatars directory exists
     const avatarsDir = path.join(__dirname, '../../public/uploads/avatars');
-    console.log('[DEBUG] Avatars directory path:', avatarsDir);
     fs.mkdirSync(avatarsDir, { recursive: true });
-    console.log('[DEBUG] Avatars directory created/verified');
 
     // Filename based on user id
     const filename = `user-${req.user.id}.webp`;
     const filepath = path.join(avatarsDir, filename);
-    console.log('[DEBUG] Target filepath:', filepath);
 
     // Remove previous avatar if it exists
     try {
       if (fs.existsSync(filepath)) {
-        console.log('[DEBUG] Removing existing avatar');
         fs.unlinkSync(filepath);
       }
     } catch (err) {
-      console.log('[DEBUG] Error removing existing avatar:', err.message);
       // Ignore error if file does not exist
     }
 
     // Convert to WebP and save
-    console.log('[DEBUG] Converting and saving image');
     await image
       .resize(200, 200, { fit: 'cover' })
       .webp({ quality: 80 })
       .toFile(filepath);
-    console.log('[DEBUG] Image saved successfully');
 
     // Verify file exists after save
     if (!fs.existsSync(filepath)) {
-      console.log('[DEBUG] File not found after save');
       throw new Error('Failed to save avatar file');
     }
-    console.log('[DEBUG] File verified after save');
 
     // Update user's photo_url in database
     const photoUrl = `/uploads/avatars/${filename}`;
-    console.log('[DEBUG] Updating database with photo_url:', photoUrl);
     await db.execute(
       'UPDATE users SET photo_url = ? WHERE id = ?',
       [photoUrl, req.user.id]
     );
-    console.log('[DEBUG] Database updated successfully');
 
     res.json({
       message: 'Avatar uploaded successfully',
@@ -202,22 +179,36 @@ exports.uploadAvatar = async (req, res) => {
  * Search users by display name or email
  */
 exports.searchUsers = async (req, res) => {
-  const { q } = req.query;
-  console.log('[DEBUG] Search query:', q);
+  const { q, includeSelf } = req.query;
 
   if (!q || q.length < 2) {
-    console.log('[DEBUG] Query too short');
     return res.status(400).json({ error: 'Search query must be at least 2 characters long' });
   }
 
   try {
-    const query = `SELECT id, email, display_name, photo_url as avatar_url FROM users WHERE (LOWER(display_name) LIKE ? OR LOWER(email) LIKE ?) AND id != ? LIMIT 10`;
-    const params = [`%${q.toLowerCase()}%`, `%${q.toLowerCase()}%`, req.user.id];
-    console.log('[DEBUG] SQL Query:', query);
-    console.log('[DEBUG] SQL Params:', params);
+    const searchTerm = q.toLowerCase();
+
+    // Si includeSelf=true, on n'exclut pas l'utilisateur actuel (utile pour l'enrichissement des invitations)
+    let query, params;
+    if (includeSelf === 'true') {
+      query = `SELECT id, email, display_name, photo_url FROM users WHERE 
+               (LOWER(email) = ? OR LOWER(display_name) LIKE ?) 
+               LIMIT 10`;
+      params = [searchTerm, `%${searchTerm}%`];
+    } else {
+      // Comportement par défaut : exclure l'utilisateur actuel
+      query = `SELECT id, email, display_name, photo_url FROM users WHERE 
+               (LOWER(email) = ? OR LOWER(display_name) LIKE ?) 
+               AND id != ? LIMIT 10`;
+      params = [searchTerm, `%${searchTerm}%`, req.user.id];
+    }
+
+    console.log(`🔍 Search query: ${query}`);
+    console.log(`🔍 Search params:`, params);
 
     const [users] = await db.execute(query, params);
-    console.log('[DEBUG] Found users:', users);
+
+    console.log(`🔍 Search results for "${q}":`, users);
 
     res.json(users);
   } catch (err) {

@@ -49,7 +49,7 @@ describe('🧹 Suppression en cascade (ON DELETE CASCADE)', () => {
     );
 
     // Role addition
-    await db.execute('INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?)', [mapId, user.id, 'editor_all']);
+    await db.execute('INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?)', [mapId, user.id, 'editor']);
     // Verifications
     await db.execute('INSERT INTO map_votes (id, user_id, map_id) VALUES (?, ?, ?)', [uuidv4(), user.id, mapId]);
     await db.execute('INSERT INTO poi_user_stats (id, user_id, map_id, poi_created_count) VALUES (?, ?, ?, ?)', [uuidv4(), user.id, mapId, 1]);
@@ -96,13 +96,13 @@ describe('🧹 Suppression en cascade (ON DELETE CASCADE)', () => {
     await db.execute('INSERT INTO maps (id, name, description, owner_id, game_id, is_public, image_width, image_height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [map2, 'Cascade Map2', 'desc', user2.id, testGame, 1, 100, 100]);
     await db.execute('INSERT INTO categories (id, map_id, name) VALUES (?, ?, ?)', [cat2, map2, 'CascadeCat2']);
     await db.execute('INSERT INTO pois (id, map_id, name, x, y, creator_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [poi2, map2, 'CascadePOI2', 10, 10, user2.id, cat2]);
-    await db.execute('INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?)', [map2, user2.id, 'editor_all']);
+    await db.execute('INSERT INTO map_user_roles (map_id, user_id, role) VALUES (?, ?, ?)', [map2, user2.id, 'editor']);
     await db.execute('INSERT INTO map_votes (id, user_id, map_id) VALUES (?, ?, ?)', [uuidv4(), user2.id, map2]);
     await db.execute('INSERT INTO poi_user_stats (id, user_id, map_id, poi_created_count) VALUES (?, ?, ?, ?)', [uuidv4(), user2.id, map2, 1]);
     await db.execute('INSERT INTO poi_logs (id, poi_id, map_id, user_id, action) VALUES (?, ?, ?, ?, ?)', [uuidv4(), poi2, map2, user2.id, 'create']);
-    // Suppression de l'utilisateur
+    // Delete user
     await db.execute('DELETE FROM users WHERE id = ?', [user2.id]);
-    // Vérifications
+    // Verifications
     const [[roles]] = await db.execute('SELECT COUNT(*) as count FROM map_user_roles WHERE user_id = ?', [user2.id]);
     const [[votes]] = await db.execute('SELECT COUNT(*) as count FROM map_votes WHERE user_id = ?', [user2.id]);
     const [[stats]] = await db.execute('SELECT COUNT(*) as count FROM poi_user_stats WHERE user_id = ?', [user2.id]);
@@ -123,7 +123,7 @@ describe('🧹 Suppression en cascade (ON DELETE CASCADE)', () => {
     await db.execute('INSERT INTO categories (id, map_id, name) VALUES (?, ?, ?)', [cat3, map3, 'CascadeCat3']);
     await db.execute('INSERT INTO pois (id, map_id, name, x, y, creator_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [poi3, map3, 'CascadePOI3', 10, 10, user3.id, cat3]);
     await db.execute('INSERT INTO poi_logs (id, poi_id, map_id, user_id, action) VALUES (?, ?, ?, ?, ?)', [uuidv4(), poi3, map3, user3.id, 'create']);
-    // Suppression du POI
+    // Delete POI
     await db.execute('DELETE FROM pois WHERE id = ?', [poi3]);
     // Verification
     const [[logs]] = await db.execute('SELECT COUNT(*) as count FROM poi_logs WHERE poi_id = ?', [poi3]);
@@ -158,7 +158,7 @@ describe('🧹 Suppression en cascade (ON DELETE CASCADE)', () => {
     const [[child]] = await db.execute('SELECT parent_category_id FROM categories WHERE id = ?', [childCat]);
     expect(child.parent_category_id).toBeNull();
 
-    // Nettoyage
+    // Cleanup
     await db.execute('DELETE FROM users WHERE id = ?', [user4.id]);
     await db.execute('DELETE FROM maps WHERE id = ?', [map4]);
   });
@@ -179,7 +179,7 @@ describe('🧹 Suppression en cascade (ON DELETE CASCADE)', () => {
     await db.execute('INSERT INTO pois (id, map_id, name, x, y, creator_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [poi5, map5, 'CascadePOI5', 10, 10, user5.id, cat5]);
 
-    // Suppression de l'utilisateur
+    // Delete user
     await db.execute('DELETE FROM users WHERE id = ?', [user5.id]);
 
     // Verify that the map and its dependencies are deleted

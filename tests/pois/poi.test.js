@@ -24,7 +24,8 @@ describe('📍 POI Management', () => {
   let categoryId;
 
   beforeAll(async () => {
-    // Clean up test data
+    // Clean up test data (disable FK checks temporarily)
+    await db.execute('SET FOREIGN_KEY_CHECKS = 0');
     await db.execute('DELETE FROM poi_logs WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['POI Test Map']);
     await db.execute('DELETE FROM poi_user_stats WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['POI Test Map']);
     await db.execute('DELETE FROM pois WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['POI Test Map']);
@@ -34,6 +35,7 @@ describe('📍 POI Management', () => {
       ownerEmail, editorEmail, viewerEmail, strangerEmail
     ]);
     await db.execute('DELETE FROM games WHERE id = ?', [testGame]);
+    await db.execute('SET FOREIGN_KEY_CHECKS = 1');
 
     // Create test game
     await db.execute(
@@ -74,7 +76,7 @@ describe('📍 POI Management', () => {
     await request(app)
       .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
       .set('Authorization', `Bearer ${tokenOwner}`)
-      .send({ role: 'editor_all' });
+      .send({ role: 'editor' });
 
     // Add viewer role
     await request(app)
@@ -125,7 +127,8 @@ describe('📍 POI Management', () => {
   });
 
   afterAll(async () => {
-    // Final cleanup
+    // Final cleanup (disable FK checks temporarily)
+    await db.execute('SET FOREIGN_KEY_CHECKS = 0');
     await db.execute('DELETE FROM poi_logs WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['POI Test Map']);
     await db.execute('DELETE FROM poi_user_stats WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['POI Test Map']);
     await db.execute('DELETE FROM pois WHERE map_id IN (SELECT id FROM maps WHERE name = ?)', ['POI Test Map']);
@@ -135,6 +138,7 @@ describe('📍 POI Management', () => {
       ownerEmail, editorEmail, viewerEmail, strangerEmail
     ]);
     await db.execute('DELETE FROM games WHERE id = ?', [testGame]);
+    await db.execute('SET FOREIGN_KEY_CHECKS = 1');
   });
 
   describe('Create POI', () => {
@@ -434,19 +438,19 @@ describe('📍 POI Management', () => {
   });
 
   describe('POI Permissions', () => {
-    it('should allow editor_own to edit their own POIs', async () => {
-      // Add editor_own role
+    it('should allow editor to edit POIs', async () => {
+      // Add editor role
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_own' });
+        .send({ role: 'editor' });
 
       // Create a POI as editor
       const createRes = await request(app)
         .post(`/api/backend/pois/map/${mapId}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
         .send({
-          name: 'Editor Own POI',
+          name: 'Editor POI',
           x: 100,
           y: 100,
           categoryId: categoryId
@@ -460,31 +464,13 @@ describe('📍 POI Management', () => {
         .put(`/api/backend/pois/${editorPOI.id}`)
         .set('Authorization', `Bearer ${tokenEditor}`)
         .send({
-          name: 'Updated Editor Own POI'
+          name: 'Updated Editor POI'
         });
 
       expect(updateRes.statusCode).toBe(200);
     });
 
-    it('should allow contributor to create POIs', async () => {
-      // Add contributor role
-      await request(app)
-        .put(`/api/backend/maps/${mapId}/users/${viewer.id}/role`)
-        .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'contributor' });
-
-      const res = await request(app)
-        .post(`/api/backend/pois/map/${mapId}`)
-        .set('Authorization', `Bearer ${tokenViewer}`)
-        .send({
-          name: 'Contributor POI',
-          x: 100,
-          y: 100,
-          categoryId: categoryId
-        });
-
-      expect(res.statusCode).toBe(201);
-    });
+    // Test removed: contributor role no longer exists
   });
 
   describe('Partial POI Updates', () => {
@@ -493,7 +479,7 @@ describe('📍 POI Management', () => {
       await request(app)
         .put(`/api/backend/maps/${mapId}/users/${editor.id}/role`)
         .set('Authorization', `Bearer ${tokenOwner}`)
-        .send({ role: 'editor_all' });
+        .send({ role: 'editor' });
     });
 
     it('should allow updating only specific fields', async () => {

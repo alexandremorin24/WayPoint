@@ -164,8 +164,8 @@ async function createGame(name) {
 // Check if a user has the editor role on a map
 async function hasEditorAccess(mapId, userId) {
   const [rows] = await db.execute(
-    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role IN (?, ?) LIMIT 1',
-    [mapId, userId, 'editor_all', 'editor_own']
+    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role = ? LIMIT 1',
+    [mapId, userId, 'editor']
   );
   return !!rows[0];
 }
@@ -209,15 +209,6 @@ async function hasAnyRole(mapId, userId) {
   return rows[0]?.role || null;
 }
 
-// Check if a user is banned from a map
-async function isBanned(mapId, userId) {
-  const [rows] = await db.execute(
-    'SELECT * FROM map_user_roles WHERE map_id = ? AND user_id = ? AND role = ? LIMIT 1',
-    [mapId, userId, 'banned']
-  );
-  return !!rows[0];
-}
-
 // Check if a user can view a map
 async function canView(mapId, userId) {
   // If no userId provided, check if map is public
@@ -239,6 +230,8 @@ async function canView(mapId, userId) {
     'SELECT role FROM map_user_roles WHERE map_id = ? AND user_id = ? LIMIT 1',
     [mapId, userId]
   );
+
+
   const hasRole = !!roleRows[0];
   // If user has a role, they can view
   if (hasRole) {
@@ -261,7 +254,7 @@ async function canEdit(mapId, userId) {
 
   // Check if user has editor role
   const role = await hasAnyRole(mapId, userId);
-  return role === 'editor_all' || role === 'editor_own';
+  return role === 'editor';
 }
 
 // Add a role to a user for a map
@@ -315,7 +308,7 @@ async function canAddPOI(mapId, userId) {
 
   // Check role-based permissions
   const role = await hasAnyRole(mapId, userId);
-  return role === 'editor_all' || role === 'editor_own' || role === 'contributor';
+  return role === 'editor';
 }
 
 // Helper: can edit a POI?
@@ -331,18 +324,12 @@ async function canEditPOI(mapId, userId, poiOwnerId) {
 
   // Check role-based permissions
   const role = await hasAnyRole(mapId, userId);
-  if (role === 'editor_all') return true;
-  if (role === 'editor_own' && poiOwnerId === userId) return true;
-
-  return false;
+  return role === 'editor';
 }
 
-// --- Advanced methods to implement ---
-// async function addPOI(mapId, poiData) { /* ... */ }
-// async function removePOI(mapId, poiId) { /* ... */ }
-// async function inviteUser(mapId, userId) { /* ... */ }
-// async function paginatePOIs(mapId, page, limit) { /* ... */ }
-// async function generateThumbnails(mapId) { /* ... */ }
+function canCreatePOI(role) {
+  return role === 'editor';
+}
 
 module.exports = {
   createMap,
@@ -358,7 +345,6 @@ module.exports = {
   findPublicMapsByGameId,
   findPublicMapsByGameName,
   hasAnyRole,
-  isBanned,
   canView,
   canEdit,
   addRole,
@@ -366,7 +352,8 @@ module.exports = {
   getMapUsers,
   getUserRole,
   canAddPOI,
-  canEditPOI
+  canEditPOI,
+  canCreatePOI
   // addPOI,
   // removePOI,
   // inviteUser,

@@ -92,7 +92,7 @@ class Game {
 class MapUserRole {
   +string mapId
   +string userId
-  +string role  // viewer, banned, editor_own, editor_all, contributor
+  +string role  // viewer, editor
 }
 
 class Invitation {

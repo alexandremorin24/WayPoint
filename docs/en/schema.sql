@@ -8,9 +8,9 @@
 -- To initialize the test database:
 --   WAYPOINT_DB_NAME=waypoint_test_db ./backend/scripts/init-db.sh
 --
--- The SQL below is applied to the selected database. No CREATE DATABASE or USE statement is needed.
+-- The SQL below applies to the selected database. No need for CREATE DATABASE or USE.
 
--- 🧑‍�� Users
+-- 🧑‍💼 Users
 CREATE TABLE IF NOT EXISTS users (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 🔑 Password Reset Tokens
+-- 🔑 Password reset tokens
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS categories (
   FOREIGN KEY (parent_category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
--- 📌 POIs (Points of Interest)
+-- 📌 Points of Interest (POI)
 CREATE TABLE IF NOT EXISTS pois (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   map_id CHAR(36) NOT NULL,
@@ -96,17 +96,14 @@ CREATE TABLE IF NOT EXISTS pois (
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
--- 👥 Map Access Roles
+-- 👥 Map user roles
 CREATE TABLE IF NOT EXISTS map_user_roles (
   map_id CHAR(36) NOT NULL,
   user_id CHAR(36) NOT NULL,
   role VARCHAR(50) NOT NULL CHECK (
     role IN (
       'viewer',
-      'banned',
-      'editor_all',
-      'editor_own',
-      'contributor'
+      'editor'
     )
   ),
   PRIMARY KEY (map_id, user_id),
@@ -114,7 +111,31 @@ CREATE TABLE IF NOT EXISTS map_user_roles (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 🧮 POI User Statistics
+-- 📧 Map invitations
+CREATE TABLE IF NOT EXISTS map_invitations (
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  map_id CHAR(36) NOT NULL,
+  inviter_id CHAR(36) NOT NULL,
+  invitee_email VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL CHECK (
+    role IN (
+      'viewer',
+      'editor'
+    )
+  ),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (
+    status IN ('pending', 'accepted', 'rejected', 'expired', 'cancelled')
+  ),
+  token VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
+  FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+  -- Prevent duplicate pending invitations for same map and email
+  UNIQUE KEY unique_pending_invitation (map_id, invitee_email, status)
+);
+
+-- 🧮 POI user statistics
 CREATE TABLE IF NOT EXISTS poi_user_stats (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
@@ -125,7 +146,7 @@ CREATE TABLE IF NOT EXISTS poi_user_stats (
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 
--- 🕒 POI Logs
+-- 🕒 POI logs
 CREATE TABLE IF NOT EXISTS poi_logs (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   poi_id CHAR(36) NOT NULL,
@@ -139,7 +160,7 @@ CREATE TABLE IF NOT EXISTS poi_logs (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 👍 Map Votes
+-- 👍 Map votes
 CREATE TABLE IF NOT EXISTS map_votes (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
@@ -150,7 +171,28 @@ CREATE TABLE IF NOT EXISTS map_votes (
   UNIQUE (user_id, map_id)
 );
 
--- Example pagination query for public maps
+-- 📈 Performance indexes
+CREATE INDEX idx_maps_owner ON maps(owner_id);
+CREATE INDEX idx_maps_public_created ON maps(is_public, created_at);
+CREATE INDEX idx_pois_map ON pois(map_id);
+CREATE INDEX idx_pois_category ON pois(category_id);
+CREATE INDEX idx_map_user_roles_user ON map_user_roles(user_id);
+CREATE INDEX idx_map_user_roles_map ON map_user_roles(map_id);
+CREATE INDEX idx_map_user_roles_role ON map_user_roles(role);
+CREATE INDEX idx_categories_map ON categories(map_id);
+CREATE INDEX idx_poi_logs_poi ON poi_logs(poi_id);
+CREATE INDEX idx_poi_logs_user ON poi_logs(user_id);
+CREATE INDEX idx_poi_user_stats_user ON poi_user_stats(user_id);
+CREATE INDEX idx_map_votes_map_user ON map_votes(map_id, user_id);
+
+-- 🤝 Optimized collaboration indexes
+CREATE INDEX idx_map_user_roles_map_user ON map_user_roles(map_id, user_id);
+CREATE INDEX idx_map_user_roles_user_role ON map_user_roles(user_id, role);
+CREATE INDEX idx_map_invitations_email_status ON map_invitations(invitee_email, status);
+CREATE INDEX idx_map_invitations_token ON map_invitations(token);
+CREATE INDEX idx_map_invitations_expires ON map_invitations(expires_at, status);
+
+-- Example pagination query for public maps:
 -- SELECT * FROM maps WHERE is_public = true ORDER BY created_at DESC LIMIT 20 OFFSET 0;
 
 ```

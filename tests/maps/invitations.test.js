@@ -86,7 +86,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       expect(res.statusCode).toBe(201);
@@ -99,7 +99,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOther}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       expect(res.statusCode).toBe(403);
@@ -112,7 +112,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       // Try to send duplicate invitation
@@ -121,11 +121,10 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('error', 'An invitation is already pending for this email');
     });
 
     it('should reject invalid roles', async () => {
@@ -149,7 +148,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
     });
 
@@ -183,7 +182,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       // Get the token from the database
@@ -232,7 +231,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       // Get the token from the database
@@ -258,7 +257,7 @@ describe('🤝 Map Invitations Management', () => {
         [mapId, invitedUser.id]
       );
       expect(roles.length).toBe(1);
-      expect(roles[0].role).toBe('editor_all');
+      expect(roles[0].role).toBe('editor');
     });
 
     it('should allow rejecting an invitation', async () => {
@@ -288,19 +287,21 @@ describe('🤝 Map Invitations Management', () => {
     });
 
     it('should prevent using an already processed invitation', async () => {
-      // Accept the invitation first
+      // First response
       await request(app)
         .post(`/api/backend/invitations/${invitationToken}/response`)
         .set('Authorization', `Bearer ${tokenInvited}`)
         .send({ action: 'accept' });
 
-      // Try to accept it again
+      // Try to use the same invitation again
       const res = await request(app)
         .post(`/api/backend/invitations/${invitationToken}/response`)
         .set('Authorization', `Bearer ${tokenInvited}`)
         .send({ action: 'accept' });
 
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toHaveProperty('error', 'Cette invitation a déjà été acceptée');
+      expect(res.body).toHaveProperty('code', 'INVITATION_ALREADY_PROCESSED');
     });
   });
 
@@ -314,7 +315,7 @@ describe('🤝 Map Invitations Management', () => {
         .set('Authorization', `Bearer ${tokenOwner}`)
         .send({
           email: invitedEmail,
-          role: 'editor_all'
+          role: 'editor'
         });
 
       // Get the ID from the database

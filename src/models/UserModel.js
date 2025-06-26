@@ -9,17 +9,18 @@ const { v4: uuidv4 } = require('uuid');
  * @param {string} user.displayName
  * @param {string} [user.preferredLanguage='en']
  * @param {boolean} [user.emailOptIn=false]
+ * @param {boolean} [user.emailVerified=false]
  */
 async function createUser({
   email,
   passwordHash,
   displayName,
   preferredLanguage = 'en',
-  emailOptIn = false
+  emailOptIn = false,
+  emailVerified = false
 }) {
   const id = uuidv4();
   const authProvider = 'local';
-  const emailVerified = false;
 
   const [rows] = await db.execute(
     `INSERT INTO users (
