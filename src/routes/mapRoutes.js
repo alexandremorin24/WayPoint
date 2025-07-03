@@ -51,16 +51,23 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Get all maps by owner (public)
 router.get('/owner/:ownerId', mapController.getMapsByOwner);
+// Get shared maps where user has a role (authenticated)
+router.get('/shared', requireAuth, mapController.getSharedMaps);
+// Get public maps with pagination
+router.get('/public', mapController.getPublicMaps);
 // Update a map (authenticated)
 router.put('/:id', requireAuth, mapController.updateMap);
 // Delete a map (authenticated)
 router.delete('/:id', requireAuth, mapController.deleteMap);
-// Get public maps with pagination
+// Get public maps with pagination (legacy route)
 router.get('/', mapController.getPublicMaps);
 // Get public maps for a given game id
 router.get('/public-by-game/:gameId', mapController.getPublicMapsByGameId);
 // Get public maps for a given game name
 router.get('/public-by-game-name/:gameName', mapController.getPublicMapsByGameName);
+
+// Search games by name for autocomplete
+router.get('/games/search', mapController.searchGames);
 
 // Get all users with their roles for a map (authenticated)
 router.get('/:id/users', requireAuth, mapController.getMapUsers);

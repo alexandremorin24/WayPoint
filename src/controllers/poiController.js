@@ -86,11 +86,33 @@ async function getPOIById(req, res) {
 async function getPOIsByMapId(req, res) {
   try {
     const { mapId } = req.params;
-    const userId = req.user?.id;
-    // Check if map exists and user has access
+
+    // Check if map exists
     const map = await MapModel.findMapById(mapId);
     if (!map) {
       return res.status(404).json({ error: 'Map not found.' });
+    }
+
+    // If map is public, allow access without authentication
+    if (map.isPublic) {
+      const pois = await POIModel.findPOIsByMapId(mapId);
+      return res.json(pois);
+    }
+
+    // For private maps, require authentication and check permissions
+    let userId = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (e) {
+        return res.status(401).json({ error: 'Invalid token.' });
+      }
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required for private maps.' });
     }
 
     const canView = await MapModel.canView(mapId, userId);

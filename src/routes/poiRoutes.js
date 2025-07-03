@@ -29,8 +29,8 @@ const handleMulterError = (err, req, res, next) => {
   next(err);
 };
 
-// Get all POIs for a map
-router.get('/map/:mapId', requireAuth, poiController.getPOIsByMapId);
+// Get all POIs for a map (public access, but authentication is checked inside controller)
+router.get('/map/:mapId', poiController.getPOIsByMapId);
 
 // Get all POIs for a category
 router.get('/category/:categoryId', requireAuth, poiMiddleware.canViewPOI, poiController.getPOIsByCategory);

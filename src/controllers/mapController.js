@@ -37,8 +37,8 @@ async function createMap(req, res) {
     if (!name || typeof name !== 'string' || name.length < 3 || name.length > 100) {
       return res.status(400).json({ error: 'Map name is required (3-100 characters).' });
     }
-    if (!description || typeof description !== 'string' || description.length > 500) {
-      return res.status(400).json({ error: 'Description is required (max 500 characters).' });
+    if (description && (typeof description !== 'string' || description.length > 120)) {
+      return res.status(400).json({ error: 'Description must be a string (max 120 characters).' });
     }
     if (!gameName || typeof gameName !== 'string' || gameName.length < 1) {
       return res.status(400).json({ error: 'Game name is required.' });
@@ -61,13 +61,27 @@ async function createMap(req, res) {
     // Option 1: Use an existing public map image
     if (imageFromMapId) {
       const refMap = await MapModel.findMapById(imageFromMapId);
-      if (!refMap || !refMap.is_public || refMap.game_id !== gameId) {
-        return res.status(400).json({ error: 'Invalid reference map for image.' });
+
+      if (!refMap) {
+        return res.status(400).json({ error: 'Reference map not found.' });
       }
-      imageUrl = refMap.image_url;
-      thumbnailUrl = refMap.thumbnail_url;
-      imageWidth = refMap.image_width;
-      imageHeight = refMap.image_height;
+
+      if (!refMap.isPublic) {
+        return res.status(400).json({ error: 'Reference map is not public.' });
+      }
+
+      if (refMap.gameId !== gameId) {
+        return res.status(400).json({
+          error: `Game mismatch: reference map belongs to a different game.`,
+          details: { refGameId: refMap.gameId, currentGameId: gameId }
+        });
+      }
+
+      imageUrl = refMap.imageUrl;
+      thumbnailUrl = refMap.thumbnailUrl;
+      imageWidth = refMap.imageWidth;
+      imageHeight = refMap.imageHeight;
+      console.log(`Successfully reusing image from "${refMap.name}" for new map`);
     } else {
       // Option 2: Upload a new image
       if (!req.file) {
@@ -161,7 +175,7 @@ async function getMapById(req, res) {
     const map = await MapModel.findMapById(id);
     if (!map) return res.status(404).json({ error: 'Map not found.' });
 
-    // Get user id from token if present
+    // Try to get user ID from token if provided
     let userId = null;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       try {
@@ -169,17 +183,25 @@ async function getMapById(req, res) {
         const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
         userId = decoded.id;
       } catch (e) {
-        return res.status(401).json({ error: 'Invalid token.' });
+        // Invalid token, but continue as anonymous for public maps
+        console.log('Invalid token provided, continuing as anonymous');
       }
     }
 
-    // Check if user can view the map
-    const canAccess = await MapModel.canView(map.id, userId);
-    if (!canAccess) {
-      return res.status(403).json({ error: 'Forbidden: private map.' });
+    // For private maps, require authentication and check permissions
+    if (!map.isPublic) {
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required for private maps.' });
+      }
+
+      // Check if user can view the private map
+      const canAccess = await MapModel.canView(map.id, userId);
+      if (!canAccess) {
+        return res.status(403).json({ error: 'Forbidden: insufficient permissions.' });
+      }
     }
 
-    // Get user role if authenticated
+    // Get user role (for both public and private maps if user is authenticated)
     let userRole = null;
     if (userId) {
       if (userId === map.ownerId) {
@@ -237,8 +259,8 @@ async function updateMap(req, res) {
     if (name !== undefined && (typeof name !== 'string' || name.length < 3 || name.length > 100)) {
       return res.status(400).json({ error: 'Map name must be between 3 and 100 characters.' });
     }
-    if (description !== undefined && (typeof description !== 'string' || description.length > 500)) {
-      return res.status(400).json({ error: 'Description must be less than 500 characters.' });
+    if (description !== undefined && description !== null && (typeof description !== 'string' || description.length > 120)) {
+      return res.status(400).json({ error: 'Description must be a string (max 120 characters).' });
     }
     if (isPublic !== undefined && typeof isPublic !== 'boolean') {
       return res.status(400).json({ error: 'isPublic must be a boolean value.' });
@@ -479,10 +501,95 @@ async function getCurrentUserRole(req, res) {
   }
 }
 
+// Get maps where the user has a role (shared maps)
+async function getSharedMaps(req, res) {
+  try {
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+
+    // Get maps where user has a role (editor or viewer)
+    const [rows] = await db.execute(`
+      SELECT 
+        m.*,
+        g.name as game_name,
+        g.id as game_id,
+        mur.role,
+        u.display_name as owner_name,
+        u.email as owner_email
+      FROM maps m
+      INNER JOIN map_user_roles mur ON m.id = mur.map_id
+      INNER JOIN games g ON m.game_id = g.id
+      INNER JOIN users u ON m.owner_id = u.id
+      WHERE mur.user_id = ?
+      ORDER BY m.created_at DESC
+    `, [userId]);
+
+    const maps = rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      gameId: row.game_id,
+      gameName: row.game_name,
+      ownerId: row.owner_id,
+      ownerName: row.owner_name,
+      ownerEmail: row.owner_email,
+      imageUrl: row.image_url,
+      thumbnailUrl: row.thumbnail_url,
+      isPublic: Boolean(row.is_public),
+      imageWidth: row.image_width,
+      imageHeight: row.image_height,
+      userRole: row.role,
+      createdAt: row.created_at
+    }));
+
+    res.json(maps);
+  } catch (err) {
+    console.error('getSharedMaps error:', err);
+    res.status(500).json({ error: 'Error while fetching shared maps.' });
+  }
+}
+
+// Search games by name for autocomplete
+async function searchGames(req, res) {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.length < 2) {
+      return res.json([]);
+    }
+
+    // Search for existing games that match the query (count only public maps)
+    const [rows] = await db.execute(`
+      SELECT 
+        g.name,
+        COUNT(CASE WHEN m.is_public = 1 THEN m.id END) as count
+      FROM games g
+      LEFT JOIN maps m ON g.id = m.game_id
+      WHERE g.name LIKE ?
+      GROUP BY g.id, g.name
+      ORDER BY count DESC, g.name ASC
+      LIMIT 10
+    `, [`%${q}%`]);
+
+    const games = rows.map(row => ({
+      name: row.name,
+      count: row.count || 0
+    }));
+
+    res.json(games);
+  } catch (err) {
+    console.error('searchGames error:', err);
+    res.status(500).json({ error: 'Error while searching games.' });
+  }
+}
+
 module.exports = {
   createMap,
   getMapById,
   getMapsByOwner,
+  getSharedMaps,
   updateMap,
   deleteMap,
   getPublicMaps,
@@ -492,5 +599,6 @@ module.exports = {
   updateUserRole,
   removeUserRole,
   getCurrentUserRole,
-  getAvailableRoles
+  getAvailableRoles,
+  searchGames
 }; 

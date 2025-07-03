@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS games (
 CREATE TABLE IF NOT EXISTS maps (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255),
-  description TEXT,
+  description VARCHAR(120),
   image_url TEXT,
   thumbnail_url TEXT,
   image_width INT,

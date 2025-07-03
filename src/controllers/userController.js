@@ -122,10 +122,7 @@ exports.uploadAvatar = async (req, res) => {
     const image = sharp(req.file.buffer);
     const metadata = await image.metadata();
 
-    // Validate dimensions
-    if (metadata.width > 500 || metadata.height > 500) {
-      return res.status(400).json({ error: 'Image is too large. Maximum dimensions are 500x500 pixels.' });
-    }
+    // No dimension validation - we'll resize any image to 200x200
 
     // Ensure avatars directory exists
     const avatarsDir = path.join(__dirname, '../../public/uploads/avatars');

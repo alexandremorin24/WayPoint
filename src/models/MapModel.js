@@ -46,14 +46,16 @@ function convertRowToMap(row) {
     imageHeight: row.image_height,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    gameName: row.game_name
+    gameName: row.game_name,
+    ownerName: row.owner_name,
+    ownerEmail: row.owner_email
   };
 }
 
 // Find a map by its id
 async function findMapById(id) {
   const [rows] = await db.execute(
-    `SELECT m.*, g.name as game_name 
+    `SELECT m.*, g.name as game_name
      FROM maps m 
      LEFT JOIN games g ON m.game_id = g.id 
      WHERE m.id = ?`,
@@ -138,9 +140,10 @@ async function findPublicMapsPaginated(limit, offset) {
   limit = Math.max(1, Math.min(100, parseInt(limit) || 20));
   offset = Math.max(0, parseInt(offset) || 0);
   const [rows] = await db.execute(
-    `SELECT m.*, g.name as game_name 
+    `SELECT m.*, g.name as game_name, u.display_name as owner_name, u.email as owner_email
      FROM maps m 
      JOIN games g ON m.game_id = g.id 
+     JOIN users u ON m.owner_id = u.id
      WHERE m.is_public = true 
      ORDER BY m.created_at DESC 
      LIMIT ${limit} OFFSET ${offset}`
@@ -194,7 +197,7 @@ async function findPublicMapsByGameName(gameName) {
     `SELECT m.*, g.name as game_name 
      FROM maps m 
      JOIN games g ON m.game_id = g.id 
-     WHERE m.is_public = true AND g.name = ?`,
+     WHERE m.is_public = 1 AND g.name = ?`,
     [gameName]
   );
   return rows.map(convertRowToMap);
