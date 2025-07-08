@@ -11,6 +11,10 @@ const invitationResponseTemplates = {
   en: require('../templates/emails/invitationResponse.en'),
   fr: require('../templates/emails/invitationResponse.fr')
 };
+const emailVerificationTemplates = {
+  en: require('../templates/emails/emailVerification.en'),
+  fr: require('../templates/emails/emailVerification.fr')
+};
 
 // Email transporter setup
 const transporter = nodemailer.createTransport({
@@ -33,7 +37,8 @@ const transporter = nodemailer.createTransport({
 async function sendMailWithRetry(mailOptions, maxRetries = 3) {
   // Skip sending emails in test environment
   if (process.env.NODE_ENV === 'test') {
-    console.log('📧 [TEST] Email sending skipped:', mailOptions);
+    // Optionally log minimal info for debugging (comment out if too verbose)
+    // console.log('📧 [TEST] Email sending skipped for:', mailOptions.to);
     return { messageId: 'test-message-id' };
   }
 
@@ -62,32 +67,28 @@ async function sendMailWithRetry(mailOptions, maxRetries = 3) {
  */
 async function sendVerificationEmail(to, token, locale = 'en') {
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+  const template = emailVerificationTemplates[locale] || emailVerificationTemplates.en;
 
   const mailOptions = {
     from: '"WayPoint" <no-reply@waypoint.app>',
     to,
-    subject: 'Confirm your email address',
-    html: `
-      <h2>Welcome to WayPoint 👋</h2>
-      <p>Please confirm your email address to activate your account:</p>
-      <p>
-        <a href="${verifyUrl}" style="background:#1e40af;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">
-          Confirm my email
-        </a>
-      </p>
-      <p>If the button doesn't work, you can also copy and paste this URL into your browser:</p>
-      <p>${verifyUrl}</p>
-    `,
+    subject: template.subject,
+    html: template.html(verifyUrl)
   };
 
   try {
-    // In development, display URL in console
-    console.log('📧 [DEV] Verification email would be sent to:', to);
-    console.log('🔗 [DEV] Verification URL:', verifyUrl);
+    // In development, display URL in console (but not in tests)
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('📧 [DEV] Verification email would be sent to:', to);
+      console.log('🔗 [DEV] Verification URL:', verifyUrl);
+      console.log('🌍 [DEV] Using locale:', locale);
+    }
 
     // Try to send email with retries
     await sendMailWithRetry(mailOptions);
-    console.log(`📧 Verification email sent to ${to}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`📧 Verification email sent to ${to}`);
+    }
   } catch (err) {
     console.error('Failed to send verification email:', err);
     // In development or test, don't fail the request if email sending fails
@@ -119,14 +120,18 @@ async function sendPasswordResetEmail(email, name, token, locale = 'en') {
   };
 
   try {
-    // In development, display URL in console
-    console.log('📧 [DEV] Password reset email would be sent to:', email);
-    console.log('🔗 [DEV] Reset URL:', resetUrl);
-    console.log('🌍 [DEV] Using locale:', locale);
+    // In development, display URL in console (but not in tests)
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('📧 [DEV] Password reset email would be sent to:', email);
+      console.log('🔗 [DEV] Reset URL:', resetUrl);
+      console.log('🌍 [DEV] Using locale:', locale);
+    }
 
     // Try to send email with retries
     await sendMailWithRetry(mailOptions);
-    console.log(`📧 Password reset email sent to ${email}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`📧 Password reset email sent to ${email}`);
+    }
   } catch (err) {
     console.error('Failed to send password reset email after retries:', err);
     // In development or test, don't fail the request if email sending fails
@@ -157,12 +162,16 @@ async function sendMapInvitationEmail(to, inviterName, mapName, role, token, loc
   };
 
   try {
-    // In development, display URLs in console
-    console.log('📧 [DEV] Map invitation email would be sent to:', to);
-    console.log('🔗 [DEV] Invitation URL:', invitationUrl);
+    // In development, display URLs in console (but not in tests)
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('📧 [DEV] Map invitation email would be sent to:', to);
+      console.log('🔗 [DEV] Invitation URL:', invitationUrl);
+    }
 
     await sendMailWithRetry(mailOptions);
-    console.log(`📧 Map invitation email sent to ${to}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`📧 Map invitation email sent to ${to}`);
+    }
   } catch (err) {
     console.error('Failed to send map invitation email:', err);
     // In development or test, don't fail the request if email sending fails
@@ -191,12 +200,16 @@ async function sendInvitationResponseEmail(to, inviteeName, mapName, status, loc
   };
 
   try {
-    // In development, display info in console
-    console.log(`📧 [DEV] Invitation response email would be sent to: ${to}`);
-    console.log(`📧 [DEV] Status: ${status}`);
+    // In development, display info in console (but not in tests)
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`📧 [DEV] Invitation response email would be sent to: ${to}`);
+      console.log(`📧 [DEV] Status: ${status}`);
+    }
 
     await sendMailWithRetry(mailOptions);
-    console.log(`📧 Invitation response email sent to ${to}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`📧 Invitation response email sent to ${to}`);
+    }
   } catch (err) {
     console.error('Failed to send invitation response email:', err);
     // In development or test, don't fail the request if email sending fails

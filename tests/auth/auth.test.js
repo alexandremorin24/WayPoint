@@ -26,7 +26,7 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject missing email', async () => {
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
       displayName: 'TestUser123'
@@ -35,7 +35,7 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject invalid email format', async () => {
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'invalid-email',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
@@ -45,7 +45,7 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject password mismatch', async () => {
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'testuser@example.com',
       password: 'Test1234!',
       confirmPassword: 'WrongPassword!',
@@ -55,7 +55,7 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject weak password', async () => {
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'testuser@example.com',
       password: 'weakpass',
       confirmPassword: 'weakpass',
@@ -65,7 +65,7 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject invalid display name format', async () => {
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'testuser@example.com',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
@@ -75,7 +75,7 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should register a new user with valid data', async () => {
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'testuser@example.com',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
@@ -88,14 +88,14 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject duplicate email', async () => {
-    await request(app).post('/api/backend/register').send({
+    await request(app).post('/api/backend/auth/register').send({
       email: 'testuser@example.com',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
       displayName: 'TestUserDup1'
     });
 
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'testuser@example.com',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
@@ -107,14 +107,14 @@ describe('🔐 POST /api/register', () => {
   });
 
   it('should reject duplicate display name', async () => {
-    await request(app).post('/api/backend/register').send({
+    await request(app).post('/api/backend/auth/register').send({
       email: 'testuser1@example.com',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',
       displayName: 'UniqueUser'
     });
 
-    const res = await request(app).post('/api/backend/register').send({
+    const res = await request(app).post('/api/backend/auth/register').send({
       email: 'testuser2@example.com',
       password: 'Test1234!',
       confirmPassword: 'Test1234!',

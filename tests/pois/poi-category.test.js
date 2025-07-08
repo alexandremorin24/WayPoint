@@ -53,12 +53,12 @@ describe('📍 POI-Category Integration', () => {
 
     // Get tokens
     const resOwner = await request(app)
-      .post('/api/backend/login')
+      .post('/api/backend/auth/login')
       .send({ email: owner.email, password: owner.password });
     tokenOwner = resOwner.body.token;
 
     const resViewer = await request(app)
-      .post('/api/backend/login')
+      .post('/api/backend/auth/login')
       .send({ email: viewer.email, password: viewer.password });
     tokenViewer = resViewer.body.token;
 

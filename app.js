@@ -20,6 +20,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Middlewares
 app.use(cors({
+  port: 3000,
   origin: process.env.NODE_ENV === 'test' ? '*' : 'http://localhost:3001',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -27,9 +28,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.url}=> ${res.statusCode}`);
+  next();
+});
+
 // Routes
 const apiRouter = express.Router();
-apiRouter.use('/', authRoutes);
+apiRouter.use('/auth', authRoutes);
 apiRouter.use('/', userRoutes);
 apiRouter.use('/maps', mapRoutes);
 apiRouter.use('/pois', poiRoutes);

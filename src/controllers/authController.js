@@ -64,8 +64,10 @@ async function registerUser(req, res) {
     const token = jwt.sign({ email: normalizedEmail }, process.env.JWT_SECRET, { expiresIn: '1d' });
     await sendVerificationEmail(normalizedEmail, token);
 
-    console.log(`[DEV] Use this link to verify manually:`);
-    console.log(`http://localhost:3000/api/backend/verify-email?token=${token}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`[DEV] Use this link to verify manually:`);
+      console.log(`http://localhost:3000/api/backend/auth/verify-email?token=${token}`);
+    }
 
     return res.status(201).json({
       message: 'User created successfully',

@@ -110,7 +110,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
   });
 
   it('should reject map creation if description is too long', async () => {
-    const longDesc = 'A'.repeat(501);
+    const longDesc = 'A'.repeat(121); // Description longer than 120 characters
     const res = await request(app)
       .post('/api/backend/maps')
       .set('Authorization', `Bearer ${token}`)
@@ -120,7 +120,7 @@ describe('🗺️ POST /api/backend/maps (create map)', () => {
       .field('isPublic', 'true')
       .attach('image', testImagePath);
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toMatch(/Description is required/i);
+    expect(res.body.error).toMatch(/Description must be a string.*max 120 characters/i);
   });
 
   it('should reject map creation if gameName is missing', async () => {

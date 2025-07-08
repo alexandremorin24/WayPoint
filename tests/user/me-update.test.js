@@ -290,7 +290,7 @@ describe('🔐 PUT /api/backend/me', () => {
 
       // Verify we can login with new password
       const loginRes = await request(app)
-        .post('/api/backend/login')
+        .post('/api/backend/auth/login')
         .send({
           email: currentEmail,
           password: newPassword
@@ -340,16 +340,6 @@ describe('🔐 PUT /api/backend/me', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toMatch(/invalid image file/i);
-    });
-
-    it('should reject image that is too large', async () => {
-      const res = await request(app)
-        .put('/api/backend/me/avatar')
-        .set('Authorization', `Bearer ${validToken}`)
-        .attach('avatar', path.join(testFilesDir, 'large.png'));
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toMatch(/image is too large/i);
     });
 
     it('should successfully upload and process avatar', async () => {

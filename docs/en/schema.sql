@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS games (
 CREATE TABLE IF NOT EXISTS maps (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255),
-  description TEXT,
+  description VARCHAR(120),
   image_url TEXT,
   thumbnail_url TEXT,
   image_width INT,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS maps (
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   game_id VARCHAR(255),
-  FOREIGN KEY (owner_id) REFERENCES users(id),
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (game_id) REFERENCES games(id)
 );
 
@@ -92,8 +92,8 @@ CREATE TABLE IF NOT EXISTS pois (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (category_id) REFERENCES categories(id),
-  FOREIGN KEY (creator_id) REFERENCES users(id)
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+  FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 👥 Map user roles
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS poi_user_stats (
   map_id CHAR(36) NOT NULL,
   poi_created_count INT DEFAULT 0,
   poi_updated_count INT DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS poi_logs (
   payload JSON,
   FOREIGN KEY (poi_id) REFERENCES pois(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 👍 Map votes
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS map_votes (
   user_id CHAR(36) NOT NULL,
   map_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
   UNIQUE (user_id, map_id)
 );

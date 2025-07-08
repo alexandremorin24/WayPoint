@@ -118,7 +118,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
   it('should deny access to a private map without authentication', async () => {
     await request(app)
       .get(`/api/backend/maps/${privateMapId}`)
-      .expect(403);
+      .expect(401);
   });
 
   it('should allow the owner to access a private map', async () => {
@@ -144,7 +144,7 @@ describe('🗺️ GET /api/backend/maps/:id (access map)', () => {
       .get(`/api/backend/maps/${privateMapId}`)
       .set('Authorization', `Bearer ${tokenStranger}`);
     expect(res.statusCode).toBe(403);
-    expect(res.body.error).toMatch(/private map/i);
+    expect(res.body.error).toMatch(/insufficient permissions/i);
   });
 
   it('should return 404 for a deleted map', async () => {

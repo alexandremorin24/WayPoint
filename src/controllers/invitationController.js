@@ -49,16 +49,18 @@ async function sendInvitation(req, res) {
       role
     });
 
-    // Log invitation link for testing
-    console.log('\n=== INVITATION LINK FOR TESTING ===');
-    // Utiliser la langue préférée de l'invité ou 'en' par défaut
-    const [inviteeRows] = await db.execute(
-      `SELECT preferred_language FROM users WHERE email = ?`,
-      [email]
-    );
-    const lang = inviteeRows?.[0]?.preferred_language || 'en';
-    console.log(`${process.env.FRONTEND_URL}/${lang}/invitations/${invitation.token}`);
-    console.log('===================================\n');
+    // Log invitation link for testing (but not during tests)
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('\n=== INVITATION LINK FOR TESTING ===');
+      // Utiliser la langue préférée de l'invité ou 'en' par défaut
+      const [inviteeRows] = await db.execute(
+        `SELECT preferred_language FROM users WHERE email = ?`,
+        [email]
+      );
+      const lang = inviteeRows?.[0]?.preferred_language || 'en';
+      console.log(`${process.env.FRONTEND_URL}/${lang}/invitations/${invitation.token}`);
+      console.log('===================================\n');
+    }
 
     // Send the invitation email
     await sendMapInvitationEmail(
