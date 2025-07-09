@@ -18,14 +18,14 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 
 | Outil               | Catégorie           | Raisons du choix                                           |
 |---------------------|---------------------|------------------------------------------------------------|
-| **Vue.js**          | Frontend            | Réactif, composantiel, courbe d'apprentissage douce.       |
-| **Vite**            | Serveur de dev      | Rapide et efficace, compatible Vue 3.                      |
-| **Vuetify**         | UI/UX               | Composants riches, cohérents, adaptés mobile/PWA.          |
+| **Nuxt.js 3**       | Framework Frontend  | Framework Vue.js universel avec SSR, génération statique. |
+| **Vue.js 3**        | Frontend            | Réactif, composantiel, courbe d'apprentissage douce.       |
+| **Vuetify 3**       | UI/UX               | Composants riches, cohérents, adaptés mobile/PWA.          |
 | **Leaflet.js**      | Cartes interactives | Léger, open-source, adapté aux cartes avec images perso.   |
 | **Express.js**      | Backend             | Minimaliste, flexible, construction simple d’API REST.     |
 | **Socket.io**       | Temps réel          | Collaboration temps réel (prévu post-MVP).                 |
-| 🔐 Authentification   | Google OAuth2 + Email/mot de passe (via Resend) |
-| **Firebase Storage**| Stockage fichiers   | Stockage simplifié des images maps et POI.                 |
+| 🔐 Authentification   | Google OAuth2 + Email/mot de passe (via Mailtrap) |
+| **Stockage local**  | Stockage fichiers   | Stockage local avec volumes Docker pour développement.     |
 | **Axios**           | Requêtes API        | Communication HTTP frontend-backend simplifiée.            |
 
 
@@ -33,11 +33,10 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 
 ## ☁️ Hébergement & Déploiement
 
-| Plateforme  | Rôle                 | Pourquoi choisie ?                                                      |
-|-------------|----------------------|-------------------------------------------------------------------------|
-| **Railway** | Backend & Database   | Hébergement simple API Express et MySQL, facile à configurer.           |
-| **Vercel**  | Frontend             | Déploiement rapide, optimal pour React/Vite, support natif PWA.         |
-+ **Firebase Storage** | Stockage de fichiers | Stocke les images de fond des cartes, les images des POI et les icônes personnalisées.
+| Plateforme       | Rôle                 | Pourquoi choisie ?                                                      |
+|------------------|----------------------|-------------------------------------------------------------------------|
+| **Docker Compose** | Stack complète    | Environnement de développement local avec base, backend et frontend.    |
+| **Stockage local** | Stockage de fichiers | Stocke les images de cartes, POI et icônes personnalisées localement.  |
 ---
 
 ## 🧪 Outils de Développement & Productivité
@@ -57,7 +56,7 @@ Le projet WayPoint Map Builder utilise des technologies web modernes, soigneusem
 | Service                | Rôle                                      | Pourquoi l’utiliser ?                                                                                   |
 |------------------------|-------------------------------------------|----------------------------------------------------------------------------------------------------------|
 | **IGDB API (via Twitch)** | Fournisseur de métadonnées de jeux vidéo | Permet aux utilisateurs de sélectionner un jeu officiel lors de la création d'une map. Inclut les visuels (covers), dates de sortie et slugs. |
-| Resend | Envoi d’emails | Gère l’envoi des liens de confirmation et les messages transactionnels (inscription, etc.). |
+| Mailtrap | Envoi d’emails | Gère l’envoi des liens de confirmation et les messages transactionnels (inscription, etc.). |
 ---
 
 ## ⚡ Gestion d'état
@@ -91,13 +90,11 @@ Afin d’anticiper une adoption rapide et de garantir des performances optimales
 - **Chargement dynamique des POI**
   - Chargement dynamique basé sur la zone visible par l'utilisateur pour réduire la charge serveur.
 - **Optimisation automatique des images**
-  - Génération automatique de miniatures via Firebase Storage.
+  - Génération automatique de miniatures via Sharp pour un chargement efficace des images.
 
-### 🔄 Optimisation collaboration temps réel (Socket.io)
-- **Gestion efficace des connexions**
-  - Gestion robuste des connexions WebSocket avec mécanismes de secours.
-- **Optimisation des notifications**
-  - Notifications groupées pour optimiser l'expérience utilisateur en temps réel.
+### 🔄 Collaboration temps réel (Futur)
+- **Implémentation WebSocket (Planifiée)**
+  - Intégration Socket.io prévue pour les fonctionnalités de collaboration temps réel post-MVP.
 
 ---
 

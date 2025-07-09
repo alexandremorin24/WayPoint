@@ -64,7 +64,7 @@ WayPoint Map Builder is designed with a clear distinction between the **Minimum 
 - Users can register and log in using:
   - **Google OAuth2** (via official provider)
   - **Email + password** (classic registration)
-- When registering with email, users must confirm their address through a secure token link (email sent via [Resend](https://resend.com)).
+- When registering with email, users must confirm their address through a secure token link (email sent via Mailtrap for development).
 - The system ensures:
   - Strong password storage (hashed + salted)
   - Email duplication prevention

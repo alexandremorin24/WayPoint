@@ -119,7 +119,7 @@ exports.uploadAvatar = async (req, res) => {
     }
 
     // Process image
-    const image = sharp(req.file.buffer);
+    const image = sharp(req.file.buffer, { limitInputPixels: false });
     const metadata = await image.metadata();
 
     // No dimension validation - we'll resize any image to 200x200

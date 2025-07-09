@@ -242,8 +242,8 @@ async function uploadPOIImage(req, res) {
 
     // Validate image
     await imageUtils.validateImageBuffer(req.file.buffer, {
-      maxWidth: 10000,
-      maxHeight: 10000,
+      maxWidth: Infinity,
+      maxHeight: Infinity,
       minWidth: 100,
       minHeight: 100
     });
@@ -257,10 +257,14 @@ async function uploadPOIImage(req, res) {
       return res.status(500).json({ error: 'Error creating uploads directory.' });
     }
 
-    // Generate filenames
+    // Determine optimal format based on image size
+    const { useWebP, extension } = await imageUtils.getOptimalFormat(req.file.buffer);
+    console.log(`Using format: ${useWebP ? 'WebP' : 'PNG'} for POI image`);
+
+    // Generate filenames with correct extension
     const poiId = uuidv4();
-    const finalName = `${poiId}.webp`;
-    const thumbName = `${poiId}_thumb.webp`;
+    const finalName = `${poiId}${extension}`;
+    const thumbName = `${poiId}_thumb${extension}`;
     const finalPath = path.join(uploadsDir, finalName);
     const thumbPath = path.join(uploadsDir, thumbName);
 

@@ -18,25 +18,24 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 
 | Tool               | Category           | Reason for choice                                           |
 |--------------------|--------------------|------------------------------------------------------------|
-| **Vue.js**         | Frontend           | Reactive, component-based, smooth learning curve.          |
-| **Vite**           | Dev Server         | Fast and efficient, built-in support for Vue 3.            |
-| **Vuetify**        | UI/UX              | Rich UI components, Material Design, ideal for Vue PWAs.   |
+| **Nuxt.js 3**      | Frontend Framework | Universal Vue.js framework with SSR, static generation.    |
+| **Vue.js 3**       | Frontend           | Reactive, component-based, smooth learning curve.          |
+| **Vuetify 3**      | UI/UX              | Rich UI components, Material Design, ideal for Vue PWAs.   |
 | **Leaflet.js**     | Interactive Maps   | Lightweight, open-source, suitable for custom image maps.  |
 | **Express.js**     | Backend            | Minimalist, flexible Node.js framework, easy API building. |
 | **Socket.io**      | Real-time          | For real-time collaboration (planned post-MVP).            |
-| **Google OAuth2 + Email Auth** | Authentication | Dual login system: Google OAuth2 or Email/Password. Email confirmation sent via Resend. |
-| **Firebase Storage**| File Storage      | Easy image storage for uploaded maps and POIs.             |
+| **Google OAuth2 + Email Auth** | Authentication | Dual login system: Google OAuth2 or Email/Password. Email confirmation sent via Mailtrap. |
+| **Local Storage**  | File Storage       | Local file storage with Docker volumes for development.    |
 | **Axios**          | API Requests       | Simplifies frontend-backend HTTP communication.            |
 
 ---
 
 ## ☁️ Hosting & Deployment
 
-| Platform    | Role                | Why chosen?                                                           |
-|-------------|---------------------|-----------------------------------------------------------------------|
-| **Railway** | Backend & Database  | Simple, efficient hosting for Express API and MySQL, easy setup.      |
-| **Vercel**  | Frontend            | Rapid deployment, optimal for Vue/Vite apps, built-in PWA support.    |
-+ **Firebase Storage** | File Storage | Stores map background images, POI images, and custom icons. |
+| Platform         | Role                | Why chosen?                                                           |
+|------------------|---------------------|-----------------------------------------------------------------------|
+| **Docker Compose** | Full Stack       | Local development environment with database, backend, and frontend.   |
+| **Local Storage** | File Storage       | Stores map background images, POI images, and custom icons locally.   |
 ---
 
 ## 🧪 Development & Productivity Tools
@@ -56,15 +55,15 @@ The WayPoint Map Builder project leverages modern web technologies carefully cho
 | Service | Role                          | Why use it?                                                |
 |---------|-------------------------------|------------------------------------------------------------|
 | IGDB API (via Twitch) | Game metadata provider       | Enables users to select official games when creating maps. Includes covers, release dates, and game slugs. |
-| Resend | Email Delivery | Handles email verification links and transactional emails (e.g. sign-up confirmation). |
+| Mailtrap | Email Delivery (Development) | Handles email verification links and transactional emails during development. |
 
 ---
 
 ## 🗃️ Database Management
 
-- **Prisma ORM**
-  - Simplifies MySQL interactions with intuitive schemas and type-safe queries.
-  - [Prisma Documentation](https://www.prisma.io/docs)
+- **MySQL2**
+  - Direct MySQL database client for Node.js with promise support.
+  - Provides raw SQL access for flexible database operations.
 
 ---
 
@@ -113,13 +112,11 @@ To prepare for rapid adoption and ensure smooth scalability, the following optim
 - **Dynamic POI Loading**
   - POIs dynamically loaded based on user's viewport to enhance performance and reduce server load.
 - **Automated Image Optimization**
-  - Thumbnails automatically generated via Firebase Storage for efficient image loading.
+  - Thumbnails automatically generated via Sharp for efficient image loading.
 
-### 🔄 Real-time Collaboration Optimization (Socket.io)
-- **Efficient Connection Management**
-  - Handling WebSocket connections robustly, with graceful fallback mechanisms.
-- **Notification Optimization**
-  - Notifications throttled and batched to optimize real-time collaboration performance.
+### 🔄 Real-time Collaboration (Future)
+- **WebSocket Implementation (Planned)**
+  - Socket.io integration planned for post-MVP real-time collaboration features.
 
 
 > 💡 **Stack decisions were made to prioritize ease of use, maintainability, and scalability, aligned with project scope and objectives.**

@@ -26,7 +26,7 @@ async function validateImageBuffer(buffer, options = {}) {
     }
 
     // Check dimensions
-    const image = sharp(buffer);
+    const image = sharp(buffer, { limitInputPixels: false });
     const metadata = await image.metadata();
 
     if (metadata.width > maxWidth || metadata.height > maxHeight) {
@@ -50,7 +50,8 @@ async function validateImageBuffer(buffer, options = {}) {
 }
 
 /**
- * Convert an image buffer to WebP and save to disk.
+ * Convert an image buffer to WebP or PNG and save to disk.
+ * Uses PNG for images larger than WebP limits (16383x16383).
  * Only resizes if resizeOptions is provided (used for avatars/thumbnails).
  * For maps: do NOT resize (keep original size).
  * @param {Buffer} buffer
@@ -59,40 +60,99 @@ async function validateImageBuffer(buffer, options = {}) {
  */
 async function convertToWebP(buffer, outputPath, resizeOptions) {
   try {
-    let sharpInstance = sharp(buffer);
+    // Get image metadata to check dimensions
+    const metadata = await sharp(buffer, { limitInputPixels: false }).metadata();
+    const { width, height } = metadata;
+
+    // WebP maximum dimensions are 16383x16383
+    const webpMaxDimension = 16383;
+    const useWebP = width <= webpMaxDimension && height <= webpMaxDimension;
+
+    let sharpInstance = sharp(buffer, { limitInputPixels: false });
     if (resizeOptions) {
       sharpInstance = sharpInstance.resize(resizeOptions);
     }
-    await sharpInstance
-      .webp({ quality: 80 })
-      .toFile(outputPath);
+
+    if (useWebP) {
+      await sharpInstance
+        .webp({ quality: 80 })
+        .toFile(outputPath);
+    } else {
+      // Update file extension to .png
+      const pngPath = outputPath.replace(/\.webp$/, '.png');
+      await sharpInstance
+        .png({ quality: 80, compressionLevel: 6 })
+        .toFile(pngPath);
+    }
   } catch (err) {
-    throw new Error('Error during image conversion to WebP.');
+    console.error('Error in convertToWebP:', err);
+    throw new Error(`Error during image conversion: ${err.message}`);
   }
 }
 
 /**
- * Generate a thumbnail (WebP, 300px width) from an image buffer and save to disk.
+ * Generate a thumbnail (WebP or PNG, 300px width) from an image buffer and save to disk.
+ * Uses PNG for very large source images, WebP for normal sizes.
  * @param {Buffer} buffer
  * @param {string} outputPath
  */
 async function generateThumbnail(buffer, outputPath) {
   try {
+    // Get source image metadata
+    const metadata = await sharp(buffer, { limitInputPixels: false }).metadata();
+    const { width, height } = metadata;
+
+    // For thumbnails, always use WebP since we resize to 300x300
+    // Only use PNG if the source is extremely large and might cause processing issues
+    const webpMaxDimension = 16383;
+    const useWebP = width <= webpMaxDimension && height <= webpMaxDimension;
+
     const size = 300;
-    await sharp(buffer)
+
+    let sharpInstance = sharp(buffer, { limitInputPixels: false })
       .resize(size, size, {
         fit: 'cover',
         position: 'center'
-      })
-      .webp({ quality: 80 })
-      .toFile(outputPath);
+      });
+
+    if (useWebP) {
+      await sharpInstance
+        .webp({ quality: 80 })
+        .toFile(outputPath);
+    } else {
+      const pngPath = outputPath.replace(/\.webp$/, '.png');
+      await sharpInstance
+        .png({ quality: 80, compressionLevel: 6 })
+        .toFile(pngPath);
+    }
   } catch (err) {
-    throw new Error('Error during thumbnail generation.');
+    console.error('Error in generateThumbnail:', err);
+    throw new Error(`Error during thumbnail generation: ${err.message}`);
   }
+}
+
+/**
+ * Determine the optimal format based on image dimensions
+ * @param {Buffer} buffer
+ * @returns {Promise<{useWebP: boolean, extension: string}>}
+ */
+async function getOptimalFormat(buffer) {
+  const metadata = await sharp(buffer, { limitInputPixels: false }).metadata();
+  const { width, height } = metadata;
+  const webpMaxDimension = 16383;
+  const useWebP = width <= webpMaxDimension && height <= webpMaxDimension;
+
+  return {
+    useWebP,
+    extension: useWebP ? '.webp' : '.png',
+    width,
+    height
+  };
 }
 
 module.exports = {
   validateImageBuffer,
   convertToWebP,
-  generateThumbnail
+  generateThumbnail,
+  getOptimalFormat
 }; 

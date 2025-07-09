@@ -88,18 +88,24 @@ async function createMap(req, res) {
         return res.status(400).json({ error: 'Image is required.' });
       }
 
+      console.log(`Processing image upload: ${req.file.size} bytes`);
+
       // Get image dimensions and validate
-      const metadata = await sharp(req.file.buffer).metadata();
+      console.log('Getting image metadata...');
+      const metadata = await sharp(req.file.buffer, { limitInputPixels: false }).metadata();
       imageWidth = metadata.width;
       imageHeight = metadata.height;
+      console.log(`Image dimensions: ${imageWidth}x${imageHeight}`);
 
       // Validate image (allow large images for maps)
+      console.log('Validating image...');
       await imageUtils.validateImageBuffer(req.file.buffer, {
-        maxWidth: 10000,
-        maxHeight: 10000,
+        maxWidth: Infinity,
+        maxHeight: Infinity,
         minWidth: 100,
         minHeight: 100
       });
+      console.log('Image validation completed');
 
       // Prepare paths
       const gameSlug = slugify(gameName);
@@ -111,10 +117,14 @@ async function createMap(req, res) {
         return res.status(500).json({ error: 'Error creating uploads directory.' });
       }
 
-      // Generate filenames
+      // Determine optimal format based on image size
+      const { useWebP, extension } = await imageUtils.getOptimalFormat(req.file.buffer);
+      console.log(`Using format: ${useWebP ? 'WebP' : 'PNG'} for map ${req.body.mapName}`);
+
+      // Generate filenames with correct extension
       const mapId = uuidv4();
-      const finalName = `${mapId}.webp`;
-      const thumbName = `${mapId}_thumb.webp`;
+      const finalName = `${mapId}${extension}`;
+      const thumbName = `${mapId}_thumb${extension}`;
       const finalPath = path.join(uploadsDir, finalName);
       const thumbPath = path.join(uploadsDir, thumbName);
 
@@ -151,6 +161,13 @@ async function createMap(req, res) {
     });
   } catch (err) {
     console.error('createMap error:', err.stack || err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      errno: err.errno,
+      syscall: err.syscall,
+      path: err.path
+    });
 
     // Cleanup in case of error
     if (map && map.id) {
@@ -164,7 +181,13 @@ async function createMap(req, res) {
     if (err.message.includes('image')) {
       return res.status(400).json({ error: err.message });
     }
-    res.status(500).json({ error: 'Error while creating the map.' });
+
+    // Return more specific error message for debugging
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'Error while creating the map.'
+      : `Error while creating the map: ${err.message}`;
+
+    res.status(500).json({ error: errorMessage });
   }
 }
 

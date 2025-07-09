@@ -66,7 +66,7 @@ async function registerUser(req, res) {
 
     if (process.env.NODE_ENV !== 'test') {
       console.log(`[DEV] Use this link to verify manually:`);
-      console.log(`http://localhost:3000/api/backend/auth/verify-email?token=${token}`);
+      console.log(`${process.env.FRONTEND_URL}/verify-email?token=${token}`);
     }
 
     return res.status(201).json({
@@ -159,12 +159,12 @@ async function verifyEmail(req, res) {
     }
 
     if (user.email_verified) {
-      return res.status(200).json({ message: 'Email already verified' });
+      return res.status(200).json({ message: 'Email already verified', verified: true });
     }
 
     await updateUserEmailVerified(user.id);
 
-    return res.redirect(`${process.env.FRONTEND_URL}/verify-email?verified=true`);
+    return res.status(200).json({ message: 'Email verified successfully', verified: true });
 
   } catch (err) {
     console.error('verifyEmail Error :', err);

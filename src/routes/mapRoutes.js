@@ -9,7 +9,7 @@ const rateLimit = require('express-rate-limit');
 // Configure multer to store images in memory
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 1 * 1024 * 1024 * 1024 }, // 1GB
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) {
       return cb(new Error('Only image files are allowed'), false);
@@ -22,7 +22,7 @@ const upload = multer({
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File is too large (max 50MB)' });
+      return res.status(400).json({ error: 'File is too large (max 1GB)' });
     }
     return res.status(400).json({ error: err.message });
   }

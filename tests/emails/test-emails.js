@@ -358,7 +358,6 @@ function createTestEmails() {
 <body>
   <div class="header">
     <h1>WayPoint Email Preview</h1>
-    <p>All email templates with the new design</p>
   </div>
 
   <div class="email-list">
@@ -372,11 +371,6 @@ function createTestEmails() {
         </div>
       </div>
     `).join('')}
-  </div>
-
-  <div class="footer">
-    <p>Generated on ${new Date().toLocaleString('en-US')}</p>
-    <p>To regenerate, run: <code>node tests/emails/test-emails.js</code></p>
   </div>
 </body>
 </html>`;

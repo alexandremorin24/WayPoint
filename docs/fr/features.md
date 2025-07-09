@@ -64,7 +64,7 @@ WayPoint Map Builder est conçu avec une distinction claire entre les fonctionna
 - Les utilisateurs peuvent s’inscrire et se connecter via :
   - **Google OAuth2** (via le fournisseur officiel)
   - **Email + mot de passe** (création de compte classique)
-- Lors de l’inscription par email, un lien de confirmation sécurisé est envoyé (via [Resend](https://resend.com)) pour valider l’adresse.
+- Lors de l’inscription par email, un lien de confirmation sécurisé est envoyé (via Mailtrap pour le développement) pour valider l’adresse.
 - Le système garantit :
   - Un stockage sécurisé des mots de passe (hachés + salés)
   - Unicité des adresses email
